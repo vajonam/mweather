@@ -1,10 +1,10 @@
 {
-  "uuid": "6ebe49d7-bc89-498e-b147-049f49c099ad",
-  "shortName": "Futura Weather",
-  "longName": "Futura Weather",
+  "uuid": "24dc18f4-19a2-4800-a7b0-abec28e4d163",
+  "shortName": "Weather My Way",
+  "longName": "Weather My Way",
   "companyName": "Pebble Community",
-  "versionCode": 8,
-  "versionLabel": "2.0.3",
+  "versionCode": 10,
+  "versionLabel": "0.0.3",
   "watchapp": {
     "watchface": true
   },
