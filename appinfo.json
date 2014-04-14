@@ -5,6 +5,7 @@
   "companyName": "Pebble Community",
   "versionCode": 10,
   "versionLabel": "0.0.3",
+  "capabilities": [ "configurable" ],
   "watchapp": {
     "watchface": true
   },

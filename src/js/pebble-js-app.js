@@ -8,6 +8,18 @@ Pebble.addEventListener("appmessage", function(e) {
     updateWeather();
 });
 
+Pebble.addEventListener("showConfiguration", function (e) {
+    console.log('Configuration requested');
+    Pebble.openURL("http://ishoneyvegan.com/pebble/");
+});
+
+Pebble.addEventListener("webviewclosed", function(e) {
+    console.log(e.response);
+    var responseFromWebView = decodeURIComponent(e.response);
+    var settings = JSON.parse(responseFromWebView);
+    Pebble.sendAppMessage(settings);
+});
+
 var updateInProgress = false;
 
 function updateWeather() {
