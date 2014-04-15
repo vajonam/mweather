@@ -82,9 +82,16 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 
       // Day/night check
       bool night_time = false;
-      if (weather_data->current_time < weather_data->sunrise || weather_data->current_time > weather_data->sunset)
+      if (weather_data->current_time < weather_data->sunrise || 
+          weather_data->current_time > weather_data->sunset) {
         night_time = true;
-      weather_layer_set_icon(weather_layer, weather_icon_for_condition(weather_data->condition, night_time));
+      }
+
+      if (strcmp(weather_data->service, SERVICE_YAHOO_WEATHER) == 0) {
+        weather_layer_set_icon(weather_layer, yahoo_weather_icon_for_condition(weather_data->condition, night_time));
+      } else {
+        weather_layer_set_icon(weather_layer, open_weather_icon_for_condition(weather_data->condition, night_time));
+      }
     }
   }
 

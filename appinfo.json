@@ -3,8 +3,8 @@
   "shortName": "Weather My Way",
   "longName": "Weather My Way",
   "companyName": "Pebble Community",
-  "versionCode": 10,
-  "versionLabel": "0.0.3",
+  "versionCode": 36,
+  "versionLabel": "1.0.0",
   "capabilities": [ "configurable" ],
   "watchapp": {
     "watchface": true
@@ -12,10 +12,11 @@
   "appKeys": {
     "temperature": 0,
     "condition": 1,
-	"sunrise": 2,
-	"sunset": 3,
-	"current_time": 4,
+	  "sunrise": 2,
+	  "sunset": 3,
+	  "current_time": 4,
     "error": 5,
+    "service": 6,
     "request_update": 42
   },
   "resources": {

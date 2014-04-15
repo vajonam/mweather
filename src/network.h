@@ -6,7 +6,12 @@
 #define KEY_SUNSET 3
 #define KEY_CURRENT_TIME 4
 #define KEY_ERROR 5
+#define KEY_SERVICE 6
 #define KEY_REQUEST_UPDATE 42
+
+#define SERVICE_OPEN_WEATHER "open"
+#define SERVICE_YAHOO_WEATHER "yahoo"
+
 typedef enum {
   WEATHER_E_OK = 0,
   WEATHER_E_DISCONNECTED,
@@ -20,6 +25,7 @@ typedef struct {
   int sunrise;
   int sunset;
   int current_time;
+  char* service;
   time_t updated;
   WeatherError error;
 } WeatherData;

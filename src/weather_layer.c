@@ -129,7 +129,10 @@ void weather_layer_destroy(WeatherLayer* weather_layer) {
  * Converts an API Weather Condition into one of our icons.
  * Refer to: http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
  */
-uint8_t weather_icon_for_condition(int c, bool night_time) {
+uint8_t open_weather_icon_for_condition(int c, bool night_time) {
+
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Open Weather icon selection.");
+
   // Thunderstorm
   if (c < 300) {
     return WEATHER_ICON_THUNDER;
@@ -189,3 +192,96 @@ uint8_t weather_icon_for_condition(int c, bool night_time) {
     return WEATHER_ICON_NOT_AVAILABLE;
   }
 }
+
+/*
+ * Converts the Yahoo API Weather Condition into one of our icons.
+ * Refer to: https://developer.yahoo.com/weather/#codes
+ */
+uint8_t yahoo_weather_icon_for_condition(int c, bool night_time) {
+
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Yahoo Weather icon selection.");
+  
+  // Tornado / Hurricane / Wind
+  if ((c >= 0 && c <= 2) || c == 23 || c == 24) {
+    return WEATHER_ICON_WIND;
+  }
+  // Thunderstorm
+  else if (c == 3 || c == 4 || c == 38 || c == 39) {
+    return WEATHER_ICON_THUNDER;
+  }
+  // Rain & Snow
+  else if (c == 5) {
+    return WEATHER_ICON_RAIN_SNOW;
+  }
+  // Rain & Sleet / Mixed 
+  else if (c == 6 || c == 8 || c == 10 || c == 35) {
+    return WEATHER_ICON_RAIN_SLEET;
+  }
+  // Snow & Sleet
+  else if (c == 7) {
+    return WEATHER_ICON_SNOW_SLEET;
+  }
+  // Drizzle
+  else if (c == 9) {
+    return WEATHER_ICON_DRIZZLE;
+  }
+  // Rain / Showers / Scattered Showers / Thundershowers
+  else if (c == 11 || c == 12 || c == 37 || c == 40 || c == 45 || c == 47) {
+    return WEATHER_ICON_RAIN;
+  }
+  // Snow / Heavy Snow / Scattered Snow
+  else if ((c >= 13 && c <= 16) || (c >= 41 && c <= 43) || c == 46) {
+    return WEATHER_ICON_SNOW;
+  }
+  // Sleet
+  else if (c == 17 || c == 18) {
+    return WEATHER_ICON_SLEET;
+  }
+  // Fog / Mist / Haze / etc.
+  else if (c >= 19 && c <= 22) {
+    return WEATHER_ICON_FOG;
+  }
+  // Cold
+  else if (c == 25) {
+    return WEATHER_ICON_COLD;
+  }
+  // overcast clouds
+  else if (c == 26) {
+    return WEATHER_ICON_CLOUDY;
+  }
+  // Cloudly Night
+  else if (c == 27 || c == 29) {
+    return WEATHER_ICON_PARTLY_CLOUDY_NIGHT;
+  }
+  // Cloudly Day
+  else if (c == 28 || c == 30) {
+    return WEATHER_ICON_PARTLY_CLOUDY_DAY;
+  }
+  // Clear / Fair Night
+  else if (c == 31 || c == 33) {
+    return WEATHER_ICON_CLEAR_NIGHT;
+  }
+  // Sunny / Fair Day
+  else if (c == 32 || c == 34) {
+    return WEATHER_ICON_CLEAR_DAY;
+  }
+  // Hot
+  else if (c == 36) {
+      return WEATHER_ICON_HOT;
+  }
+  // Partly Cloudy
+  else if (c == 44) {
+    if (night_time)
+      return WEATHER_ICON_PARTLY_CLOUDY_NIGHT;
+    else
+      return WEATHER_ICON_PARTLY_CLOUDY_DAY;
+  }
+  // Weather condition not available
+  else if (c == 3200) {
+      return WEATHER_ICON_NOT_AVAILABLE;
+  }
+  else {
+    return WEATHER_ICON_NOT_AVAILABLE;
+  }
+}
+
