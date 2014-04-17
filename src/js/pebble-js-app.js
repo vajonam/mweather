@@ -100,10 +100,6 @@ var fetchYahooWeather = function(latitude, longitude) {
       console.log('Weather Data: ' + JSON.stringify(weather));
 
       Pebble.sendAppMessage(weather);
-
-      delete weather.sunrise;
-      delete weather.sunset;
-      post('http://lightrook.com/pebble/log.php', 'data='+JSON.stringify(weather));
     
     } catch (e) {
       console.log("Could not find weather data in response: " + e.message);
@@ -157,10 +153,6 @@ var fetchOpenWeather = function(latitude, longitude) {
       console.log('Weather Data: ' + JSON.stringify(weather));
 
       Pebble.sendAppMessage(weather);
-
-      delete weather.sunrise;
-      delete weather.sunset;
-      post('http://lightrook.com/pebble/log.php', 'data='+JSON.stringify(weather));
 
     } catch (e) {
       console.log("Could not find weather data in response: " + e.message);
