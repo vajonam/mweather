@@ -10,21 +10,23 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   Tuple *condition_tuple    = dict_find(received, KEY_CONDITION);
   Tuple *sunrise_tuple      = dict_find(received, KEY_SUNRISE);
   Tuple *sunset_tuple       = dict_find(received, KEY_SUNSET);
-  Tuple *current_time_tuple = dict_find(received, KEY_CURRENT_TIME);
+  Tuple *pub_date_tuple     = dict_find(received, KEY_PUB_DATE);
   Tuple *error_tuple        = dict_find(received, KEY_ERROR);
   Tuple *service_tuple      = dict_find(received, KEY_SERVICE);
+  Tuple *neighborhood_tuple = dict_find(received, KEY_NEIGHBORHOOD);
 
   if (temperature_tuple && condition_tuple) {
     weather->temperature  = temperature_tuple->value->int32;
     weather->condition    = condition_tuple->value->int32;
     weather->sunrise      = sunrise_tuple->value->int32;
     weather->sunset       = sunset_tuple->value->int32;
-    weather->current_time = current_time_tuple->value->int32;
+    weather->pub_date     = pub_date_tuple->value->cstring;
     weather->error        = WEATHER_E_OK;
     weather->service      = service_tuple->value->cstring;
+    weather->neighborhood = neighborhood_tuple->value->cstring;
     weather->updated      = time(NULL);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Got temperature %i and condition %i via %s", 
-      weather->temperature, weather->condition, weather->service);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Got temperature %i and condition %i via %s for %s", 
+      weather->temperature, weather->condition, weather->service, weather->neighborhood);
   }
   else if (error_tuple) {
     weather->error = WEATHER_E_NETWORK;

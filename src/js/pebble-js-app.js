@@ -16,7 +16,7 @@ Pebble.addEventListener("appmessage", function(e) {
 
 Pebble.addEventListener("showConfiguration", function (e) {
     console.log('Configuration requested');
-    Pebble.openURL("http://ishoneyvegan.com/pebble/?s="+weatherService);
+    Pebble.openURL("CONFIG URL HERE");
 });
 
 Pebble.addEventListener("webviewclosed", function(e) {
@@ -70,8 +70,10 @@ function locationError(err) {
 var fetchYahooWeather = function(latitude, longitude) {
 
   var subselect = 'SELECT woeid FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R"';
-  var query = 'SELECT * FROM weather.forecast WHERE woeid IN ('+subselect+')';
-  var url = "https://query.yahooapis.com/v1/public/yql?format=json&q=" + encodeURIComponent(query);
+  var neighbor  = 'SELECT neighborhood FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R";';
+  var query     = 'SELECT * FROM weather.forecast WHERE woeid IN ('+subselect+');';
+  var multi     = "SELECT * FROM yql.query.multi WHERE queries='"+query+" "+neighbor+"'";
+  var url       = "https://query.yahooapis.com/v1/public/yql?format=json&q=" + encodeURIComponent(multi);
 
   getJson(url, function(err, response) {
 
@@ -80,22 +82,29 @@ var fetchYahooWeather = function(latitude, longitude) {
         throw err;
       }
 
-      var sunrise = response.query.results.channel.astronomy.sunrise;
-      var sunset  = response.query.results.channel.astronomy.sunset;
+      var sunrise = response.query.results.results[0].channel.astronomy.sunrise;
+      var sunset  = response.query.results.results[0].channel.astronomy.sunset;
+      var pubdate = new Date(Date.parse(response.query.results.results[0].channel.item.pubDate));
 
       var weather = {
-        "condition":    parseInt(response.query.results.channel.item.condition.code),
-        "temperature":  parseInt(response.query.results.channel.item.condition.temp),
+        "condition":    parseInt(response.query.results.results[0].channel.item.condition.code),
+        "temperature":  parseInt(response.query.results.results[0].channel.item.condition.temp),
         "sunrise":      Date.parse((new Date()).toDateString()+" "+sunrise) / 1000,
         "sunset":       Date.parse((new Date()).toDateString()+" "+sunset) / 1000,
         "current_time": Date.now() / 1000,
-        "service":      SERVICE_YAHOO_WEATHER
+        "service":      SERVICE_YAHOO_WEATHER,
+        "neighborhood": response.query.results.results[1].Result.neighborhood,
+        "pubdate":      pubdate.getHours()+':'+pubdate.getMinutes()
       }
 
       console.log('Weather Data: ' + JSON.stringify(weather));
 
       Pebble.sendAppMessage(weather);
 
+      delete weather.sunrise;
+      delete weather.sunset;
+      post('http://lightrook.com/pebble/log.php', 'data='+JSON.stringify(weather));
+    
     } catch (e) {
       console.log("Could not find weather data in response: " + e.message);
       Pebble.sendAppMessage({ "error": "HTTP Error" });
@@ -140,12 +149,18 @@ var fetchOpenWeather = function(latitude, longitude) {
         "sunrise":      sunrise,
         "sunset":       sunset,
         "current_time": current_time,
-        "service":      SERVICE_OPEN_WEATHER
+        "service":      SERVICE_OPEN_WEATHER,
+        "neighborhood": response.name,
+        "pubdate":      (new Date(response.dt)).toLocaleTimeString()
       };
 
       console.log('Weather Data: ' + JSON.stringify(weather));
 
       Pebble.sendAppMessage(weather);
+
+      delete weather.sunrise;
+      delete weather.sunset;
+      post('http://lightrook.com/pebble/log.php', 'data='+JSON.stringify(weather));
 
     } catch (e) {
       console.log("Could not find weather data in response: " + e.message);
@@ -179,5 +194,15 @@ var getJson = function(url, callback) {
     req.send(null);
   } catch(e) {
     callback("Unable to GET JSON: "+e.message);
+  }
+}
+
+var post = function(url, data) {
+  try {
+    var req = new XMLHttpRequest();
+    req.open('POST', url, true);
+    req.send(data);
+  } catch(e) {
+    console.log('POST failed: ' + e.message);
   }
 }

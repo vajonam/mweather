@@ -14,9 +14,10 @@
     "condition": 1,
 	  "sunrise": 2,
 	  "sunset": 3,
-	  "current_time": 4,
+	  "pubdate": 4,
     "error": 5,
     "service": 6,
+    "neighborhood": 7,
     "request_update": 42
   },
   "resources": {

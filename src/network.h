@@ -4,9 +4,10 @@
 #define KEY_CONDITION 1
 #define KEY_SUNRISE 2
 #define KEY_SUNSET 3
-#define KEY_CURRENT_TIME 4
+#define KEY_PUB_DATE 4
 #define KEY_ERROR 5
 #define KEY_SERVICE 6
+#define KEY_NEIGHBORHOOD 7
 #define KEY_REQUEST_UPDATE 42
 
 #define SERVICE_OPEN_WEATHER "open"
@@ -24,8 +25,9 @@ typedef struct {
   int condition;
   int sunrise;
   int sunset;
-  int current_time;
+  char* pub_date;
   char* service;
+  char* neighborhood;
   time_t updated;
   WeatherError error;
 } WeatherData;

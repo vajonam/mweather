@@ -6,6 +6,7 @@
 
 #define TIME_FRAME      (GRect(0, 2, 144, 168-6))
 #define DATE_FRAME      (GRect(1, 66, 144, 168-62))
+#define DEBUG_FRAME     (GRect(0, 168-20, 144, 20))
 
 /* Keep a pointer to the current weather data as a global variable */
 static WeatherData *weather_data;
@@ -14,6 +15,7 @@ static WeatherData *weather_data;
 static Window *window;
 static TextLayer *date_layer;
 static TextLayer *time_layer;
+static TextLayer *debug_layer;
 static WeatherLayer *weather_layer;
 
 static char date_text[] = "XXX 00";
@@ -82,8 +84,8 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 
       // Day/night check
       bool night_time = false;
-      if (weather_data->current_time < weather_data->sunrise || 
-          weather_data->current_time > weather_data->sunset) {
+      if (time(NULL) < weather_data->sunrise || 
+          time(NULL) > weather_data->sunset) {
         night_time = true;
       }
 
@@ -92,6 +94,11 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
       } else {
         weather_layer_set_icon(weather_layer, open_weather_icon_for_condition(weather_data->condition, night_time));
       }
+
+      // Set Debug
+      static char debug_msg[200];
+      snprintf(debug_msg, 200, "%s, %s", weather_data->pub_date, weather_data->neighborhood);
+      text_layer_set_text(debug_layer, debug_msg);
     }
   }
 
@@ -131,6 +138,13 @@ static void init(void) {
   weather_layer = weather_layer_create(GRect(0, 90, 144, 80));
   layer_add_child(window_get_root_layer(window), weather_layer);
 
+  debug_layer = text_layer_create(DEBUG_FRAME);
+  text_layer_set_text_color(debug_layer, GColorBlack);
+  text_layer_set_background_color(debug_layer, GColorClear);
+  text_layer_set_font(debug_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+  text_layer_set_text_alignment(debug_layer, GTextAlignmentRight);
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(debug_layer));
+
   // Update the screen right away
   time_t now = time(NULL);
   handle_tick(localtime(&now), SECOND_UNIT | MINUTE_UNIT | HOUR_UNIT | DAY_UNIT );
@@ -145,6 +159,7 @@ static void deinit(void) {
   text_layer_destroy(time_layer);
   text_layer_destroy(date_layer);
   weather_layer_destroy(weather_layer);
+  text_layer_destroy(debug_layer);
 
   fonts_unload_custom_font(font_date);
   fonts_unload_custom_font(font_time);
