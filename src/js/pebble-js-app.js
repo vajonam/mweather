@@ -1,8 +1,12 @@
 var SERVICE_OPEN_WEATHER  = "open";
 var SERVICE_YAHOO_WEATHER = "yahoo";
+var EXTERNAL_DEBUG_URL    = '';
+var CONFIGURATION_URL     = '';
 
 var updateInProgress = false;
-var weatherService   = SERVICE_YAHOO_WEATHER;
+var externalDebugEnabled = true;  // POST logs to external server - dangerous! lat lon recorded
+var watchDebugEnabled = true;     // Display debug info on watch
+var weatherService = SERVICE_YAHOO_WEATHER;
 
 Pebble.addEventListener("ready", function(e) {
     console.log("Starting ...");
@@ -10,13 +14,14 @@ Pebble.addEventListener("ready", function(e) {
 });
 
 Pebble.addEventListener("appmessage", function(e) {
-    console.log("Got a message - Starting weather request...");
+    console.log("Got a message - Starting weather request:" + JSON.stringify(e.payload));
     updateWeather();
 });
 
 Pebble.addEventListener("showConfiguration", function (e) {
     console.log('Configuration requested');
-    Pebble.openURL("CONFIG URL HERE");
+    var queryString = '?s='+weatherService+'&d='+watchDebugEnabled;
+    Pebble.openURL(CONFIGURATION_URL+queryString);
 });
 
 Pebble.addEventListener("webviewclosed", function(e) {
@@ -27,15 +32,23 @@ Pebble.addEventListener("webviewclosed", function(e) {
       try {
         var responseFromWebView = decodeURIComponent(e.response);
         var settings = JSON.parse(responseFromWebView);
-        if (settings.radioyahoo) {
+
+        if (settings.service === SERVICE_YAHOO_WEATHER) {
           weatherService = SERVICE_YAHOO_WEATHER;
         } else {
           weatherService = SERVICE_OPEN_WEATHER;
         }
-        console.log("Weather service is "+weatherService);
+
+        if (settings.debug === 'true') {
+          watchDebugEnabled = true;
+        } else {
+          watchDebugEnabled = false;
+        }
+
+        console.log("Weather service is "+weatherService+", debug is "+watchDebugEnabled);
         updateWeather();
       } catch(e) {
-        console.log("Unable to parse response from configuration:"+e.message);
+        console.warn("Unable to parse response from configuration:"+e.message);
       }
     }
 });
@@ -62,8 +75,10 @@ function locationSuccess(pos) {
 }
 
 function locationError(err) {
-    console.warn('Location error (' + err.code + '): ' + err.message);
+    var message = 'Location error (' + err.code + '): ' + err.message;
+    console.warn(message);
     Pebble.sendAppMessage({ "error": "Loc unavailable" });
+    postDebugMessage(message);
     updateInProgress = false;
 }
 
@@ -75,6 +90,8 @@ var fetchYahooWeather = function(latitude, longitude) {
   var multi     = "SELECT * FROM yql.query.multi WHERE queries='"+query+" "+neighbor+"'";
   var url       = "https://query.yahooapis.com/v1/public/yql?format=json&q=" + encodeURIComponent(multi);
 
+  //console.log('Query: ' + url);
+
   getJson(url, function(err, response) {
 
     try {
@@ -85,25 +102,29 @@ var fetchYahooWeather = function(latitude, longitude) {
       var sunrise = response.query.results.results[0].channel.astronomy.sunrise;
       var sunset  = response.query.results.results[0].channel.astronomy.sunset;
       var pubdate = new Date(Date.parse(response.query.results.results[0].channel.item.pubDate));
+      var neighborhood = ''+response.query.results.results[1].Result.neighborhood;
 
       var weather = {
         "condition":    parseInt(response.query.results.results[0].channel.item.condition.code),
         "temperature":  parseInt(response.query.results.results[0].channel.item.condition.temp),
         "sunrise":      Date.parse((new Date()).toDateString()+" "+sunrise) / 1000,
         "sunset":       Date.parse((new Date()).toDateString()+" "+sunset) / 1000,
-        "current_time": Date.now() / 1000,
         "service":      SERVICE_YAHOO_WEATHER,
-        "neighborhood": response.query.results.results[1].Result.neighborhood,
-        "pubdate":      pubdate.getHours()+':'+pubdate.getMinutes()
+        "neighborhood": neighborhood,
+        "pubdate":      pubdate.getHours()+':'+pubdate.getMinutes(),
+        "debug":        watchDebugEnabled
       }
 
       console.log('Weather Data: ' + JSON.stringify(weather));
 
       Pebble.sendAppMessage(weather);
+      postDebugMessage(weather);
     
     } catch (e) {
-      console.log("Could not find weather data in response: " + e.message);
-      Pebble.sendAppMessage({ "error": "HTTP Error" });
+      console.warn("Could not find weather data in response: " + e.message);
+      var error = { "error": "HTTP Error" };
+      Pebble.sendAppMessage(error);
+      postDebugMessage(error);
     } finally {
       updateInProgress = false;
     }
@@ -122,7 +143,7 @@ var fetchOpenWeather = function(latitude, longitude) {
         throw err;
       }
 
-      var temperature, sunrise, sunset, condition;
+      var temperature, sunrise, sunset, condition, pubdate;
       var current_time = Date.now() / 1000;
 
       var tempResult = response.main.temp;
@@ -136,27 +157,32 @@ var fetchOpenWeather = function(latitude, longitude) {
       }
 
       condition = response.weather[0].id;
-      sunrise = response.sys.sunrise;
-      sunset = response.sys.sunset;
+      sunrise   = response.sys.sunrise;
+      sunset    = response.sys.sunset;
+      pubdate   = new Date(response.dt);
 
       var weather = {
         "condition":    condition,
         "temperature":  temperature,
         "sunrise":      sunrise,
         "sunset":       sunset,
-        "current_time": current_time,
         "service":      SERVICE_OPEN_WEATHER,
         "neighborhood": response.name,
-        "pubdate":      (new Date(response.dt)).toLocaleTimeString()
+        "pubdate":      pubdate.getHours()+':'+pubdate.getMinutes(),
+        "debug":        watchDebugEnabled
       };
 
       console.log('Weather Data: ' + JSON.stringify(weather));
 
       Pebble.sendAppMessage(weather);
 
+      postDebugMessage(weather);
+
     } catch (e) {
-      console.log("Could not find weather data in response: " + e.message);
-      Pebble.sendAppMessage({ "error": "HTTP Error" });
+      console.warn("Could not find weather data in response: " + e.message);
+      var error = { "error": "HTTP Error" };
+      Pebble.sendAppMessage(error);
+      postDebugMessage(error);
     } finally {
       updateInProgress = false;
     }
@@ -187,6 +213,21 @@ var getJson = function(url, callback) {
   } catch(e) {
     callback("Unable to GET JSON: "+e.message);
   }
+}
+
+var postDebugMessage = function (data) {
+  if (!externalDebugEnabled || EXTERNAL_DEBUG_URL === null) {
+    return;
+  }
+  try {
+    if (typeof data.sunrise !== "undefined") {
+      delete data.sunrise;
+      delete data.sunset;
+    }
+    post(EXTERNAL_DEBUG_URL, 'data='+JSON.stringify(data));
+  } catch (e) {
+    console.warn('Post Debug Message failed:'+e.message);
+  }  
 }
 
 var post = function(url, data) {

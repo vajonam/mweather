@@ -6,7 +6,7 @@
 
 #define TIME_FRAME      (GRect(0, 2, 144, 168-6))
 #define DATE_FRAME      (GRect(1, 66, 144, 168-62))
-#define DEBUG_FRAME     (GRect(0, 168-20, 144, 20))
+#define DEBUG_FRAME     (GRect(0, 168-15, 144, 15))
 
 /* Keep a pointer to the current weather data as a global variable */
 static WeatherData *weather_data;
@@ -20,6 +20,11 @@ static WeatherLayer *weather_layer;
 
 static char date_text[] = "XXX 00";
 static char time_text[] = "00:00";
+
+static bool debug_enabled;
+static char debug_msg[200];
+
+static char weather_service[5];
 
 /* Preload the fonts */
 GFont font_date;
@@ -75,17 +80,21 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
       weather_layer_set_icon(weather_layer, WEATHER_ICON_PHONE_ERROR);
     }
     else {
+      time_t now = time(NULL);
+
       // Show the temperature as 'stale' if it has not been updated in 30 minutes
       bool stale = false;
-      if (weather_data->updated > time(NULL) + 1800) {
+      /*
+      if (now - weather_data->updated > 1800) {
         stale = true;
       }
+      */
       weather_layer_set_temperature(weather_layer, weather_data->temperature, stale);
 
       // Day/night check
       bool night_time = false;
-      if (time(NULL) < weather_data->sunrise || 
-          time(NULL) > weather_data->sunset) {
+      if (now < weather_data->sunrise || 
+          now > weather_data->sunset) {
         night_time = true;
       }
 
@@ -95,10 +104,22 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
         weather_layer_set_icon(weather_layer, open_weather_icon_for_condition(weather_data->condition, night_time));
       }
 
+      debug_enabled = weather_data->debug;
+
       // Set Debug
-      static char debug_msg[200];
-      snprintf(debug_msg, 200, "%s, %s", weather_data->pub_date, weather_data->neighborhood);
-      text_layer_set_text(debug_layer, debug_msg);
+      if (debug_enabled) {
+
+        time_t lastUpdated = weather_data->updated;
+        struct tm *updatedTime = localtime(&lastUpdated);
+        static char updt_text[] = "00:00";
+        strftime(updt_text, sizeof(updt_text), "%R", updatedTime);
+        snprintf(debug_msg, sizeof(debug_msg), 
+          "L%s, P%s, %s", updt_text, weather_data->pub_date, weather_data->neighborhood);
+        text_layer_set_text(debug_layer, debug_msg);
+
+      } else {
+        text_layer_set_text(debug_layer, "");
+      }
     }
   }
 
@@ -110,6 +131,9 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 }
 
 static void init(void) {
+
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "init started");
+
   window = window_create();
   window_stack_push(window, true /* Animated */);
   window_set_background_color(window, GColorBlack);
@@ -145,6 +169,12 @@ static void init(void) {
   text_layer_set_text_alignment(debug_layer, GTextAlignmentRight);
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(debug_layer));
 
+  debug_enabled = persist_exists(KEY_DEBUG_MODE) ? persist_read_bool(KEY_DEBUG_MODE) : DEFAULT_DEBUG_MODE;
+  snprintf(weather_service, sizeof(weather_service), "%s", DEFAULT_WEATHER_SERVICE);
+  if (persist_exists(KEY_WEATHER_SERVICE)) {
+    persist_read_string(KEY_WEATHER_SERVICE, weather_service, sizeof(weather_service));
+  }
+
   // Update the screen right away
   time_t now = time(NULL);
   handle_tick(localtime(&now), SECOND_UNIT | MINUTE_UNIT | HOUR_UNIT | DAY_UNIT );
@@ -153,6 +183,8 @@ static void init(void) {
 }
 
 static void deinit(void) {
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "deinit started");
+
   window_destroy(window);
   tick_timer_service_unsubscribe();
 
@@ -165,6 +197,9 @@ static void deinit(void) {
   fonts_unload_custom_font(font_time);
 
   free(weather_data);
+
+  persist_write_bool(KEY_DEBUG_MODE, debug_enabled);
+  persist_write_string(KEY_WEATHER_SERVICE, weather_service);
 }
 
 int main(void) {

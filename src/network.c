@@ -14,6 +14,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   Tuple *error_tuple        = dict_find(received, KEY_ERROR);
   Tuple *service_tuple      = dict_find(received, KEY_SERVICE);
   Tuple *neighborhood_tuple = dict_find(received, KEY_NEIGHBORHOOD);
+  Tuple *debug_tuple        = dict_find(received, KEY_DEBUG);
 
   if (temperature_tuple && condition_tuple) {
     weather->temperature  = temperature_tuple->value->int32;
@@ -24,9 +25,10 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     weather->error        = WEATHER_E_OK;
     weather->service      = service_tuple->value->cstring;
     weather->neighborhood = neighborhood_tuple->value->cstring;
+    weather->debug        = (bool)debug_tuple->value->int32;
     weather->updated      = time(NULL);
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Got temperature %i and condition %i via %s for %s", 
-      weather->temperature, weather->condition, weather->service, weather->neighborhood);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Got temperature %i and condition %i via %s for %s debug %i", 
+      weather->temperature, weather->condition, weather->service, weather->neighborhood, weather->debug);
   }
   else if (error_tuple) {
     weather->error = WEATHER_E_NETWORK;

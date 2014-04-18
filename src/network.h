@@ -8,6 +8,7 @@
 #define KEY_ERROR 5
 #define KEY_SERVICE 6
 #define KEY_NEIGHBORHOOD 7
+#define KEY_DEBUG 8
 #define KEY_REQUEST_UPDATE 42
 
 #define SERVICE_OPEN_WEATHER "open"
@@ -28,6 +29,7 @@ typedef struct {
   char* pub_date;
   char* service;
   char* neighborhood;
+  bool debug;
   time_t updated;
   WeatherError error;
 } WeatherData;
