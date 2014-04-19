@@ -20,11 +20,9 @@ static WeatherLayer *weather_layer;
 
 static char date_text[] = "XXX 00";
 static char time_text[] = "00:00";
+static char updt_text[] = "00:00";
 
-static bool debug_enabled;
 static char debug_msg[200];
-
-static char weather_service[5];
 
 /* Preload the fonts */
 GFont font_date;
@@ -32,9 +30,11 @@ GFont font_time;
 
 static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 {
+
+  time_t currentTime = time(NULL);
   if (units_changed & MINUTE_UNIT) {
+
     // Update the time - Fix to deal with 12 / 24 centering bug
-    time_t currentTime = time(0);
     struct tm *currentLocalTime = localtime(&currentTime);
 
     // Manually format the time as 12 / 24 hour, as specified
@@ -80,12 +80,12 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
       weather_layer_set_icon(weather_layer, WEATHER_ICON_PHONE_ERROR);
     }
     else {
-      time_t now = time(NULL);
 
       // Show the temperature as 'stale' if it has not been updated in 30 minutes
+      // I really don't like how this looks, removing for now... 
       bool stale = false;
       /*
-      if (now - weather_data->updated > 1800) {
+      if (currentTime - weather_data->updated > 1800) {
         stale = true;
       }
       */
@@ -93,8 +93,8 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 
       // Day/night check
       bool night_time = false;
-      if (now < weather_data->sunrise || 
-          now > weather_data->sunset) {
+      if (currentTime < weather_data->sunrise || 
+          currentTime > weather_data->sunset) {
         night_time = true;
       }
 
@@ -104,18 +104,18 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
         weather_layer_set_icon(weather_layer, open_weather_icon_for_condition(weather_data->condition, night_time));
       }
 
-      debug_enabled = weather_data->debug;
-
       // Set Debug
-      if (debug_enabled) {
+      if (weather_data->debug) {
 
         time_t lastUpdated = weather_data->updated;
         struct tm *updatedTime = localtime(&lastUpdated);
-        static char updt_text[] = "00:00";
         strftime(updt_text, sizeof(updt_text), "%R", updatedTime);
         snprintf(debug_msg, sizeof(debug_msg), 
           "L%s, P%s, %s", updt_text, weather_data->pub_date, weather_data->neighborhood);
         text_layer_set_text(debug_layer, debug_msg);
+
+        // reset localtime, critical as localtime modifies a shared object!
+        localtime(&currentTime);
 
       } else {
         text_layer_set_text(debug_layer, "");
@@ -123,10 +123,11 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
     }
   }
 
-  // Refresh the weather info every 15 minutes
-  if (units_changed & MINUTE_UNIT && (tick_time->tm_min % 15) == 0)
+  // Refresh the weather info every half hour, at 25 and 55 after the hour
+  if ((units_changed & MINUTE_UNIT) && 
+      (tick_time->tm_min == 25 || tick_time->tm_min == 55))
   {
-    request_weather();
+     request_weather(weather_data);
   }
 }
 
@@ -169,17 +170,25 @@ static void init(void) {
   text_layer_set_text_alignment(debug_layer, GTextAlignmentRight);
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(debug_layer));
 
-  debug_enabled = persist_exists(KEY_DEBUG_MODE) ? persist_read_bool(KEY_DEBUG_MODE) : DEFAULT_DEBUG_MODE;
-  snprintf(weather_service, sizeof(weather_service), "%s", DEFAULT_WEATHER_SERVICE);
+  weather_data->debug = persist_exists(KEY_DEBUG_MODE) ? persist_read_bool(KEY_DEBUG_MODE) : DEFAULT_DEBUG_MODE;
+    
+  char service[20];
   if (persist_exists(KEY_WEATHER_SERVICE)) {
-    persist_read_string(KEY_WEATHER_SERVICE, weather_service, sizeof(weather_service));
+    persist_read_string(KEY_WEATHER_SERVICE, service, sizeof(service));
+  } else {
+    snprintf(service, sizeof(service), "%s", DEFAULT_WEATHER_SERVICE);
   }
+  weather_data->service = service;
 
   // Update the screen right away
   time_t now = time(NULL);
   handle_tick(localtime(&now), SECOND_UNIT | MINUTE_UNIT | HOUR_UNIT | DAY_UNIT );
+
   // And then every second
   tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
+
+  // kickoff our first weather request
+  request_weather(weather_data);
 }
 
 static void deinit(void) {
@@ -198,8 +207,8 @@ static void deinit(void) {
 
   free(weather_data);
 
-  persist_write_bool(KEY_DEBUG_MODE, debug_enabled);
-  persist_write_string(KEY_WEATHER_SERVICE, weather_service);
+  persist_write_bool(KEY_DEBUG_MODE, weather_data->debug);
+  persist_write_string(KEY_WEATHER_SERVICE, weather_data->service);
 }
 
 int main(void) {

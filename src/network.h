@@ -9,7 +9,6 @@
 #define KEY_SERVICE 6
 #define KEY_NEIGHBORHOOD 7
 #define KEY_DEBUG 8
-#define KEY_REQUEST_UPDATE 42
 
 #define SERVICE_OPEN_WEATHER "open"
 #define SERVICE_YAHOO_WEATHER "yahoo"

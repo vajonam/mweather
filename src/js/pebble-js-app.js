@@ -3,18 +3,23 @@ var SERVICE_YAHOO_WEATHER = "yahoo";
 var EXTERNAL_DEBUG_URL    = '';
 var CONFIGURATION_URL     = '';
 
-var updateInProgress = false;
-var externalDebugEnabled = true;  // POST logs to external server - dangerous! lat lon recorded
-var watchDebugEnabled = true;     // Display debug info on watch
-var weatherService = SERVICE_YAHOO_WEATHER;
+var updateInProgress     = false;
+var externalDebugEnabled = false; // POST logs to external server - dangerous! lat lon recorded
+var watchDebugEnabled    = true;  // Display debug info on watch
+var weatherService       = SERVICE_YAHOO_WEATHER;
 
 Pebble.addEventListener("ready", function(e) {
     console.log("Starting ...");
-    updateWeather();
 });
 
-Pebble.addEventListener("appmessage", function(e) {
-    console.log("Got a message - Starting weather request:" + JSON.stringify(e.payload));
+Pebble.addEventListener("appmessage", function(d) {
+    console.log("Got a message - Starting weather request ... " + JSON.stringify(d));
+    try {
+      weatherService    = d.payload.service;
+      watchDebugEnabled = d.payload.debug === 1 ? true : false;
+    } catch (e) {
+      console.warn("Could not retrieve data sent from Pebble: "+e.message);
+    }
     updateWeather();
 });
 
@@ -78,7 +83,7 @@ function locationError(err) {
     var message = 'Location error (' + err.code + '): ' + err.message;
     console.warn(message);
     Pebble.sendAppMessage({ "error": "Loc unavailable" });
-    postDebugMessage(message);
+    postDebugMessage({"error": message});
     updateInProgress = false;
 }
 

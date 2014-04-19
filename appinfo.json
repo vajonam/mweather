@@ -18,8 +18,7 @@
     "error": 5,
     "service": 6,
     "neighborhood": 7,
-    "debug": 8,
-    "request_update": 42
+    "debug": 8
   },
   "resources": {
     "media": [
