@@ -2,8 +2,15 @@
 Weather My Way (Pebble SDK 2.0)
 =================================
 
-Added options to configure weather provider (Yahoo!, Open Weather map)
+## Progress:
+ - Configurable weather provider (YAHOO!, Open Weather map)
+ - Configurable weather scale (°F / °C)
+ - Configurable debug mode ((L)ast updated, (P)ublish Date, Neighborhood)
+ - Config settings are persisted 
+ - Minor rewrites, separation of concerns
 
+## TODO: 
+ - Configurable minimal battery display
 
 Based on work by:
  - "Futura Weather 2" by Niknam - https://github.com/Niknam/futura-weather-sdk2.0
