@@ -75,6 +75,7 @@ static void appmsg_out_failed(DictionaryIterator *failed, AppMessageResult reaso
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Out failed: %i", reason);
 
   retry_count++;
+  
   switch (reason) {
     case APP_MSG_NOT_CONNECTED:
       weather_data->error = WEATHER_E_DISCONNECTED;
@@ -82,9 +83,6 @@ static void appmsg_out_failed(DictionaryIterator *failed, AppMessageResult reaso
       break;
     case APP_MSG_SEND_REJECTED:
     case APP_MSG_SEND_TIMEOUT:
-      weather_data->error = WEATHER_E_PHONE;
-      request_weather(weather_data);
-      break;
     default:
       weather_data->error = WEATHER_E_PHONE;
       request_weather(weather_data);

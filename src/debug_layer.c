@@ -7,7 +7,7 @@ static TextLayer *debug_layer;
 static char last_update_text[] = "00:00";
 static char debug_msg[200];
 
-TextLayer *debug_layer_create(GRect frame)
+Layer *debug_layer_create(GRect frame)
 {
   debug_layer = text_layer_create(frame);
   text_layer_set_text_color(debug_layer, GColorBlack);
@@ -15,7 +15,7 @@ TextLayer *debug_layer_create(GRect frame)
   text_layer_set_font(debug_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
   text_layer_set_text_alignment(debug_layer, GTextAlignmentRight);
 
-  return debug_layer;
+  return text_layer_get_layer(debug_layer);
 }
 
 void debug_layer_update(time_t currentTime, WeatherData *weather_data)

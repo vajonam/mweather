@@ -27,6 +27,8 @@ GFont font_time;
 
 /* Need to wait for JS to be ready */
 static bool initial_request = true;
+static int  initial_count   = 0;
+const  int  MAX_JS_READY_WAIT_SECS = 5;
 
 static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 {
@@ -70,11 +72,24 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
   }
 
   // Wait for JS to tell us it's ready before firing the first request
-  if (weather_data->js_ready && initial_request) {
-    initial_request = false;
-    request_weather(weather_data);
-  } 
-}
+  if (initial_request || weather_data->js_ready) {
+
+    // We're all set!
+    if (weather_data->js_ready) {
+      initial_request = false;
+      weather_data->js_ready = false;
+      request_weather(weather_data);
+    } 
+    else {
+      initial_count++;
+      // If we've waited too long let's try anyways. This will inform the user via error icon if it fails
+      if (initial_count >= MAX_JS_READY_WAIT_SECS) {
+        initial_request = false;
+        weather_data->js_ready = true; // let's assume we just missed it, and if we're wrong it's ok
+      }
+    }
+  }
+} 
 
 void load_persisted_values() {
   // Debug
@@ -135,7 +150,7 @@ static void init(void) {
 
   layer_add_child(window_get_root_layer(window), weather_layer_create(WEATHER_FRAME));
 
-  layer_add_child(window_get_root_layer(window), text_layer_get_layer(debug_layer_create(DEBUG_FRAME)));
+  layer_add_child(window_get_root_layer(window), debug_layer_create(DEBUG_FRAME));
 
   // Load persisted values
   load_persisted_values();

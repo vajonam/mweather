@@ -1,6 +1,5 @@
-// "c" for temperature in Celsius
-// "f" for temperature in Fahrenheit
-#define DEFAULT_WEATHER_SCALE "F"
+// Persisted Values
+#define DEFAULT_WEATHER_SCALE "F"  // F Fahrenheit or C Celsius
 #define DEFAULT_DEBUG_MODE true
 #define DEFAULT_WEATHER_SERVICE "yahoo"
 
