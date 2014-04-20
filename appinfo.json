@@ -19,7 +19,8 @@
     "service": 6,
     "neighborhood": 7,
     "debug": 8,
-    "js_ready": 9
+    "js_ready": 9,
+    "scale": 10
   },
   "resources": {
     "media": [

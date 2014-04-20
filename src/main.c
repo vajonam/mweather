@@ -76,6 +76,35 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
   } 
 }
 
+void load_persisted_values() {
+  // Debug
+  weather_data->debug = persist_exists(KEY_DEBUG_MODE) ? persist_read_bool(KEY_DEBUG_MODE) : DEFAULT_DEBUG_MODE;
+  
+  // Weather Service
+  static char service[20];
+  if (persist_exists(KEY_WEATHER_SERVICE)) {
+    persist_read_string(KEY_WEATHER_SERVICE, service, sizeof(service));
+  } else {
+    strcpy(service, DEFAULT_WEATHER_SERVICE);
+  }
+  weather_data->service = service;
+
+  // Weather Scale
+  static char scale[1];
+  if (persist_exists(KEY_WEATHER_SCALE)) {
+    persist_read_string(KEY_WEATHER_SCALE, scale, sizeof(service));
+  } else {
+    strcpy(scale, DEFAULT_WEATHER_SCALE);
+  }
+  weather_data->scale = scale;
+}
+
+void store_persistant_values() {
+  persist_write_bool(KEY_DEBUG_MODE, weather_data->debug);
+  persist_write_string(KEY_WEATHER_SERVICE, weather_data->service);
+  persist_write_string(KEY_WEATHER_SCALE, weather_data->scale);
+}
+
 static void init(void) {
 
   APP_LOG(APP_LOG_LEVEL_DEBUG, "init started");
@@ -109,15 +138,7 @@ static void init(void) {
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(debug_layer_create(DEBUG_FRAME)));
 
   // Load persisted values
-  weather_data->debug = persist_exists(KEY_DEBUG_MODE) ? persist_read_bool(KEY_DEBUG_MODE) : DEFAULT_DEBUG_MODE;
-    
-  char service[20];
-  if (persist_exists(KEY_WEATHER_SERVICE)) {
-    persist_read_string(KEY_WEATHER_SERVICE, service, sizeof(service));
-  } else {
-    snprintf(service, sizeof(service), "%s", DEFAULT_WEATHER_SERVICE);
-  }
-  weather_data->service = service;
+  load_persisted_values();
 
   // Update the screen right away
   time_t now = time(NULL);
@@ -144,10 +165,9 @@ static void deinit(void) {
 
   free(weather_data);
 
-  persist_write_bool(KEY_DEBUG_MODE, weather_data->debug);
-  persist_write_string(KEY_WEATHER_SERVICE, weather_data->service);
-
   close_network();
+
+  store_persistant_values();
 }
 
 int main(void) {

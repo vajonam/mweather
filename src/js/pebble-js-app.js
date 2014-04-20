@@ -7,6 +7,7 @@ var updateInProgress     = false;
 var externalDebugEnabled = false;  // POST logs to external server - dangerous! lat lon recorded
 var debugEnabled         = false;  // Display debug info on watch
 var weatherService       = SERVICE_YAHOO_WEATHER;
+var weatherScale         = 'F';
 
 // Allow console messages to be turned on / off 
 (function(){
@@ -31,6 +32,7 @@ Pebble.addEventListener("appmessage", function(d) {
     try {
       weatherService = d.payload.service;
       debugEnabled   = d.payload.debug === 1 ? true : false;
+      weatherScale   = d.payload.scale;
     } catch (e) {
       console.warn("Could not retrieve data sent from Pebble: "+e.message);
     }
@@ -39,32 +41,20 @@ Pebble.addEventListener("appmessage", function(d) {
 
 Pebble.addEventListener("showConfiguration", function (e) {
     console.log('Configuration requested');
-    var queryString = '?s='+weatherService+'&d='+debugEnabled;
+    var queryString = '?s='+weatherService+'&d='+debugEnabled+'&u='+weatherScale;
     Pebble.openURL(CONFIGURATION_URL+queryString);
 });
 
 Pebble.addEventListener("webviewclosed", function(e) {
-    
-    //console.log('Response: '+e.response);
-
     if (e.response) {
       try {
-        var responseFromWebView = decodeURIComponent(e.response);
-        var settings = JSON.parse(responseFromWebView);
+        var settings = JSON.parse(decodeURIComponent(e.response));
 
-        if (settings.service === SERVICE_YAHOO_WEATHER) {
-          weatherService = SERVICE_YAHOO_WEATHER;
-        } else {
-          weatherService = SERVICE_OPEN_WEATHER;
-        }
+        weatherService = settings.service === SERVICE_YAHOO_WEATHER ? SERVICE_YAHOO_WEATHER : SERVICE_OPEN_WEATHER
+        weatherScale   = settings.scale === 'F' ? 'F' : 'C';
+        debugEnabled   = settings.debug === 'true' ? true : false;
 
-        if (settings.debug === 'true') {
-          debugEnabled = true;
-        } else {
-          debugEnabled = false;
-        }
-
-        console.log("Weather service is "+weatherService+", debug is "+debugEnabled);
+        console.log("Settings received: "+JSON.stringify(settings));
         updateWeather();
       } catch(e) {
         console.warn("Unable to parse response from configuration:"+e.message);
@@ -109,7 +99,7 @@ var fetchYahooWeather = function(latitude, longitude) {
 
   subselect   = 'SELECT woeid FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R"';
   neighbor    = 'SELECT neighborhood FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R";';
-  query       = 'SELECT * FROM weather.forecast WHERE woeid IN ('+subselect+');';
+  query       = 'SELECT * FROM weather.forecast WHERE woeid IN ('+subselect+') AND u="'+weatherScale.toLowerCase()+'";';
   multi       = "SELECT * FROM yql.query.multi WHERE queries='"+query+" "+neighbor+"'";
   options.url = "https://query.yahooapis.com/v1/public/yql?format=json&q=" + encodeURIComponent(multi);
 
@@ -126,6 +116,7 @@ var fetchYahooWeather = function(latitude, longitude) {
         "sunrise":      Date.parse((new Date()).toDateString()+" "+sunrise) / 1000,
         "sunset":       Date.parse((new Date()).toDateString()+" "+sunset) / 1000,
         "service":      SERVICE_YAHOO_WEATHER,
+        "scale":        weatherScale,
         "neighborhood": neighborhood,
         "pubdate":      pubdate.getHours()+':'+pubdate.getMinutes(),
         "debug":        debugEnabled
@@ -142,11 +133,10 @@ var fetchOpenWeather = function(latitude, longitude) {
 
   options.parse = function(response) {
       var temperature, sunrise, sunset, condition, pubdate;
-      var current_time = Date.now() / 1000;
 
       var tempResult = response.main.temp;
-      if (response.sys.country === "US") {
-        // Convert temperature to Fahrenheit if user is within the US
+      if (weatherScale === 'F') {
+        // Convert temperature to Fahrenheit 
         temperature = Math.round(((tempResult - 273.15) * 1.8) + 32);
       }
       else {
@@ -165,6 +155,7 @@ var fetchOpenWeather = function(latitude, longitude) {
         "sunrise":      sunrise,
         "sunset":       sunset,
         "service":      SERVICE_OPEN_WEATHER,
+        "scale":        weatherScale,
         "neighborhood": response.name,
         "pubdate":      pubdate.getHours()+':'+pubdate.getMinutes(),
         "debug":        debugEnabled
@@ -174,6 +165,8 @@ var fetchOpenWeather = function(latitude, longitude) {
 };
 
 var fetchWeather = function(options) {
+
+  //console.log('URL: ' + options.url);
 
   getJson(options.url, function(err, response) {
 
