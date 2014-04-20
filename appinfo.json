@@ -18,7 +18,8 @@
     "error": 5,
     "service": 6,
     "neighborhood": 7,
-    "debug": 8
+    "debug": 8,
+    "js_ready": 9
   },
   "resources": {
     "media": [

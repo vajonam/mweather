@@ -9,6 +9,7 @@
 #define KEY_SERVICE 6
 #define KEY_NEIGHBORHOOD 7
 #define KEY_DEBUG 8
+#define KEY_JS_READY 9
 
 #define SERVICE_OPEN_WEATHER "open"
 #define SERVICE_YAHOO_WEATHER "yahoo"
@@ -29,6 +30,7 @@ typedef struct {
   char* service;
   char* neighborhood;
   bool debug;
+  bool js_ready;
   time_t updated;
   WeatherError error;
 } WeatherData;

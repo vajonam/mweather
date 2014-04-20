@@ -1,5 +1,8 @@
 #include <pebble.h>
+#include "network.h"
 #include "weather_layer.h"
+
+static WeatherLayer *weather_layer;
 
 static uint8_t WEATHER_ICONS[] = {
   RESOURCE_ID_ICON_CLEAR_DAY,
@@ -33,7 +36,7 @@ static GFont large_font, small_font;
 WeatherLayer *weather_layer_create(GRect frame)
 {
   // Create a new layer with some extra space to save our custom Layer infos
-  WeatherLayer *weather_layer = layer_create_with_data(frame, sizeof(WeatherLayerData));
+  weather_layer = layer_create_with_data(frame, sizeof(WeatherLayerData));
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
   large_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FUTURA_40));
@@ -60,7 +63,7 @@ WeatherLayer *weather_layer_create(GRect frame)
   return weather_layer;
 }
 
-void weather_layer_set_icon(WeatherLayer* weather_layer, WeatherIcon icon) {
+void weather_layer_set_icon(WeatherIcon icon) {
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
   GBitmap *new_icon =  gbitmap_create_with_resource(WEATHER_ICONS[icon]);
@@ -75,7 +78,7 @@ void weather_layer_set_icon(WeatherLayer* weather_layer, WeatherIcon icon) {
   wld->icon = new_icon;
 }
 
-void weather_layer_set_temperature(WeatherLayer* weather_layer, int16_t t, bool is_stale) {
+void weather_layer_set_temperature(int16_t t, bool is_stale) {
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
   snprintf(wld->temp_str, sizeof(wld->temp_str), "%i%s", t, is_stale ? " " : "°");
@@ -108,7 +111,58 @@ void weather_layer_set_temperature(WeatherLayer* weather_layer, int16_t t, bool 
   text_layer_set_text(wld->temp_layer, wld->temp_str);
 }
 
-void weather_layer_destroy(WeatherLayer* weather_layer) {
+void weather_layer_update(time_t currentTime, WeatherData *weather_data) {
+
+    // Update the bottom half of the screen: icon and temperature
+  static int animation_step = 0;
+  if (weather_data->updated == 0 && weather_data->error == WEATHER_E_OK)
+  {
+    // 'Animate' loading icon until the first successful weather request
+    if (animation_step == 0) {
+      weather_layer_set_icon(WEATHER_ICON_LOADING1);
+    }
+    else if (animation_step == 1) {
+      weather_layer_set_icon(WEATHER_ICON_LOADING2);
+    }
+    else if (animation_step >= 2) {
+      weather_layer_set_icon(WEATHER_ICON_LOADING3);
+    }
+    animation_step = (animation_step + 1) % 3;
+  }
+  else {
+    // Update the weather icon and temperature
+    if (weather_data->error) {
+      weather_layer_set_icon(WEATHER_ICON_PHONE_ERROR);
+    }
+    else {
+
+      // Show the temperature as 'stale' if it has not been updated in 30 minutes
+      // I really don't like how this looks, removing for now... 
+      bool stale = false;
+      /*
+      if (currentTime - weather_data->updated > 1800) {
+        stale = true;
+      }
+      */
+      weather_layer_set_temperature(weather_data->temperature, stale);
+
+      // Day/night check
+      bool night_time = false;
+      if (currentTime < weather_data->sunrise || 
+          currentTime > weather_data->sunset) {
+        night_time = true;
+      }
+
+      if (strcmp(weather_data->service, SERVICE_YAHOO_WEATHER) == 0) {
+        weather_layer_set_icon(yahoo_weather_icon_for_condition(weather_data->condition, night_time));
+      } else {
+        weather_layer_set_icon(open_weather_icon_for_condition(weather_data->condition, night_time));
+      }
+    }
+  }
+}
+
+void weather_layer_destroy() {
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
   text_layer_destroy(wld->temp_layer);

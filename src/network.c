@@ -11,10 +11,12 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   Tuple *sunrise_tuple      = dict_find(received, KEY_SUNRISE);
   Tuple *sunset_tuple       = dict_find(received, KEY_SUNSET);
   Tuple *pub_date_tuple     = dict_find(received, KEY_PUB_DATE);
-  Tuple *error_tuple        = dict_find(received, KEY_ERROR);
   Tuple *service_tuple      = dict_find(received, KEY_SERVICE);
   Tuple *neighborhood_tuple = dict_find(received, KEY_NEIGHBORHOOD);
+
+  Tuple *error_tuple        = dict_find(received, KEY_ERROR);
   Tuple *debug_tuple        = dict_find(received, KEY_DEBUG);
+  Tuple *js_ready_tuple     = dict_find(received, KEY_JS_READY);
 
   if (temperature_tuple && condition_tuple) {
     weather->temperature  = temperature_tuple->value->int32;
@@ -29,6 +31,10 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     weather->updated      = time(NULL);
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Got temperature %i and condition %i via %s for %s debug %i", 
       weather->temperature, weather->condition, weather->service, weather->neighborhood, weather->debug);
+  }
+  else if (js_ready_tuple) {
+    weather->js_ready = true;
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Javascript reports that it is ready");
   }
   else if (error_tuple) {
     weather->error = WEATHER_E_NETWORK;
@@ -86,6 +92,7 @@ void init_network(WeatherData *weather_data)
 
   weather_data->error = WEATHER_E_OK;
   weather_data->updated = 0;
+  weather_data->js_ready = false;
 }
 
 void close_network()

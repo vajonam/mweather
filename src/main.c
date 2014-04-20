@@ -1,11 +1,13 @@
 #include <pebble.h>
 
-#include "weather_layer.h"
 #include "network.h"
+#include "weather_layer.h"
+#include "debug_layer.h"
 #include "config.h"
 
 #define TIME_FRAME      (GRect(0, 2, 144, 168-6))
 #define DATE_FRAME      (GRect(1, 66, 144, 168-62))
+#define WEATHER_FRAME   (GRect(0, 90, 144, 80))
 #define DEBUG_FRAME     (GRect(0, 168-15, 144, 15))
 
 /* Keep a pointer to the current weather data as a global variable */
@@ -15,18 +17,16 @@ static WeatherData *weather_data;
 static Window *window;
 static TextLayer *date_layer;
 static TextLayer *time_layer;
-static TextLayer *debug_layer;
-static WeatherLayer *weather_layer;
 
 static char date_text[] = "XXX 00";
 static char time_text[] = "00:00";
-static char updt_text[] = "00:00";
-
-static char debug_msg[200];
 
 /* Preload the fonts */
 GFont font_date;
 GFont font_time;
+
+/* Need to wait for JS to be ready */
+static bool initial_request = true;
 
 static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 {
@@ -50,6 +50,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 
     text_layer_set_text(time_layer, time_text);
   }
+
   if (units_changed & DAY_UNIT) {
     // Update the date - Without a leading 0 on the day of the month
     char day_text[4];
@@ -58,77 +59,21 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
     text_layer_set_text(date_layer, date_text);
   }
 
-  // Update the bottom half of the screen: icon and temperature
-  static int animation_step = 0;
-  if (weather_data->updated == 0 && weather_data->error == WEATHER_E_OK)
-  {
-    // 'Animate' loading icon until the first successful weather request
-    if (animation_step == 0) {
-      weather_layer_set_icon(weather_layer, WEATHER_ICON_LOADING1);
-    }
-    else if (animation_step == 1) {
-      weather_layer_set_icon(weather_layer, WEATHER_ICON_LOADING2);
-    }
-    else if (animation_step >= 2) {
-      weather_layer_set_icon(weather_layer, WEATHER_ICON_LOADING3);
-    }
-    animation_step = (animation_step + 1) % 3;
-  }
-  else {
-    // Update the weather icon and temperature
-    if (weather_data->error) {
-      weather_layer_set_icon(weather_layer, WEATHER_ICON_PHONE_ERROR);
-    }
-    else {
+  weather_layer_update(currentTime, weather_data);
+  debug_layer_update(currentTime, weather_data);
 
-      // Show the temperature as 'stale' if it has not been updated in 30 minutes
-      // I really don't like how this looks, removing for now... 
-      bool stale = false;
-      /*
-      if (currentTime - weather_data->updated > 1800) {
-        stale = true;
-      }
-      */
-      weather_layer_set_temperature(weather_layer, weather_data->temperature, stale);
-
-      // Day/night check
-      bool night_time = false;
-      if (currentTime < weather_data->sunrise || 
-          currentTime > weather_data->sunset) {
-        night_time = true;
-      }
-
-      if (strcmp(weather_data->service, SERVICE_YAHOO_WEATHER) == 0) {
-        weather_layer_set_icon(weather_layer, yahoo_weather_icon_for_condition(weather_data->condition, night_time));
-      } else {
-        weather_layer_set_icon(weather_layer, open_weather_icon_for_condition(weather_data->condition, night_time));
-      }
-
-      // Set Debug
-      if (weather_data->debug) {
-
-        time_t lastUpdated = weather_data->updated;
-        struct tm *updatedTime = localtime(&lastUpdated);
-        strftime(updt_text, sizeof(updt_text), "%R", updatedTime);
-        snprintf(debug_msg, sizeof(debug_msg), 
-          "L%s, P%s, %s", updt_text, weather_data->pub_date, weather_data->neighborhood);
-        text_layer_set_text(debug_layer, debug_msg);
-
-        // reset localtime, critical as localtime modifies a shared object!
-        localtime(&currentTime);
-
-      } else {
-        text_layer_set_text(debug_layer, "");
-      }
-    }
-  }
-
-  // Refresh the weather info every half hour, at 25 and 55 after the hour
+  // Refresh the weather info every half hour, at 18 and 48 mins after the hour (Yahoo updates around then)
   if ((units_changed & MINUTE_UNIT) && 
-      (tick_time->tm_min == 25 || tick_time->tm_min == 55))
-  {
-     request_weather(weather_data);
+      (tick_time->tm_min == 18 || tick_time->tm_min == 48) &&
+      initial_request == false) {
+    request_weather(weather_data);
   }
+
+  // Wait for JS to tell us it's ready before firing the first request
+  if (weather_data->js_ready && initial_request) {
+    initial_request = false;
+    request_weather(weather_data);
+  } 
 }
 
 static void init(void) {
@@ -159,17 +104,11 @@ static void init(void) {
   text_layer_set_text_alignment(date_layer, GTextAlignmentCenter);
   layer_add_child(window_get_root_layer(window), text_layer_get_layer(date_layer));
 
-  // Add weather layer
-  weather_layer = weather_layer_create(GRect(0, 90, 144, 80));
-  layer_add_child(window_get_root_layer(window), weather_layer);
+  layer_add_child(window_get_root_layer(window), weather_layer_create(WEATHER_FRAME));
 
-  debug_layer = text_layer_create(DEBUG_FRAME);
-  text_layer_set_text_color(debug_layer, GColorBlack);
-  text_layer_set_background_color(debug_layer, GColorClear);
-  text_layer_set_font(debug_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
-  text_layer_set_text_alignment(debug_layer, GTextAlignmentRight);
-  layer_add_child(window_get_root_layer(window), text_layer_get_layer(debug_layer));
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(debug_layer_create(DEBUG_FRAME)));
 
+  // Load persisted values
   weather_data->debug = persist_exists(KEY_DEBUG_MODE) ? persist_read_bool(KEY_DEBUG_MODE) : DEFAULT_DEBUG_MODE;
     
   char service[20];
@@ -186,9 +125,6 @@ static void init(void) {
 
   // And then every second
   tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
-
-  // kickoff our first weather request
-  request_weather(weather_data);
 }
 
 static void deinit(void) {
@@ -199,8 +135,9 @@ static void deinit(void) {
 
   text_layer_destroy(time_layer);
   text_layer_destroy(date_layer);
-  weather_layer_destroy(weather_layer);
-  text_layer_destroy(debug_layer);
+
+  weather_layer_destroy();
+  debug_layer_destroy();
 
   fonts_unload_custom_font(font_date);
   fonts_unload_custom_font(font_time);
@@ -209,6 +146,8 @@ static void deinit(void) {
 
   persist_write_bool(KEY_DEBUG_MODE, weather_data->debug);
   persist_write_string(KEY_WEATHER_SERVICE, weather_data->service);
+
+  close_network();
 }
 
 int main(void) {

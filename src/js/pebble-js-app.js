@@ -1,22 +1,36 @@
 var SERVICE_OPEN_WEATHER  = "open";
 var SERVICE_YAHOO_WEATHER = "yahoo";
 var EXTERNAL_DEBUG_URL    = '';
-var CONFIGURATION_URL     = '';
+var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config/';
 
 var updateInProgress     = false;
-var externalDebugEnabled = false; // POST logs to external server - dangerous! lat lon recorded
-var watchDebugEnabled    = true;  // Display debug info on watch
+var externalDebugEnabled = false;  // POST logs to external server - dangerous! lat lon recorded
+var debugEnabled         = false;  // Display debug info on watch
 var weatherService       = SERVICE_YAHOO_WEATHER;
 
+// Allow console messages to be turned on / off 
+(function(){
+    var original = console.log;
+    var logMessage = function (message) {
+        if (debugEnabled) {
+          original.apply(console, arguments);
+        }  
+    };
+    console.log  = logMessage;
+    console.warn = logMessage;
+})();
+
+// Setup Pebble Event Listeners
 Pebble.addEventListener("ready", function(e) {
     console.log("Starting ...");
+    Pebble.sendAppMessage({ "js_ready": true });
 });
 
 Pebble.addEventListener("appmessage", function(d) {
     console.log("Got a message - Starting weather request ... " + JSON.stringify(d));
     try {
-      weatherService    = d.payload.service;
-      watchDebugEnabled = d.payload.debug === 1 ? true : false;
+      weatherService = d.payload.service;
+      debugEnabled   = d.payload.debug === 1 ? true : false;
     } catch (e) {
       console.warn("Could not retrieve data sent from Pebble: "+e.message);
     }
@@ -25,13 +39,13 @@ Pebble.addEventListener("appmessage", function(d) {
 
 Pebble.addEventListener("showConfiguration", function (e) {
     console.log('Configuration requested');
-    var queryString = '?s='+weatherService+'&d='+watchDebugEnabled;
+    var queryString = '?s='+weatherService+'&d='+debugEnabled;
     Pebble.openURL(CONFIGURATION_URL+queryString);
 });
 
 Pebble.addEventListener("webviewclosed", function(e) {
     
-    console.log('Response: '+e.response);
+    //console.log('Response: '+e.response);
 
     if (e.response) {
       try {
@@ -45,12 +59,12 @@ Pebble.addEventListener("webviewclosed", function(e) {
         }
 
         if (settings.debug === 'true') {
-          watchDebugEnabled = true;
+          debugEnabled = true;
         } else {
-          watchDebugEnabled = false;
+          debugEnabled = false;
         }
 
-        console.log("Weather service is "+weatherService+", debug is "+watchDebugEnabled);
+        console.log("Weather service is "+weatherService+", debug is "+debugEnabled);
         updateWeather();
       } catch(e) {
         console.warn("Unable to parse response from configuration:"+e.message);
@@ -87,29 +101,26 @@ function locationError(err) {
     updateInProgress = false;
 }
 
+
 var fetchYahooWeather = function(latitude, longitude) {
 
-  var subselect = 'SELECT woeid FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R"';
-  var neighbor  = 'SELECT neighborhood FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R";';
-  var query     = 'SELECT * FROM weather.forecast WHERE woeid IN ('+subselect+');';
-  var multi     = "SELECT * FROM yql.query.multi WHERE queries='"+query+" "+neighbor+"'";
-  var url       = "https://query.yahooapis.com/v1/public/yql?format=json&q=" + encodeURIComponent(multi);
+  var subselect, neighbor, query, multi
+    , options = {};
 
-  //console.log('Query: ' + url);
+  subselect   = 'SELECT woeid FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R"';
+  neighbor    = 'SELECT neighborhood FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R";';
+  query       = 'SELECT * FROM weather.forecast WHERE woeid IN ('+subselect+');';
+  multi       = "SELECT * FROM yql.query.multi WHERE queries='"+query+" "+neighbor+"'";
+  options.url = "https://query.yahooapis.com/v1/public/yql?format=json&q=" + encodeURIComponent(multi);
 
-  getJson(url, function(err, response) {
+  options.parse = function(response) {
+      var sunrise, sunset, pubdate, neighborhood;
+      sunrise = response.query.results.results[0].channel.astronomy.sunrise;
+      sunset  = response.query.results.results[0].channel.astronomy.sunset;
+      pubdate = new Date(Date.parse(response.query.results.results[0].channel.item.pubDate));
+      neighborhood = ''+response.query.results.results[1].Result.neighborhood;
 
-    try {
-      if (err) {
-        throw err;
-      }
-
-      var sunrise = response.query.results.results[0].channel.astronomy.sunrise;
-      var sunset  = response.query.results.results[0].channel.astronomy.sunset;
-      var pubdate = new Date(Date.parse(response.query.results.results[0].channel.item.pubDate));
-      var neighborhood = ''+response.query.results.results[1].Result.neighborhood;
-
-      var weather = {
+      return {
         "condition":    parseInt(response.query.results.results[0].channel.item.condition.code),
         "temperature":  parseInt(response.query.results.results[0].channel.item.condition.temp),
         "sunrise":      Date.parse((new Date()).toDateString()+" "+sunrise) / 1000,
@@ -117,37 +128,19 @@ var fetchYahooWeather = function(latitude, longitude) {
         "service":      SERVICE_YAHOO_WEATHER,
         "neighborhood": neighborhood,
         "pubdate":      pubdate.getHours()+':'+pubdate.getMinutes(),
-        "debug":        watchDebugEnabled
-      }
+        "debug":        debugEnabled
+      };
+  };
 
-      console.log('Weather Data: ' + JSON.stringify(weather));
-
-      Pebble.sendAppMessage(weather);
-      postDebugMessage(weather);
-    
-    } catch (e) {
-      console.warn("Could not find weather data in response: " + e.message);
-      var error = { "error": "HTTP Error" };
-      Pebble.sendAppMessage(error);
-      postDebugMessage(error);
-    } finally {
-      updateInProgress = false;
-    }
-  });
-}
+  fetchWeather(options); 
+};
 
 var fetchOpenWeather = function(latitude, longitude) {
 
-  var url = "http://api.openweathermap.org/data/2.5/weather?" +
-    "lat=" + latitude + "&lon=" + longitude + "&cnt=1";
+  var options = {};
+  options.url = "http://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longitude + "&cnt=1";
 
-  getJson(url, function(err, response) {
-
-    try {
-      if (err) {
-        throw err;
-      }
-
+  options.parse = function(response) {
       var temperature, sunrise, sunset, condition, pubdate;
       var current_time = Date.now() / 1000;
 
@@ -164,9 +157,9 @@ var fetchOpenWeather = function(latitude, longitude) {
       condition = response.weather[0].id;
       sunrise   = response.sys.sunrise;
       sunset    = response.sys.sunset;
-      pubdate   = new Date(response.dt);
+      pubdate   = new Date(response.dt); // not sure about this, I believe this may be non EST TZ
 
-      var weather = {
+      return {
         "condition":    condition,
         "temperature":  temperature,
         "sunrise":      sunrise,
@@ -174,15 +167,28 @@ var fetchOpenWeather = function(latitude, longitude) {
         "service":      SERVICE_OPEN_WEATHER,
         "neighborhood": response.name,
         "pubdate":      pubdate.getHours()+':'+pubdate.getMinutes(),
-        "debug":        watchDebugEnabled
+        "debug":        debugEnabled
       };
+  };
+  fetchWeather(options);
+};
+
+var fetchWeather = function(options) {
+
+  getJson(options.url, function(err, response) {
+
+    try {
+      if (err) {
+        throw err;
+      }
+
+      var weather = options.parse(response);
 
       console.log('Weather Data: ' + JSON.stringify(weather));
 
       Pebble.sendAppMessage(weather);
-
       postDebugMessage(weather);
-
+    
     } catch (e) {
       console.warn("Could not find weather data in response: " + e.message);
       var error = { "error": "HTTP Error" };
@@ -192,7 +198,7 @@ var fetchOpenWeather = function(latitude, longitude) {
       updateInProgress = false;
     }
   });
-}
+};
 
 
 var getJson = function(url, callback) {
@@ -218,7 +224,7 @@ var getJson = function(url, callback) {
   } catch(e) {
     callback("Unable to GET JSON: "+e.message);
   }
-}
+};
 
 var postDebugMessage = function (data) {
   if (!externalDebugEnabled || EXTERNAL_DEBUG_URL === null) {
@@ -233,7 +239,7 @@ var postDebugMessage = function (data) {
   } catch (e) {
     console.warn('Post Debug Message failed:'+e.message);
   }  
-}
+};
 
 var post = function(url, data) {
   try {
@@ -241,6 +247,6 @@ var post = function(url, data) {
     req.open('POST', url, true);
     req.send(data);
   } catch(e) {
-    console.log('POST failed: ' + e.message);
+    console.warn('POST failed: ' + e.message);
   }
-}
+};
