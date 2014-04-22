@@ -25,11 +25,23 @@
             </fieldset>
         </div>
 
+        <div data-role="fieldcontain" >
+            <fieldset data-role="controlgroup" data-type="horizontal">
+                <legend>Temperature Scale:</legend>
+                <input type="radio" name="weather-scale" id="radioF" value="F" class="custom" />
+                <label for="radioF">°Fahrenheit</label>
+
+                <input type="radio" name="weather-scale" id="radioC" value="C" class="custom" />
+                <label for="radioC">°Celsius</label>
+
+            </fieldset>
+        </div>
+
         <div data-role="fieldcontain">
-            <label for="flipscale">Temperature Scale:</label>
-            <select name="flipscale" id="flipscale" data-role="slider">
-                <option value="F">°F</option>
-                <option value="C">°C</option>
+            <label for="flipbattery">Display Battery:</label>
+            <select name="flipbattery" id="flipbattery" data-role="slider">
+                <option value="off">Off</option>
+                <option value="on">On</option>
             </select>
         </div>
 
@@ -47,7 +59,7 @@
     <div class="ui-body ui-body-b">
         <fieldset class="ui-grid-a">
             <div class="ui-block-a"><button type="submit" data-theme="d" id="b-cancel">Cancel</button></div>
-            <div class="ui-block-b"><button type="submit" data-theme="a" id="b-submit">Save</button></div>
+            <div class="ui-block-b"><button type="submit" data-theme="a" id="b-submit">Submit</button></div>
         </fieldset>
     </div>
 </div>
@@ -56,8 +68,9 @@
 <script>
     function saveOptions() {
         return {
-            'service': $("#radioyahoo").is(':checked') ? 'yahoo' : 'open',
-            'scale':   $("select")[0].selectedIndex === 0 ? 'F' : 'C',
+            'service': $("#radioyahoo").is(':checked')    ? 'yahoo' : 'open',
+            'scale':   $("#radioF").is(':checked')        ? 'F'     : 'C',
+            'battery': $("select")[0].selectedIndex === 0 ? 'off'   : 'on',
             'debug':   $("select")[1].selectedIndex === 0 ? 'false' : 'true'
         };
     }
@@ -77,10 +90,18 @@
         }
         $("input[name='weather-service']").checkboxradio("refresh");
 
-        var switches = $("select");
-
         var scale = getURLParameter('u');
         if (scale === 'C') {
+            $("#radioC").attr("checked", "checked");
+        } else {
+            $("#radioF").attr("checked", "checked");
+        }
+        $("input[name='weather-scale']").checkboxradio("refresh");
+
+        var switches = $("select");
+
+        var battery = getURLParameter('b');
+        if (battery === 'on') {
             switches[0].selectedIndex = 1;
         } else {
             switches[0].selectedIndex = 0;
