@@ -5,7 +5,8 @@ var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config
 
 var updateInProgress     = false;
 var externalDebugEnabled = false;  // POST logs to external server - dangerous! lat lon recorded
-var debugEnabled         = false;  // Display debug info on watch
+var debugEnabled         = true;   // Display debug info on watch
+var batteryEnabled       = true;   // Display battery info on watch
 var weatherService       = SERVICE_YAHOO_WEATHER;
 var weatherScale         = 'F';
 
@@ -30,9 +31,10 @@ Pebble.addEventListener("ready", function(e) {
 Pebble.addEventListener("appmessage", function(d) {
     console.log("Got a message - Starting weather request ... " + JSON.stringify(d));
     try {
-      weatherService = d.payload.service;
-      debugEnabled   = d.payload.debug === 1 ? true : false;
-      weatherScale   = d.payload.scale;
+      weatherService = d.payload.s;
+      debugEnabled   = d.payload.d === 1 ? true : false;
+      batteryEnabled = d.payload.b === 1 ? true : false;
+      weatherScale   = d.payload.u;
     } catch (e) {
       console.warn("Could not retrieve data sent from Pebble: "+e.message);
     }
@@ -41,7 +43,7 @@ Pebble.addEventListener("appmessage", function(d) {
 
 Pebble.addEventListener("showConfiguration", function (e) {
     console.log('Configuration requested');
-    var queryString = '?s='+weatherService+'&d='+debugEnabled+'&u='+weatherScale;
+    var queryString = '?s='+weatherService+'&d='+debugEnabled+'&u='+weatherScale+'&b='+(batteryEnabled?'on':'off');
     Pebble.openURL(CONFIGURATION_URL+queryString);
 });
 
@@ -51,8 +53,9 @@ Pebble.addEventListener("webviewclosed", function(e) {
         var settings = JSON.parse(decodeURIComponent(e.response));
 
         weatherService = settings.service === SERVICE_YAHOO_WEATHER ? SERVICE_YAHOO_WEATHER : SERVICE_OPEN_WEATHER
-        weatherScale   = settings.scale === 'F' ? 'F' : 'C';
-        debugEnabled   = settings.debug === 'true' ? true : false;
+        weatherScale   = settings.scale   === 'F'    ? 'F' : 'C';
+        debugEnabled   = settings.debug   === 'true' ? true : false;
+        batteryEnabled = settings.battery === 'on'   ? true : false;
 
         console.log("Settings received: "+JSON.stringify(settings));
         updateWeather();
@@ -111,15 +114,16 @@ var fetchYahooWeather = function(latitude, longitude) {
       neighborhood = ''+response.query.results.results[1].Result.neighborhood;
 
       return {
-        "condition":    parseInt(response.query.results.results[0].channel.item.condition.code),
-        "temperature":  parseInt(response.query.results.results[0].channel.item.condition.temp),
-        "sunrise":      Date.parse((new Date()).toDateString()+" "+sunrise) / 1000,
-        "sunset":       Date.parse((new Date()).toDateString()+" "+sunset) / 1000,
-        "service":      SERVICE_YAHOO_WEATHER,
-        "scale":        weatherScale,
-        "neighborhood": neighborhood,
-        "pubdate":      pubdate.getHours()+':'+pubdate.getMinutes(),
-        "debug":        debugEnabled
+        "c":  parseInt(response.query.results.results[0].channel.item.condition.code),
+        "t":  parseInt(response.query.results.results[0].channel.item.condition.temp),
+        "sr": Date.parse((new Date()).toDateString()+" "+sunrise) / 1000,
+        "ss": Date.parse((new Date()).toDateString()+" "+sunset) / 1000,
+        "s":  SERVICE_YAHOO_WEATHER,
+        "u":  weatherScale,
+        "n":  neighborhood,
+        "pd": pubdate.getHours()+':'+pubdate.getMinutes(),
+        "d":  debugEnabled,
+        "b":  batteryEnabled
       };
   };
 
@@ -150,15 +154,16 @@ var fetchOpenWeather = function(latitude, longitude) {
       pubdate   = new Date(response.dt); // not sure about this, I believe this may be non EST TZ
 
       return {
-        "condition":    condition,
-        "temperature":  temperature,
-        "sunrise":      sunrise,
-        "sunset":       sunset,
-        "service":      SERVICE_OPEN_WEATHER,
-        "scale":        weatherScale,
-        "neighborhood": response.name,
-        "pubdate":      pubdate.getHours()+':'+pubdate.getMinutes(),
-        "debug":        debugEnabled
+        "c":  condition,
+        "t":  temperature,
+        "sr": sunrise,
+        "ss": sunset,
+        "s":  SERVICE_OPEN_WEATHER,
+        "u":  weatherScale,
+        "n":  response.name,
+        "pd": pubdate.getHours()+':'+pubdate.getMinutes(),
+        "d":  debugEnabled,
+        "b":  batteryEnabled
       };
   };
   fetchWeather(options);
@@ -224,9 +229,9 @@ var postDebugMessage = function (data) {
     return;
   }
   try {
-    if (typeof data.sunrise !== "undefined") {
-      delete data.sunrise;
-      delete data.sunset;
+    if (typeof data.sr !== "undefined") {
+      delete data.sr;
+      delete data.ss;
     }
     post(EXTERNAL_DEBUG_URL, 'data='+JSON.stringify(data));
   } catch (e) {

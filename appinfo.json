@@ -10,17 +10,18 @@
     "watchface": true
   },
   "appKeys": {
-    "temperature": 0,
-    "condition": 1,
-	  "sunrise": 2,
-	  "sunset": 3,
-	  "pubdate": 4,
+    "t": 0,
+    "c": 1,
+	  "sr": 2,
+	  "ss": 3,
+	  "pd": 4,
     "error": 5,
-    "service": 6,
-    "neighborhood": 7,
-    "debug": 8,
+    "s": 6,
+    "n": 7,
+    "d": 8,
     "js_ready": 9,
-    "scale": 10
+    "u": 10,
+    "b": 11
   },
   "resources": {
     "media": [

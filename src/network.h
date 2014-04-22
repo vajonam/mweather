@@ -11,6 +11,7 @@
 #define KEY_DEBUG 8
 #define KEY_JS_READY 9
 #define KEY_SCALE 10
+#define KEY_BATTERY 11
 
 #define SERVICE_OPEN_WEATHER "open"
 #define SERVICE_YAHOO_WEATHER "yahoo"
@@ -33,6 +34,7 @@ typedef struct {
   char* scale;
   bool debug;
   bool js_ready;
+  bool battery; 
   time_t updated;
   WeatherError error;
 } WeatherData;

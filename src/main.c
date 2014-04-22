@@ -3,12 +3,14 @@
 #include "network.h"
 #include "weather_layer.h"
 #include "debug_layer.h"
+#include "battery_layer.h"
 #include "config.h"
 
 #define TIME_FRAME      (GRect(0, 2, 144, 168-6))
 #define DATE_FRAME      (GRect(1, 66, 144, 168-62))
 #define WEATHER_FRAME   (GRect(0, 90, 144, 80))
 #define DEBUG_FRAME     (GRect(0, 168-15, 144, 15))
+#define BATTERY_FRAME   (GRect(110, 0, 144, 8))
 
 /* Keep a pointer to the current weather data as a global variable */
 static WeatherData *weather_data;
@@ -20,6 +22,9 @@ static TextLayer *time_layer;
 
 static char date_text[] = "XXX 00";
 static char time_text[] = "00:00";
+
+static char scale[5];
+static char service[10];
 
 /* Preload the fonts */
 GFont font_date;
@@ -63,7 +68,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 
   weather_layer_update(currentTime, weather_data);
   debug_layer_update(currentTime, weather_data);
-
+  
   // Refresh the weather info every half hour, at 18 and 48 mins after the hour (Yahoo updates around then)
   if ((units_changed & MINUTE_UNIT) && 
       (tick_time->tm_min == 18 || tick_time->tm_min == 48) &&
@@ -94,9 +99,11 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 void load_persisted_values() {
   // Debug
   weather_data->debug = persist_exists(KEY_DEBUG_MODE) ? persist_read_bool(KEY_DEBUG_MODE) : DEFAULT_DEBUG_MODE;
+
+  // Battery
+  weather_data->battery = persist_exists(KEY_DISPLAY_BATTERY) ? persist_read_bool(KEY_DISPLAY_BATTERY) : DEFAULT_DISPLAY_BATTERY;
   
   // Weather Service
-  static char service[20];
   if (persist_exists(KEY_WEATHER_SERVICE)) {
     persist_read_string(KEY_WEATHER_SERVICE, service, sizeof(service));
   } else {
@@ -105,19 +112,26 @@ void load_persisted_values() {
   weather_data->service = service;
 
   // Weather Scale
-  static char scale[1];
   if (persist_exists(KEY_WEATHER_SCALE)) {
-    persist_read_string(KEY_WEATHER_SCALE, scale, sizeof(service));
+    persist_read_string(KEY_WEATHER_SCALE, scale, sizeof(scale));
   } else {
     strcpy(scale, DEFAULT_WEATHER_SCALE);
   }
   weather_data->scale = scale;
+
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "PersistLoad:  d:%d b:%d s:%s u:%s", 
+      weather_data->debug, weather_data->battery, weather_data->service, weather_data->scale);
 }
 
 void store_persistant_values() {
   persist_write_bool(KEY_DEBUG_MODE, weather_data->debug);
+  persist_write_bool(KEY_DISPLAY_BATTERY, weather_data->battery);
   persist_write_string(KEY_WEATHER_SERVICE, weather_data->service);
   persist_write_string(KEY_WEATHER_SCALE, weather_data->scale);
+
+
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "PersistStore:  d:%d b:%d s:%s u:%s", 
+      weather_data->debug, weather_data->battery, weather_data->service, weather_data->scale);
 }
 
 static void init(void) {
@@ -130,6 +144,9 @@ static void init(void) {
 
   weather_data = malloc(sizeof(WeatherData));
   init_network(weather_data);
+
+  // Load persisted values
+  load_persisted_values();
 
   font_date = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FUTURA_18));
   font_time = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FUTURA_CONDENSED_53));
@@ -152,8 +169,7 @@ static void init(void) {
 
   layer_add_child(window_get_root_layer(window), debug_layer_create(DEBUG_FRAME));
 
-  // Load persisted values
-  load_persisted_values();
+  layer_add_child(window_get_root_layer(window), battery_layer_create(BATTERY_FRAME));
 
   // Update the screen right away
   time_t now = time(NULL);
@@ -174,6 +190,7 @@ static void deinit(void) {
 
   weather_layer_destroy();
   debug_layer_destroy();
+  battery_layer_destroy();
 
   fonts_unload_custom_font(font_date);
   fonts_unload_custom_font(font_time);
