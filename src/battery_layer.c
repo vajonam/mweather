@@ -9,7 +9,7 @@ static Layer *battery_layer;
 static AppTimer *battery_animation_timer;
 static bool is_animating = false;
 static bool is_enabled   = false;
-static int8_t dots = MAX_DOTS; 
+static int8_t dots = 4; 
 
 
 void battery_layer_create(GRect frame, Window *window)
