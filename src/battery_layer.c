@@ -9,7 +9,7 @@ static Layer *battery_layer;
 static AppTimer *battery_animation_timer;
 static bool is_animating = false;
 static bool is_enabled   = false;
-static int8_t dots = 4; 
+static int8_t dots = MAX_DOTS; 
 
 
 void battery_layer_create(GRect frame, Window *window)
@@ -31,16 +31,15 @@ void battery_enable_display()
   // Kickoff first update
   handle_battery(battery_state_service_peek());
 
-    // Subscribe to the battery monitoring service
+  // Subscribe to the battery monitoring service
   battery_state_service_subscribe(&handle_battery);
 
   layer_set_hidden(battery_layer, false);
 }
 
-
-void battery_disable_display() 
+void battery_disable_display(bool force) 
 {
-  if (!is_enabled) {
+  if (!is_enabled && !force) {
     return;
   }
 
@@ -61,7 +60,7 @@ void battery_disable_display()
 void battery_timer_callback()
 {
   dots++;
-  if (dots > 4) {
+  if (dots > MAX_DOTS) {
     dots = 1;
   }
   layer_mark_dirty(battery_layer);
@@ -89,7 +88,7 @@ void handle_battery(BatteryChargeState charge_state)
     
     uint8_t charge = charge_state.charge_percent;
     if (charge >= 90) {
-      dots = 4;
+      dots = MAX_DOTS;
     } else if (charge >= 55 && charge < 90) {
       dots = 3;
     } else if (charge >= 20 && charge < 55) {
@@ -105,7 +104,7 @@ void handle_battery(BatteryChargeState charge_state)
 void battery_layer_update(Layer *me, GContext *ctx) 
 {
   int8_t spacer  = 7; // pixels
-  int8_t start_x = spacer * MAX_DOTS; // dots
+  int8_t start_x = spacer * MAX_DOTS;
   
   graphics_context_set_fill_color(ctx, GColorWhite);
   graphics_context_set_stroke_color(ctx, GColorWhite);
@@ -120,7 +119,7 @@ void battery_layer_update(Layer *me, GContext *ctx)
 
 void battery_layer_destroy() 
 {
-  battery_disable_display();
+  battery_disable_display(false);
   layer_destroy(battery_layer);
 }
 

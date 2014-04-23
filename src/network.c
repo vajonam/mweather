@@ -40,7 +40,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     if (weather->battery) {
       battery_enable_display();
     } else {
-      battery_disable_display();
+      battery_disable_display(false);
     }
 
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Got temperature %i and condition %i via %s for %s debug %i batt %i", 

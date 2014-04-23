@@ -70,6 +70,12 @@ void load_persisted_values()
 
   // Battery
   weather_data->battery = persist_exists(KEY_DISPLAY_BATTERY) ? persist_read_bool(KEY_DISPLAY_BATTERY) : DEFAULT_DISPLAY_BATTERY;
+
+  if (weather_data->battery) {
+    battery_enable_display();
+  } else {
+    battery_disable_display(true);
+  }
   
   // Weather Service
   static char service[10];
@@ -116,15 +122,15 @@ static void init(void) {
   weather_data = malloc(sizeof(WeatherData));
   init_network(weather_data);
 
-  // Load persisted values
-  load_persisted_values();
-
   // Setup our layers
   time_layer_create(TIME_FRAME, window);
   date_layer_create(DATE_FRAME, window);
   weather_layer_create(WEATHER_FRAME, window);
   debug_layer_create(DEBUG_FRAME, window);
   battery_layer_create(BATTERY_FRAME, window);
+
+  // Load persisted values
+  load_persisted_values();
 
   // Update the screen right away
   time_t now = time(NULL);
