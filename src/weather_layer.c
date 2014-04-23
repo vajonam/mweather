@@ -2,7 +2,7 @@
 #include "network.h"
 #include "weather_layer.h"
 
-static WeatherLayer *weather_layer;
+static Layer *weather_layer;
 
 static uint8_t WEATHER_ICONS[] = {
   RESOURCE_ID_ICON_CLEAR_DAY,
@@ -30,10 +30,16 @@ static uint8_t WEATHER_ICONS[] = {
   RESOURCE_ID_ICON_LOADING3,
 };
 
+// Buffer the day / night time switch around sunrise & sunset
+const int CIVIL_TWILIGHT_BUFFER = 1200; // 20 minutes
+
 // Keep pointers to the two fonts we use.
 static GFont large_font, small_font;
 
-WeatherLayer *weather_layer_create(GRect frame)
+static WeatherIcon currentIcon;
+static int         currentTemp;
+
+void weather_layer_create(GRect frame, Window *window)
 {
   // Create a new layer with some extra space to save our custom Layer infos
   weather_layer = layer_create_with_data(frame, sizeof(WeatherLayerData));
@@ -60,10 +66,16 @@ WeatherLayer *weather_layer_create(GRect frame)
 
   wld->icon = NULL;
 
-  return weather_layer;
+  layer_add_child(window_get_root_layer(window), weather_layer);
 }
 
-void weather_layer_set_icon(WeatherIcon icon) {
+void weather_layer_set_icon(WeatherIcon icon) 
+{
+  if (currentIcon == icon) {
+    return;
+  }
+  currentIcon = icon;
+
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
   GBitmap *new_icon =  gbitmap_create_with_resource(WEATHER_ICONS[icon]);
@@ -78,7 +90,13 @@ void weather_layer_set_icon(WeatherIcon icon) {
   wld->icon = new_icon;
 }
 
-void weather_layer_set_temperature(int16_t t, bool is_stale) {
+void weather_layer_set_temperature(int16_t t, bool is_stale) 
+{
+  if (currentTemp == t) {
+    return;
+  }
+  currentTemp = t;
+
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
   snprintf(wld->temp_str, sizeof(wld->temp_str), "%i%s", t, is_stale ? " " : "°");
@@ -111,9 +129,9 @@ void weather_layer_set_temperature(int16_t t, bool is_stale) {
   text_layer_set_text(wld->temp_layer, wld->temp_str);
 }
 
-void weather_layer_update(time_t currentTime, WeatherData *weather_data) {
-
-    // Update the bottom half of the screen: icon and temperature
+void weather_layer_update(WeatherData *weather_data) 
+{
+  // Update the bottom half of the screen: icon and temperature
   static int animation_step = 0;
   if (weather_data->updated == 0 && weather_data->error == WEATHER_E_OK)
   {
@@ -136,6 +154,8 @@ void weather_layer_update(time_t currentTime, WeatherData *weather_data) {
     }
     else {
 
+      time_t currentTime = time(NULL);
+
       // Show the temperature as 'stale' if it has not been updated in 30 minutes
       // I really don't like how this looks, removing for now... 
       bool stale = false;
@@ -148,8 +168,8 @@ void weather_layer_update(time_t currentTime, WeatherData *weather_data) {
 
       // Day/night check
       bool night_time = false;
-      if (currentTime < weather_data->sunrise || 
-          currentTime > weather_data->sunset) {
+      if (currentTime < (weather_data->sunrise - CIVIL_TWILIGHT_BUFFER) || 
+          currentTime > (weather_data->sunset  + CIVIL_TWILIGHT_BUFFER)) {
         night_time = true;
       }
 

@@ -7,7 +7,7 @@ static TextLayer *debug_layer;
 static char last_update_text[] = "00:00";
 static char debug_msg[200];
 
-Layer *debug_layer_create(GRect frame)
+void debug_layer_create(GRect frame, Window *window)
 {
   debug_layer = text_layer_create(frame);
   text_layer_set_text_color(debug_layer, GColorBlack);
@@ -15,10 +15,10 @@ Layer *debug_layer_create(GRect frame)
   text_layer_set_font(debug_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
   text_layer_set_text_alignment(debug_layer, GTextAlignmentRight);
 
-  return text_layer_get_layer(debug_layer);
+  layer_add_child(window_get_root_layer(window), text_layer_get_layer(debug_layer));
 }
 
-void debug_layer_update(time_t currentTime, WeatherData *weather_data)
+void debug_layer_update(WeatherData *weather_data)
 {
   if (weather_data->debug) {
 
@@ -31,6 +31,7 @@ void debug_layer_update(time_t currentTime, WeatherData *weather_data)
         "L%s, P%s, %s", last_update_text, weather_data->pub_date, weather_data->neighborhood);
 
       // reset localtime, critical as localtime modifies a shared object!
+      time_t currentTime = time(NULL);
       localtime(&currentTime);
 
     } else {

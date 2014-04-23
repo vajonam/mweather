@@ -32,8 +32,8 @@ Pebble.addEventListener("appmessage", function(d) {
     console.log("Got a message - Starting weather request ... " + JSON.stringify(d));
     try {
       weatherService = d.payload.s;
-      debugEnabled   = d.payload.d === 1 ? true : false;
-      batteryEnabled = d.payload.b === 1 ? true : false;
+      debugEnabled   = d.payload.d === 1;
+      batteryEnabled = d.payload.b === 1;
       weatherScale   = d.payload.u;
     } catch (e) {
       console.warn("Could not retrieve data sent from Pebble: "+e.message);
@@ -53,9 +53,9 @@ Pebble.addEventListener("webviewclosed", function(e) {
         var settings = JSON.parse(decodeURIComponent(e.response));
 
         weatherService = settings.service === SERVICE_YAHOO_WEATHER ? SERVICE_YAHOO_WEATHER : SERVICE_OPEN_WEATHER
-        weatherScale   = settings.scale   === 'F'    ? 'F' : 'C';
-        debugEnabled   = settings.debug   === 'true' ? true : false;
-        batteryEnabled = settings.battery === 'on'   ? true : false;
+        weatherScale   = settings.scale   === 'F' ? 'F' : 'C';
+        debugEnabled   = settings.debug   === 'true';
+        batteryEnabled = settings.battery === 'on';
 
         console.log("Settings received: "+JSON.stringify(settings));
         updateWeather();

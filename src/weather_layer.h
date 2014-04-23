@@ -36,10 +36,8 @@ typedef enum {
 	WEATHER_ICON_COUNT
 } WeatherIcon;
 
-typedef Layer WeatherLayer;
-
-WeatherLayer *weather_layer_create(GRect frame);
-void weather_layer_update(time_t currentTime, WeatherData *weather_data);
+void weather_layer_create(GRect frame, Window *window);
+void weather_layer_update(WeatherData *weather_data);
 void weather_layer_destroy();
 void weather_layer_set_icon(WeatherIcon icon);
 void weather_layer_set_temperature(int16_t temperature, bool is_stale);
