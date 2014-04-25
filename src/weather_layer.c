@@ -129,7 +129,7 @@ void weather_layer_set_temperature(int16_t t, bool is_stale)
   text_layer_set_text(wld->temp_layer, wld->temp_str);
 }
 
-void weather_layer_update(WeatherData *weather_data) 
+void weather_layer_update(WeatherData *weather_data, struct tm *tick_time) 
 {
   // Update the bottom half of the screen: icon and temperature
   static int animation_step = 0;
@@ -154,7 +154,26 @@ void weather_layer_update(WeatherData *weather_data)
     }
     else {
 
-      time_t currentTime = time(NULL);
+      time_t current_time = time(NULL);
+
+      // Day/night check
+      bool night_time = false;
+      if (current_time < (weather_data->sunrise - CIVIL_TWILIGHT_BUFFER) || 
+          current_time > (weather_data->sunset  + CIVIL_TWILIGHT_BUFFER)) {
+        night_time = true;
+      }
+
+      /*
+      APP_LOG(APP_LOG_LEVEL_DEBUG, 
+        "ct:%i, sr:%i, ss:%i, nt:%i", 
+        (int)current_time, (weather_data->sunrise - CIVIL_TWILIGHT_BUFFER), (weather_data->sunset  + CIVIL_TWILIGHT_BUFFER), night_time);
+      */
+
+      if (strcmp(weather_data->service, SERVICE_YAHOO_WEATHER) == 0) {
+        weather_layer_set_icon(yahoo_weather_icon_for_condition(weather_data->condition, night_time));
+      } else {
+        weather_layer_set_icon(open_weather_icon_for_condition(weather_data->condition, night_time));
+      }
 
       // Show the temperature as 'stale' if it has not been updated in 30 minutes
       // I really don't like how this looks, removing for now... 
@@ -165,21 +184,47 @@ void weather_layer_update(WeatherData *weather_data)
       }
       */
       weather_layer_set_temperature(weather_data->temperature, stale);
-
-      // Day/night check
-      bool night_time = false;
-      if (currentTime < (weather_data->sunrise - CIVIL_TWILIGHT_BUFFER) || 
-          currentTime > (weather_data->sunset  + CIVIL_TWILIGHT_BUFFER)) {
-        night_time = true;
-      }
-
-      if (strcmp(weather_data->service, SERVICE_YAHOO_WEATHER) == 0) {
-        weather_layer_set_icon(yahoo_weather_icon_for_condition(weather_data->condition, night_time));
-      } else {
-        weather_layer_set_icon(open_weather_icon_for_condition(weather_data->condition, night_time));
-      }
     }
   }
+}
+
+int compare_times (struct tm *t1, struct tm *t2)
+{
+   APP_LOG(APP_LOG_LEVEL_DEBUG, 
+    "T1 y:%i, mon:%i, mday:%i, hour:%i, min:%i, sec:%i", 
+    t1->tm_year, t1->tm_mon, t1->tm_mday, t1->tm_hour, t1->tm_min, t1->tm_sec);
+
+   APP_LOG(APP_LOG_LEVEL_DEBUG, 
+    "T2 y:%i, mon:%i, mday:%i, hour:%i, min:%i, sec:%i", 
+    t2->tm_year, t2->tm_mon, t2->tm_mday, t2->tm_hour, t2->tm_min, t2->tm_sec);
+
+
+   if (t1->tm_year < t2->tm_year)
+     return -1;
+   else if (t1->tm_year > t2->tm_year)
+     return 1;
+   else if (t1->tm_mon < t2->tm_mon)
+     return -1;
+   else if (t1->tm_mon > t2->tm_mon)
+     return 1;
+   else if (t1->tm_mday < t2->tm_mday)
+     return -1;
+   else if (t1->tm_mday > t2->tm_mday)
+     return 1;
+   else if (t1->tm_hour < t2->tm_hour)
+     return -1;
+   else if (t1->tm_hour > t2->tm_hour)
+     return 1;
+   else if (t1->tm_min < t2->tm_min)
+     return -1;
+   else if (t1->tm_min > t2->tm_min)
+     return 1;
+   else if (t1->tm_sec < t2->tm_sec)
+     return -1;
+   else if (t1->tm_sec > t2->tm_sec)
+     return 1;
+   else
+     return 0;
 }
 
 void weather_layer_destroy() {
@@ -273,7 +318,7 @@ uint8_t open_weather_icon_for_condition(int c, bool night_time) {
  */
 uint8_t yahoo_weather_icon_for_condition(int c, bool night_time) {
 
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Yahoo Weather icon selection.");
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Yahoo Weather icon selection. c: %i, night: %i", c, night_time);
   
   // Tornado / Hurricane / Wind
   if ((c >= 0 && c <= 2) || c == 23 || c == 24) {
@@ -323,21 +368,19 @@ uint8_t yahoo_weather_icon_for_condition(int c, bool night_time) {
   else if (c == 26) {
     return WEATHER_ICON_CLOUDY;
   }
-  // Cloudly Night
-  else if (c == 27 || c == 29) {
-    return WEATHER_ICON_PARTLY_CLOUDY_NIGHT;
+  // Cloudly Night and` Cloudly Day
+  else if (c >= 27 || c <= 30) {
+    if (night_time)
+      return WEATHER_ICON_PARTLY_CLOUDY_NIGHT;
+    else
+      return WEATHER_ICON_PARTLY_CLOUDY_DAY;
   }
-  // Cloudly Day
-  else if (c == 28 || c == 30) {
-    return WEATHER_ICON_PARTLY_CLOUDY_DAY;
-  }
-  // Clear / Fair Night
-  else if (c == 31 || c == 33) {
-    return WEATHER_ICON_CLEAR_NIGHT;
-  }
-  // Sunny / Fair Day
-  else if (c == 32 || c == 34) {
-    return WEATHER_ICON_CLEAR_DAY;
+  // Clear / Fair Night && Sunny / Fair Day
+  else if (c >= 31 || c <= 34) {
+    if (night_time)
+      return WEATHER_ICON_CLEAR_NIGHT;
+    else
+      return WEATHER_ICON_CLEAR_DAY;
   }
   // Hot
   else if (c == 36) {

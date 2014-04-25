@@ -2,7 +2,10 @@
 #define DEBUG_LAYER_H
 
 void debug_layer_create(GRect frame, Window *window);
-void debug_layer_update(WeatherData *weather_data);
+void debug_enable_display();
+void debug_disable_display();
+void debug_update_message(char *message);
+void debug_update_weather(WeatherData *weather_data);
 void debug_layer_destroy();
 
 #endif

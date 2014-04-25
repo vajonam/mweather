@@ -27,14 +27,14 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 {
   if (units_changed & MINUTE_UNIT) {
     time_layer_update();
+    debug_update_weather(weather_data);
   }
 
   if (units_changed & DAY_UNIT) {
     date_layer_update(tick_time);
   }
 
-  weather_layer_update(weather_data);
-  debug_layer_update(weather_data);
+  weather_layer_update(weather_data, tick_time);
   
   // Refresh the weather info every half hour, at 18 and 48 mins after the hour (Yahoo updates around then)
   if ((units_changed & MINUTE_UNIT) && 
@@ -63,10 +63,20 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
   }
 } 
 
+/**
+ * Must happen after layers are created! 
+ */ 
 void load_persisted_values() 
 {
   // Debug
   weather_data->debug = persist_exists(KEY_DEBUG_MODE) ? persist_read_bool(KEY_DEBUG_MODE) : DEFAULT_DEBUG_MODE;
+
+  if (weather_data->debug) {
+    debug_enable_display();
+    debug_update_message("Initializing...");
+  } else {
+    debug_disable_display();
+  }
 
   // Battery
   weather_data->battery = persist_exists(KEY_DISPLAY_BATTERY) ? persist_read_bool(KEY_DISPLAY_BATTERY) : DEFAULT_DISPLAY_BATTERY;
@@ -74,7 +84,7 @@ void load_persisted_values()
   if (weather_data->battery) {
     battery_enable_display();
   } else {
-    battery_disable_display(true);
+    battery_disable_display();
   }
   
   // Weather Service

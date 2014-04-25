@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "network.h"
 #include "battery_layer.h"
+#include "debug_layer.h"
 
 const  int MAX_RETRY = 2;
 static int retry_count = 0;
@@ -40,7 +41,14 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     if (weather->battery) {
       battery_enable_display();
     } else {
-      battery_disable_display(false);
+      battery_disable_display();
+    }
+
+    if (weather->debug) {
+      debug_enable_display();
+      debug_update_weather(weather);
+    } else {
+      debug_disable_display();
     }
 
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Got temperature %i and condition %i via %s for %s debug %i batt %i", 

@@ -37,11 +37,16 @@ void battery_enable_display()
   layer_set_hidden(battery_layer, false);
 }
 
-void battery_disable_display(bool force) 
+void battery_disable_display() 
 {
-  if (!is_enabled && !force) {
+  if (!is_enabled) {
     return;
   }
+
+  is_animating = false;
+  is_enabled = false;
+
+  layer_set_hidden(battery_layer, true);
 
   // Unsubscribe to the battery monitoring service
   battery_state_service_unsubscribe();
@@ -50,11 +55,6 @@ void battery_disable_display(bool force)
   if (battery_animation_timer) {
     app_timer_cancel(battery_animation_timer);
   }
-  
-  layer_set_hidden(battery_layer, true);
-
-  is_animating = false;
-  is_enabled = false;
 }
 
 void battery_timer_callback()
@@ -119,7 +119,7 @@ void battery_layer_update(Layer *me, GContext *ctx)
 
 void battery_layer_destroy() 
 {
-  battery_disable_display(false);
+  battery_disable_display();
   layer_destroy(battery_layer);
 }
 
