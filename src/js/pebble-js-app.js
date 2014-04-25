@@ -156,8 +156,8 @@ var fetchOpenWeather = function(latitude, longitude) {
       return {
         "c":  condition,
         "t":  temperature,
-        "sr": sunrise,
-        "ss": sunset,
+        "sr": Date.parse((new Date(sunrise*1000)).toLocaleString()+" UTC") / 1000,
+        "ss": Date.parse((new Date(sunset*1000)).toLocaleString()+" UTC") / 1000,
         "s":  SERVICE_OPEN_WEATHER,
         "u":  weatherScale,
         "n":  response.name,

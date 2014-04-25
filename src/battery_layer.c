@@ -11,6 +11,40 @@ static bool is_animating = false;
 static bool is_enabled   = false;
 static int8_t dots = 4; 
 
+static void handle_battery(BatteryChargeState charge_state) 
+{
+
+  if (charge_state.is_charging || charge_state.is_plugged) {
+
+    if (!is_animating) {
+       is_animating = true;
+       battery_animation_timer = app_timer_register(BATTERY_TIMEOUT, battery_timer_callback, NULL);
+    }
+    return;
+
+  } 
+  else {
+
+    is_animating = false;
+    if (battery_animation_timer) {
+      app_timer_cancel(battery_animation_timer);
+    }
+    
+    uint8_t charge = charge_state.charge_percent;
+    if (charge >= 90) {
+      dots = MAX_DOTS;
+    } else if (charge >= 55 && charge < 90) {
+      dots = 3;
+    } else if (charge >= 20 && charge < 55) {
+      dots = 2;
+    } else {
+      dots = 1;
+    }
+  }
+
+  layer_mark_dirty(battery_layer);
+}
+
 
 void battery_layer_create(GRect frame, Window *window)
 {
@@ -65,40 +99,6 @@ void battery_timer_callback()
   }
   layer_mark_dirty(battery_layer);
   battery_animation_timer = app_timer_register(BATTERY_TIMEOUT, battery_timer_callback, NULL);
-}
-
-void handle_battery(BatteryChargeState charge_state) 
-{
-
-  if (charge_state.is_charging || charge_state.is_plugged) {
-
-    if (!is_animating) {
-       is_animating = true;
-       battery_animation_timer = app_timer_register(BATTERY_TIMEOUT, battery_timer_callback, NULL);
-    }
-    return;
-
-  } 
-  else {
-
-    is_animating = false;
-    if (battery_animation_timer) {
-      app_timer_cancel(battery_animation_timer);
-    }
-    
-    uint8_t charge = charge_state.charge_percent;
-    if (charge >= 90) {
-      dots = MAX_DOTS;
-    } else if (charge >= 55 && charge < 90) {
-      dots = 3;
-    } else if (charge >= 20 && charge < 55) {
-      dots = 2;
-    } else {
-      dots = 1;
-    }
-  }
-
-  layer_mark_dirty(battery_layer);
 }
 
 void battery_layer_update(Layer *me, GContext *ctx) 

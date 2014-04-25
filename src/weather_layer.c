@@ -188,7 +188,8 @@ void weather_layer_update(WeatherData *weather_data)
   }
 }
 
-void weather_layer_destroy() {
+void weather_layer_destroy() 
+{
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
   text_layer_destroy(wld->temp_layer);
@@ -209,8 +210,8 @@ void weather_layer_destroy() {
  * Converts an API Weather Condition into one of our icons.
  * Refer to: http://bugs.openweathermap.org/projects/api/wiki/Weather_Condition_Codes
  */
-uint8_t open_weather_icon_for_condition(int c, bool night_time) {
-
+uint8_t open_weather_icon_for_condition(int c, bool night_time) 
+{
   //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Open Weather icon selection.");
 
   // Thunderstorm
@@ -277,8 +278,8 @@ uint8_t open_weather_icon_for_condition(int c, bool night_time) {
  * Converts the Yahoo API Weather Condition into one of our icons.
  * Refer to: https://developer.yahoo.com/weather/#codes
  */
-uint8_t yahoo_weather_icon_for_condition(int c, bool night_time) {
-
+uint8_t yahoo_weather_icon_for_condition(int c, bool night_time) 
+{
   //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Yahoo Weather icon selection. c: %i, night: %i", c, night_time);
   
   // Tornado / Hurricane / Wind

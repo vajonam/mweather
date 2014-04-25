@@ -66,13 +66,14 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 /**
  * Must happen after layers are created! 
  */ 
-void load_persisted_values() 
+static void load_persisted_values() 
 {
   // Debug
   weather_data->debug = persist_exists(KEY_DEBUG_MODE) ? persist_read_bool(KEY_DEBUG_MODE) : DEFAULT_DEBUG_MODE;
 
   if (weather_data->debug) {
     debug_enable_display();
+    debug_update_message("Initializing...");
   } else {
     debug_disable_display();
   }
@@ -108,7 +109,7 @@ void load_persisted_values()
       weather_data->debug, weather_data->battery, weather_data->service, weather_data->scale);
 }
 
-void store_persistant_values() 
+static void store_persistant_values() 
 {
   persist_write_bool(KEY_DEBUG_MODE, weather_data->debug);
   persist_write_bool(KEY_DISPLAY_BATTERY, weather_data->battery);
@@ -120,7 +121,8 @@ void store_persistant_values()
       weather_data->debug, weather_data->battery, weather_data->service, weather_data->scale);
 }
 
-static void init(void) {
+static void init(void) 
+{
 
   APP_LOG(APP_LOG_LEVEL_DEBUG, "init started");
 
@@ -149,7 +151,8 @@ static void init(void) {
   tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
 }
 
-static void deinit(void) {
+static void deinit(void) 
+{
   APP_LOG(APP_LOG_LEVEL_DEBUG, "deinit started");
 
   tick_timer_service_unsubscribe();

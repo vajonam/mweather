@@ -72,7 +72,8 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   retry_count = 0;
 }
 
-static char *translate_error(AppMessageResult result) {
+static char *translate_error(AppMessageResult result) 
+{
   switch (result) {
     case APP_MSG_OK: return "APP_MSG_OK";
     case APP_MSG_SEND_TIMEOUT: return "APP_MSG_SEND_TIMEOUT";
@@ -92,7 +93,8 @@ static char *translate_error(AppMessageResult result) {
   }
 }
 
-static void appmsg_in_dropped(AppMessageResult reason, void *context) {
+static void appmsg_in_dropped(AppMessageResult reason, void *context)
+{
   WeatherData *weather_data = (WeatherData*) context;
 
   APP_LOG(APP_LOG_LEVEL_DEBUG, "In dropped: %s", translate_error(reason));
@@ -102,11 +104,13 @@ static void appmsg_in_dropped(AppMessageResult reason, void *context) {
   request_weather(weather_data);
 }
 
-static void appmsg_out_sent(DictionaryIterator *sent, void *context) {
+static void appmsg_out_sent(DictionaryIterator *sent, void *context) 
+{
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Out sent.");
 }
 
-static void appmsg_out_failed(DictionaryIterator *failed, AppMessageResult reason, void *context) {
+static void appmsg_out_failed(DictionaryIterator *failed, AppMessageResult reason, void *context) 
+{
   WeatherData *weather_data = (WeatherData*) context;
 
   APP_LOG(APP_LOG_LEVEL_DEBUG, "Out failed: %i", reason);
