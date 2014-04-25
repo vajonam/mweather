@@ -34,7 +34,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
     date_layer_update(tick_time);
   }
 
-  weather_layer_update(weather_data, tick_time);
+  weather_layer_update(weather_data);
   
   // Refresh the weather info every half hour, at 18 and 48 mins after the hour (Yahoo updates around then)
   if ((units_changed & MINUTE_UNIT) && 
@@ -73,7 +73,6 @@ void load_persisted_values()
 
   if (weather_data->debug) {
     debug_enable_display();
-    debug_update_message("Initializing...");
   } else {
     debug_disable_display();
   }

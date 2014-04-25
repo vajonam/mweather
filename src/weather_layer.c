@@ -129,7 +129,7 @@ void weather_layer_set_temperature(int16_t t, bool is_stale)
   text_layer_set_text(wld->temp_layer, wld->temp_str);
 }
 
-void weather_layer_update(WeatherData *weather_data, struct tm *tick_time) 
+void weather_layer_update(WeatherData *weather_data) 
 {
   // Update the bottom half of the screen: icon and temperature
   static int animation_step = 0;

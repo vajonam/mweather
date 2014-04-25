@@ -37,7 +37,7 @@ typedef enum {
 } WeatherIcon;
 
 void weather_layer_create(GRect frame, Window *window);
-void weather_layer_update(WeatherData *weather_data, struct tm *tick_time);
+void weather_layer_update(WeatherData *weather_data);
 void weather_layer_destroy();
 void weather_layer_set_icon(WeatherIcon icon);
 void weather_layer_set_temperature(int16_t temperature, bool is_stale);
