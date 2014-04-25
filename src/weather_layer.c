@@ -188,45 +188,6 @@ void weather_layer_update(WeatherData *weather_data, struct tm *tick_time)
   }
 }
 
-int compare_times (struct tm *t1, struct tm *t2)
-{
-   APP_LOG(APP_LOG_LEVEL_DEBUG, 
-    "T1 y:%i, mon:%i, mday:%i, hour:%i, min:%i, sec:%i", 
-    t1->tm_year, t1->tm_mon, t1->tm_mday, t1->tm_hour, t1->tm_min, t1->tm_sec);
-
-   APP_LOG(APP_LOG_LEVEL_DEBUG, 
-    "T2 y:%i, mon:%i, mday:%i, hour:%i, min:%i, sec:%i", 
-    t2->tm_year, t2->tm_mon, t2->tm_mday, t2->tm_hour, t2->tm_min, t2->tm_sec);
-
-
-   if (t1->tm_year < t2->tm_year)
-     return -1;
-   else if (t1->tm_year > t2->tm_year)
-     return 1;
-   else if (t1->tm_mon < t2->tm_mon)
-     return -1;
-   else if (t1->tm_mon > t2->tm_mon)
-     return 1;
-   else if (t1->tm_mday < t2->tm_mday)
-     return -1;
-   else if (t1->tm_mday > t2->tm_mday)
-     return 1;
-   else if (t1->tm_hour < t2->tm_hour)
-     return -1;
-   else if (t1->tm_hour > t2->tm_hour)
-     return 1;
-   else if (t1->tm_min < t2->tm_min)
-     return -1;
-   else if (t1->tm_min > t2->tm_min)
-     return 1;
-   else if (t1->tm_sec < t2->tm_sec)
-     return -1;
-   else if (t1->tm_sec > t2->tm_sec)
-     return 1;
-   else
-     return 0;
-}
-
 void weather_layer_destroy() {
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
