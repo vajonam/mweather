@@ -33,11 +33,41 @@ static uint8_t WEATHER_ICONS[] = {
 // Buffer the day / night time switch around sunrise & sunset
 const int CIVIL_TWILIGHT_BUFFER = 1200; // 20 minutes
 
+const uint32_t WEATHER_ANIMATION_TIMEOUT = 1000; // 1 second animation 
+
 // Keep pointers to the two fonts we use.
 static GFont large_font, small_font;
 
-static WeatherIcon currentIcon;
-static int         currentTemp;
+// Why do the work if we're already displaying what we want
+static WeatherIcon current_icon;
+static int         current_temp;
+
+// Initial animation dots
+static AppTimer *weather_animation_timer;
+static bool animation_timer_enabled = true;
+static int  animation_step = 0;
+
+void weather_animate(void *context)
+{
+  WeatherData *weather_data = (WeatherData*) context;
+  
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "weather animate: %i", animation_step);
+
+  if (weather_data->updated == 0 && weather_data->error == WEATHER_E_OK) {    
+    // 'Animate' loading icon until the first successful weather request
+    if (animation_step <= 0) {
+      weather_layer_set_icon(WEATHER_ICON_LOADING1);
+    }
+    else if (animation_step == 1) {
+      weather_layer_set_icon(WEATHER_ICON_LOADING2);
+    }
+    else if (animation_step >= 2) {
+      weather_layer_set_icon(WEATHER_ICON_LOADING3);
+    }
+    animation_step = (animation_step + 1) % 3;
+    weather_animation_timer = app_timer_register(WEATHER_ANIMATION_TIMEOUT, weather_animate, weather_data);
+  }
+}
 
 void weather_layer_create(GRect frame, Window *window)
 {
@@ -71,10 +101,10 @@ void weather_layer_create(GRect frame, Window *window)
 
 void weather_layer_set_icon(WeatherIcon icon) 
 {
-  if (currentIcon == icon) {
+  if (current_icon == icon) {
     return;
   }
-  currentIcon = icon;
+  current_icon = icon;
 
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
@@ -92,10 +122,10 @@ void weather_layer_set_icon(WeatherIcon icon)
 
 void weather_layer_set_temperature(int16_t t, bool is_stale) 
 {
-  if (currentTemp == t) {
+  if (current_temp == t) {
     return;
   }
-  currentTemp = t;
+  current_temp = t;
 
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
@@ -106,15 +136,15 @@ void weather_layer_set_temperature(int16_t t, bool is_stale)
     text_layer_set_font(wld->temp_layer, large_font);
     text_layer_set_text_alignment(wld->temp_layer, GTextAlignmentCenter);
 
-	// Is the temperature below zero?
-	if (wld->temp_str[0] == '-') {
-	  memmove(
-          wld->temp_str + 1 + 1,
-          wld->temp_str + 1,
-          5 - (1 + 1)
-      );
-	  memcpy(&wld->temp_str[1], " ", 1);
-	}
+  	// Is the temperature below zero?
+  	if (wld->temp_str[0] == '-') {
+  	  memmove(
+            wld->temp_str + 1 + 1,
+            wld->temp_str + 1,
+            5 - (1 + 1)
+        );
+  	  memcpy(&wld->temp_str[1], " ", 1);
+  	}
   }
   // Temperature between 10° -> 19°
   else if (t >= 10 && t < 20) {
@@ -129,67 +159,65 @@ void weather_layer_set_temperature(int16_t t, bool is_stale)
   text_layer_set_text(wld->temp_layer, wld->temp_str);
 }
 
+// Update the bottom half of the screen: icon and temperature
 void weather_layer_update(WeatherData *weather_data) 
 {
-  // Update the bottom half of the screen: icon and temperature
-  static int animation_step = 0;
-  if (weather_data->updated == 0 && weather_data->error == WEATHER_E_OK)
-  {
-    // 'Animate' loading icon until the first successful weather request
-    if (animation_step == 0) {
-      weather_layer_set_icon(WEATHER_ICON_LOADING1);
-    }
-    else if (animation_step == 1) {
-      weather_layer_set_icon(WEATHER_ICON_LOADING2);
-    }
-    else if (animation_step >= 2) {
-      weather_layer_set_icon(WEATHER_ICON_LOADING3);
-    }
-    animation_step = (animation_step + 1) % 3;
+  // We have no weather data yet... don't update until we do
+  if (weather_data->updated == 0) {
+    return;
+  }
+
+  if (weather_animation_timer && animation_timer_enabled) {
+    app_timer_cancel(weather_animation_timer);
+    // this is only needed to stop the error message when cancelling an already cancelled timer... 
+    animation_timer_enabled = false;
+  }
+
+  // Update the weather icon and temperature
+  if (weather_data->error) {
+    weather_layer_set_icon(WEATHER_ICON_PHONE_ERROR);
   }
   else {
-    // Update the weather icon and temperature
-    if (weather_data->error) {
-      weather_layer_set_icon(WEATHER_ICON_PHONE_ERROR);
+
+    time_t current_time = time(NULL);
+
+    // Day/night check
+    bool night_time = false;
+    if (current_time < (weather_data->sunrise - CIVIL_TWILIGHT_BUFFER) || 
+        current_time > (weather_data->sunset  + CIVIL_TWILIGHT_BUFFER)) {
+      night_time = true;
     }
-    else {
 
-      time_t current_time = time(NULL);
+    /*
+    APP_LOG(APP_LOG_LEVEL_DEBUG, 
+      "ct:%i, sr:%i, ss:%i, nt:%i", 
+      (int)current_time, (weather_data->sunrise - CIVIL_TWILIGHT_BUFFER), (weather_data->sunset  + CIVIL_TWILIGHT_BUFFER), night_time);
+    */
 
-      // Day/night check
-      bool night_time = false;
-      if (current_time < (weather_data->sunrise - CIVIL_TWILIGHT_BUFFER) || 
-          current_time > (weather_data->sunset  + CIVIL_TWILIGHT_BUFFER)) {
-        night_time = true;
-      }
-
-      /*
-      APP_LOG(APP_LOG_LEVEL_DEBUG, 
-        "ct:%i, sr:%i, ss:%i, nt:%i", 
-        (int)current_time, (weather_data->sunrise - CIVIL_TWILIGHT_BUFFER), (weather_data->sunset  + CIVIL_TWILIGHT_BUFFER), night_time);
-      */
-
-      if (strcmp(weather_data->service, SERVICE_YAHOO_WEATHER) == 0) {
-        weather_layer_set_icon(yahoo_weather_icon_for_condition(weather_data->condition, night_time));
-      } else {
-        weather_layer_set_icon(open_weather_icon_for_condition(weather_data->condition, night_time));
-      }
-
-      // Show the temperature as 'stale' if it has not been updated in 30 minutes
-      // I really don't like how this looks, removing for now... 
-      bool stale = false;
-      /*
-      if (currentTime - weather_data->updated > 1800) {
-        stale = true;
-      }
-      */
-      weather_layer_set_temperature(weather_data->temperature, stale);
+    if (strcmp(weather_data->service, SERVICE_YAHOO_WEATHER) == 0) {
+      weather_layer_set_icon(yahoo_weather_icon_for_condition(weather_data->condition, night_time));
+    } else {
+      weather_layer_set_icon(open_weather_icon_for_condition(weather_data->condition, night_time));
     }
+
+    // Show the temperature as 'stale' if it has not been updated in 30 minutes
+    // I really don't like how this looks, removing for now... 
+    bool stale = false;
+    /*
+    if (currentTime - weather_data->updated > 1800) {
+      stale = true;
+    }
+    */
+    weather_layer_set_temperature(weather_data->temperature, stale);
   }
 }
 
 void weather_layer_destroy() 
 {
+  if (weather_animation_timer) {
+    app_timer_cancel(weather_animation_timer);
+  }
+
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
   text_layer_destroy(wld->temp_layer);
@@ -303,11 +331,11 @@ uint8_t yahoo_weather_icon_for_condition(int c, bool night_time)
     return WEATHER_ICON_SNOW_SLEET;
   }
   // Drizzle
-  else if (c == 9) {
+  else if (c == 9 || c == 40) {
     return WEATHER_ICON_DRIZZLE;
   }
   // Rain / Showers / Scattered Showers / Thundershowers
-  else if (c == 11 || c == 12 || c == 37 || c == 40 || c == 45 || c == 47) {
+  else if (c == 11 || c == 12 || c == 37  || c == 45 || c == 47) {
     return WEATHER_ICON_RAIN;
   }
   // Snow / Heavy Snow / Scattered Snow

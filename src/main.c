@@ -28,18 +28,17 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
   if (units_changed & MINUTE_UNIT) {
     time_layer_update();
     debug_update_weather(weather_data);
+    weather_layer_update(weather_data);
   }
 
   if (units_changed & DAY_UNIT) {
     date_layer_update(tick_time);
   }
 
-  weather_layer_update(weather_data);
-  
-  // Refresh the weather info every half hour, at 18 and 48 mins after the hour (Yahoo updates around then)
+  // Refresh the weather info every 15 mins, targeting 18 mins after the hour (Yahoo updates around then)
   if ((units_changed & MINUTE_UNIT) && 
-      (tick_time->tm_min == 18 || tick_time->tm_min == 48) &&
-      initial_request == false) {
+      (tick_time->tm_min % 15 == 3) &&
+    initial_request == false) {
     request_weather(weather_data);
   }
 
@@ -142,6 +141,8 @@ static void init(void)
 
   // Load persisted values
   load_persisted_values();
+
+  weather_animate(weather_data);
 
   // Update the screen right away
   time_t now = time(NULL);

@@ -151,17 +151,17 @@ var fetchOpenWeather = function(latitude, longitude) {
       condition = response.weather[0].id;
       sunrise   = response.sys.sunrise;
       sunset    = response.sys.sunset;
-      pubdate   = new Date(response.dt); // not sure about this, I believe this may be non EST TZ
+      pubdate   = new Date(response.dt*1000); // not sure about this, I believe this may be non EST TZ
 
       return {
         "c":  condition,
         "t":  temperature,
-        "sr": Date.parse((new Date(sunrise*1000)).toLocaleString()+" UTC") / 1000,
-        "ss": Date.parse((new Date(sunset*1000)).toLocaleString()+" UTC") / 1000,
+        "sr": Date.parse((new Date(sunrise*1000)).toLocaleString().replace('at ', '').split(' ').slice(0, 5).join(' ')+' UTC') / 1000,
+        "ss": Date.parse((new Date(sunset*1000)).toLocaleString().replace('at ', '').split(' ').slice(0, 5).join(' ')+' UTC') / 1000,
         "s":  SERVICE_OPEN_WEATHER,
         "u":  weatherScale,
         "n":  response.name,
-        "pd": pubdate.getHours()+':'+pubdate.getMinutes(),
+        "pd": ('0'+pubdate.toLocaleTimeString().split(' ')[0]).slice(0,5),  
         "d":  debugEnabled,
         "b":  batteryEnabled
       };
@@ -171,7 +171,7 @@ var fetchOpenWeather = function(latitude, longitude) {
 
 var fetchWeather = function(options) {
 
-  //console.log('URL: ' + options.url);
+  console.log('URL: ' + options.url);
 
   getJson(options.url, function(err, response) {
 

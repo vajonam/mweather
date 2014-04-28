@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "network.h"
 #include "battery_layer.h"
+#include "weather_layer.h"
 #include "debug_layer.h"
 
 const  int MAX_RETRY = 2;
@@ -50,6 +51,8 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     } else {
       debug_disable_display();
     }
+
+    weather_layer_update(weather);
 
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Got temperature %i and condition %i via %s for %s debug %i batt %i", 
       weather->temperature, weather->condition, weather->service, weather->neighborhood, weather->debug, weather->battery);
@@ -113,7 +116,7 @@ static void appmsg_out_failed(DictionaryIterator *failed, AppMessageResult reaso
 {
   WeatherData *weather_data = (WeatherData*) context;
 
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Out failed: %i", reason);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Out failed: %s", translate_error(reason));
 
   retry_count++;
   
