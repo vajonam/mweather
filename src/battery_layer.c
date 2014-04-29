@@ -13,7 +13,6 @@ static int8_t dots = 4;
 
 static void handle_battery(BatteryChargeState charge_state) 
 {
-
   if (charge_state.is_charging || charge_state.is_plugged) {
 
     if (!is_animating) {
@@ -33,9 +32,9 @@ static void handle_battery(BatteryChargeState charge_state)
     uint8_t charge = charge_state.charge_percent;
     if (charge >= 90) {
       dots = MAX_DOTS;
-    } else if (charge >= 55 && charge < 90) {
+    } else if (charge >= 60 && charge < 90) {
       dots = 3;
-    } else if (charge >= 20 && charge < 55) {
+    } else if (charge >= 30 && charge < 60) {
       dots = 2;
     } else {
       dots = 1;
@@ -73,10 +72,6 @@ void battery_enable_display()
 
 void battery_disable_display() 
 {
-  if (!is_enabled) {
-    return;
-  }
-
   is_animating = false;
   is_enabled = false;
 

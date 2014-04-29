@@ -151,11 +151,11 @@ var fetchOpenWeather = function(latitude, longitude) {
       condition = response.weather[0].id;
       sunrise   = response.sys.sunrise;
       sunset    = response.sys.sunset;
-      pubdate   = new Date(response.dt*1000); // not sure about this, I believe this may be non EST TZ
+      pubdate   = new Date(response.dt*1000); 
 
       return {
         "c":  condition,
-        "t":  temperature,
+        "t":  temperature,  // Don't ask... c's time(NULL) gives EPOCH seconds according to the watch's time
         "sr": Date.parse((new Date(sunrise*1000)).toLocaleString().replace('at ', '').split(' ').slice(0, 5).join(' ')+' UTC') / 1000,
         "ss": Date.parse((new Date(sunset*1000)).toLocaleString().replace('at ', '').split(' ').slice(0, 5).join(' ')+' UTC') / 1000,
         "s":  SERVICE_OPEN_WEATHER,
@@ -171,7 +171,7 @@ var fetchOpenWeather = function(latitude, longitude) {
 
 var fetchWeather = function(options) {
 
-  console.log('URL: ' + options.url);
+  //console.log('URL: ' + options.url);
 
   getJson(options.url, function(err, response) {
 

@@ -1,5 +1,7 @@
 #include <pebble.h>
+#include "main.h"
 #include "network.h"
+#include "persist.h"
 #include "weather_layer.h"
 #include "debug_layer.h"
 #include "battery_layer.h"
@@ -19,16 +21,18 @@ static WeatherData *weather_data;
 static Window *window;
 
 /* Need to wait for JS to be ready */
+const  int  MAX_JS_READY_WAIT = 5000; // 5s
 static bool initial_request = true;
-static int  initial_count   = 0;
-const  int  MAX_JS_READY_WAIT_SECS = 5;
+static AppTimer *initial_jsready_timer;
 
 static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 {
   if (units_changed & MINUTE_UNIT) {
     time_layer_update();
-    debug_update_weather(weather_data);
-    weather_layer_update(weather_data);
+    if (!initial_request) {
+      debug_update_weather(weather_data);
+      weather_layer_update(weather_data);
+    }
   }
 
   if (units_changed & DAY_UNIT) {
@@ -38,91 +42,27 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
   // Refresh the weather info every 15 mins, targeting 18 mins after the hour (Yahoo updates around then)
   if ((units_changed & MINUTE_UNIT) && 
       (tick_time->tm_min % 15 == 3) &&
-    initial_request == false) {
+      !initial_request) {
     request_weather(weather_data);
-  }
-
-  // Wait for JS to tell us it's ready before firing the first request
-  if (initial_request || weather_data->js_ready) {
-
-    // We're all set!
-    if (weather_data->js_ready) {
-      initial_request = false;
-      weather_data->js_ready = false;
-      request_weather(weather_data);
-    } 
-    else {
-      initial_count++;
-      // If we've waited too long let's try anyways. This will inform the user via error icon if it fails
-      if (initial_count >= MAX_JS_READY_WAIT_SECS) {
-        initial_request = false;
-        weather_data->js_ready = true; // let's assume we just missed it, and if we're wrong it's ok
-      }
-    }
   }
 } 
 
 /**
- * Must happen after layers are created! 
- */ 
-static void load_persisted_values() 
+ * Wait for an official 'ready' from javascript or MAX_JS_READY_WAIT, whichever happens sooner 
+ */
+void initial_jsready_callback()
 {
-  // Debug
-  weather_data->debug = persist_exists(KEY_DEBUG_MODE) ? persist_read_bool(KEY_DEBUG_MODE) : DEFAULT_DEBUG_MODE;
+  initial_request = false;
 
-  if (weather_data->debug) {
-    debug_enable_display();
-    debug_update_message("Initializing...");
-  } else {
-    debug_disable_display();
+  if (initial_jsready_timer) {
+    app_timer_cancel(initial_jsready_timer);
   }
 
-  // Battery
-  weather_data->battery = persist_exists(KEY_DISPLAY_BATTERY) ? persist_read_bool(KEY_DISPLAY_BATTERY) : DEFAULT_DISPLAY_BATTERY;
-
-  if (weather_data->battery) {
-    battery_enable_display();
-  } else {
-    battery_disable_display();
-  }
-  
-  // Weather Service
-  static char service[10];
-  if (persist_exists(KEY_WEATHER_SERVICE)) {
-    persist_read_string(KEY_WEATHER_SERVICE, service, sizeof(service));
-  } else {
-    strcpy(service, DEFAULT_WEATHER_SERVICE);
-  }
-  weather_data->service = service;
-
-  // Weather Scale
-  static char scale[5];
-  if (persist_exists(KEY_WEATHER_SCALE)) {
-    persist_read_string(KEY_WEATHER_SCALE, scale, sizeof(scale));
-  } else {
-    strcpy(scale, DEFAULT_WEATHER_SCALE);
-  }
-  weather_data->scale = scale;
-
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "PersistLoad:  d:%d b:%d s:%s u:%s", 
-      weather_data->debug, weather_data->battery, weather_data->service, weather_data->scale);
-}
-
-static void store_persistant_values() 
-{
-  persist_write_bool(KEY_DEBUG_MODE, weather_data->debug);
-  persist_write_bool(KEY_DISPLAY_BATTERY, weather_data->battery);
-  persist_write_string(KEY_WEATHER_SERVICE, weather_data->service);
-  persist_write_string(KEY_WEATHER_SCALE, weather_data->scale);
-
-
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "PersistStore:  d:%d b:%d s:%s u:%s", 
-      weather_data->debug, weather_data->battery, weather_data->service, weather_data->scale);
+  request_weather(weather_data); 
 }
 
 static void init(void) 
 {
-
   APP_LOG(APP_LOG_LEVEL_DEBUG, "init started");
 
   window = window_create();
@@ -139,17 +79,20 @@ static void init(void)
   debug_layer_create(DEBUG_FRAME, window);
   battery_layer_create(BATTERY_FRAME, window);
 
-  // Load persisted values
-  load_persisted_values();
+  load_persisted_values(weather_data);
 
+  // Kickoff our weather loading 'dot' animation
   weather_animate(weather_data);
+
+  // Setup a timer incase we miss or don't receive js_ready to manually try ourselves
+  initial_jsready_timer = app_timer_register(MAX_JS_READY_WAIT, initial_jsready_callback, NULL);
 
   // Update the screen right away
   time_t now = time(NULL);
-  handle_tick(localtime(&now), SECOND_UNIT | MINUTE_UNIT | HOUR_UNIT | DAY_UNIT );
+  handle_tick(localtime(&now), MINUTE_UNIT | DAY_UNIT );
 
-  // And then every second
-  tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
+  // And then every minute
+  tick_timer_service_subscribe(MINUTE_UNIT, handle_tick);
 }
 
 static void deinit(void) 
@@ -170,7 +113,7 @@ static void deinit(void)
 
   close_network();
 
-  store_persistant_values();
+  store_persisted_values(weather_data);
 }
 
 int main(void) {

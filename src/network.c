@@ -3,6 +3,7 @@
 #include "battery_layer.h"
 #include "weather_layer.h"
 #include "debug_layer.h"
+#include "main.h"
 
 const  int MAX_RETRY = 2;
 static int retry_count = 0;
@@ -59,6 +60,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   }
   else if (js_ready_tuple) {
     weather->js_ready = true;
+    initial_jsready_callback();
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Javascript reports that it is ready");
   }
   else if (error_tuple) {

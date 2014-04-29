@@ -45,8 +45,8 @@ void debug_update_message(char *message)
   if (!is_enabled) {
     return;
   }
-
-  snprintf(debug_msg, sizeof(debug_msg), message);
+  
+  strcpy(debug_msg, message);
   text_layer_set_text(debug_layer, debug_msg);
 }
 
@@ -58,9 +58,9 @@ void debug_update_weather(WeatherData *weather_data)
 
   if (weather_data->updated != 0) {
 
-    time_t lastUpdated = weather_data->updated;
-    struct tm *updatedTime = localtime(&lastUpdated);
-    strftime(last_update_text, sizeof(last_update_text), "%R", updatedTime);
+    time_t last_updated = weather_data->updated;
+    struct tm *updated_time = localtime(&last_updated);
+    strftime(last_update_text, sizeof(last_update_text), "%R", updated_time);
     snprintf(debug_msg, sizeof(debug_msg), 
       "L%s, P%s, %s", last_update_text, weather_data->pub_date, weather_data->neighborhood);
 
