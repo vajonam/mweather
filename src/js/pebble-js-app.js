@@ -3,7 +3,6 @@ var SERVICE_YAHOO_WEATHER = "yahoo";
 var EXTERNAL_DEBUG_URL    = '';
 var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config/';
 
-var updateInProgress     = false;
 var externalDebugEnabled = false;  // POST logs to external server - dangerous! lat lon recorded
 var debugEnabled         = true;   // Display debug info on watch
 var batteryEnabled       = true;   // Display battery info on watch
@@ -22,19 +21,23 @@ var weatherScale         = 'F';
     console.warn = logMessage;
 })();
 
+
+function ack()  {console.log("Pebble ACK sendAppMessage");}
+function nack() {console.warn("Pebble NACK sendAppMessage");}
+
 // Setup Pebble Event Listeners
 Pebble.addEventListener("ready", function(e) {
     console.log("Starting ...");
-    Pebble.sendAppMessage({ "js_ready": true });
+    Pebble.sendAppMessage({ "js_ready": true }, ack, nack);
 });
 
-Pebble.addEventListener("appmessage", function(d) {
-    console.log("Got a message - Starting weather request ... " + JSON.stringify(d));
+Pebble.addEventListener("appmessage", function(data) {
+    console.log("Got a message - Starting weather request ... " + JSON.stringify(data));
     try {
-      weatherService = d.payload.s;
-      debugEnabled   = d.payload.d === 1;
-      batteryEnabled = d.payload.b === 1;
-      weatherScale   = d.payload.u;
+      weatherService = data.payload.service;
+      debugEnabled   = data.payload.debug   === 1;
+      batteryEnabled = data.payload.battery === 1;
+      weatherScale   = data.payload.scale;
     } catch (e) {
       console.warn("Could not retrieve data sent from Pebble: "+e.message);
     }
@@ -66,14 +69,8 @@ Pebble.addEventListener("webviewclosed", function(e) {
 });
 
 function updateWeather() {
-    if (!updateInProgress) {
-        updateInProgress = true;
-        var locationOptions = { "timeout": 15000, "maximumAge": 60000 };
-        navigator.geolocation.getCurrentPosition(locationSuccess, locationError, locationOptions);
-    }
-    else {
-        console.log("Not starting a new request. Another one is in progress...");
-    }
+  var locationOptions = { "timeout": 15000, "maximumAge": 60000 };
+  navigator.geolocation.getCurrentPosition(locationSuccess, locationError, locationOptions);
 }
 
 function locationSuccess(pos) {
@@ -89,11 +86,9 @@ function locationSuccess(pos) {
 function locationError(err) {
     var message = 'Location error (' + err.code + '): ' + err.message;
     console.warn(message);
-    Pebble.sendAppMessage({ "error": "Loc unavailable" });
+    Pebble.sendAppMessage({ "error": "Loc unavailable" }, ack, nack);
     postDebugMessage({"error": message});
-    updateInProgress = false;
 }
-
 
 var fetchYahooWeather = function(latitude, longitude) {
 
@@ -114,16 +109,17 @@ var fetchYahooWeather = function(latitude, longitude) {
       neighborhood = ''+response.query.results.results[1].Result.neighborhood;
 
       return {
-        "c":  parseInt(response.query.results.results[0].channel.item.condition.code),
-        "t":  parseInt(response.query.results.results[0].channel.item.condition.temp),
-        "sr": Date.parse((new Date()).toDateString()+" "+sunrise+" UTC") / 1000,
-        "ss": Date.parse((new Date()).toDateString()+" "+sunset+" UTC") / 1000,
-        "s":  SERVICE_YAHOO_WEATHER,
-        "u":  weatherScale,
-        "n":  neighborhood,
-        "pd": pubdate.getHours()+':'+pubdate.getMinutes(),
-        "d":  debugEnabled,
-        "b":  batteryEnabled
+        'condition':   parseInt(response.query.results.results[0].channel.item.condition.code),
+        'temperature': parseInt(response.query.results.results[0].channel.item.condition.temp),
+        'sunrise':     Date.parse(new Date().toDateString()+" "+sunrise) / 1000,
+        'sunset':      Date.parse(new Date().toDateString()+" "+sunset) / 1000,
+        'locale':      neighborhood,
+        'pubdate':     pubdate.getHours()+':'+pubdate.getMinutes(),
+        'tzoffset':    new Date().getTimezoneOffset() * 60,
+        'service':     weatherService,
+        'scale':       weatherScale,
+        'debug':       debugEnabled,
+        'battery':     batteryEnabled
       };
   };
 
@@ -154,16 +150,17 @@ var fetchOpenWeather = function(latitude, longitude) {
       pubdate   = new Date(response.dt*1000); 
 
       return {
-        "c":  condition,
-        "t":  temperature,  // Don't ask... c's time(NULL) gives EPOCH seconds according to the watch's time
-        "sr": Date.parse((new Date(sunrise*1000)).toLocaleString().replace('at ', '').split(' ').slice(0, 5).join(' ')+' UTC') / 1000,
-        "ss": Date.parse((new Date(sunset*1000)).toLocaleString().replace('at ', '').split(' ').slice(0, 5).join(' ')+' UTC') / 1000,
-        "s":  SERVICE_OPEN_WEATHER,
-        "u":  weatherScale,
-        "n":  response.name,
-        "pd": ('0'+pubdate.toLocaleTimeString().split(' ')[0]).slice(0,5),  
-        "d":  debugEnabled,
-        "b":  batteryEnabled
+        'condition':   condition,
+        'temperature': temperature, 
+        'sunrise':     sunrise,
+        'sunset':      sunset,
+        'locale':      response.name,
+        'pubdate':     pubdate.getHours()+':'+pubdate.getMinutes(),
+        'tzoffset':    new Date().getTimezoneOffset() * 60,
+        'service':     weatherService,
+        'scale':       weatherScale,
+        'debug':       debugEnabled,
+        'battery':     batteryEnabled
       };
   };
   fetchWeather(options);
@@ -184,16 +181,14 @@ var fetchWeather = function(options) {
 
       console.log('Weather Data: ' + JSON.stringify(weather));
 
-      Pebble.sendAppMessage(weather);
+      Pebble.sendAppMessage(weather, ack, nack);
       postDebugMessage(weather);
     
     } catch (e) {
       console.warn("Could not find weather data in response: " + e.message);
       var error = { "error": "HTTP Error" };
-      Pebble.sendAppMessage(error);
+      Pebble.sendAppMessage(error, ack, nack);
       postDebugMessage(error);
-    } finally {
-      updateInProgress = false;
     }
   });
 };

@@ -7,11 +7,12 @@
 #define KEY_PUB_DATE 4
 #define KEY_ERROR 5
 #define KEY_SERVICE 6
-#define KEY_NEIGHBORHOOD 7
+#define KEY_LOCALE 7
 #define KEY_DEBUG 8
 #define KEY_JS_READY 9
 #define KEY_SCALE 10
 #define KEY_BATTERY 11
+#define KEY_TZOFFSET 12
 
 #define SERVICE_OPEN_WEATHER "open"
 #define SERVICE_YAHOO_WEATHER "yahoo"
@@ -30,11 +31,12 @@ typedef struct {
   int sunset;
   char* pub_date;
   char* service;
-  char* neighborhood;
+  char* locale;
   char* scale;
   bool debug;
   bool js_ready;
   bool battery; 
+  int tzoffset;
   time_t updated;
   WeatherError error;
 } WeatherData;

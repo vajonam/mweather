@@ -4,6 +4,7 @@
 #include "weather_layer.h"
 #include "debug_layer.h"
 #include "main.h"
+#include "persist.h"
 
 const  int MAX_RETRY = 2;
 static int retry_count = 0;
@@ -13,32 +14,36 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 
   WeatherData *weather = (WeatherData*) context;
 
-  Tuple *temperature_tuple  = dict_find(received, KEY_TEMPERATURE);
-  Tuple *condition_tuple    = dict_find(received, KEY_CONDITION);
-  Tuple *sunrise_tuple      = dict_find(received, KEY_SUNRISE);
-  Tuple *sunset_tuple       = dict_find(received, KEY_SUNSET);
-  Tuple *pub_date_tuple     = dict_find(received, KEY_PUB_DATE);
-  Tuple *neighborhood_tuple = dict_find(received, KEY_NEIGHBORHOOD);
-  Tuple *error_tuple        = dict_find(received, KEY_ERROR);
-  Tuple *service_tuple      = dict_find(received, KEY_SERVICE);
-  Tuple *js_ready_tuple     = dict_find(received, KEY_JS_READY);
-  Tuple *debug_tuple        = dict_find(received, KEY_DEBUG);
-  Tuple *scale_tuple        = dict_find(received, KEY_SCALE);
-  Tuple *battery_tuple      = dict_find(received, KEY_BATTERY);
+  Tuple *temperature_tuple = dict_find(received, KEY_TEMPERATURE);
+  Tuple *condition_tuple   = dict_find(received, KEY_CONDITION);
+  Tuple *sunrise_tuple     = dict_find(received, KEY_SUNRISE);
+  Tuple *sunset_tuple      = dict_find(received, KEY_SUNSET);
+  Tuple *pub_date_tuple    = dict_find(received, KEY_PUB_DATE);
+  Tuple *locale_tuple      = dict_find(received, KEY_LOCALE);
+  Tuple *tzoffset_tuple    = dict_find(received, KEY_TZOFFSET);
+  Tuple *error_tuple       = dict_find(received, KEY_ERROR);
+  Tuple *service_tuple     = dict_find(received, KEY_SERVICE);
+  Tuple *debug_tuple       = dict_find(received, KEY_DEBUG);
+  Tuple *scale_tuple       = dict_find(received, KEY_SCALE);
+  Tuple *battery_tuple     = dict_find(received, KEY_BATTERY);
+  Tuple *js_ready_tuple    = dict_find(received, KEY_JS_READY);
 
+
+  // look to see if this was a weather update first
   if (temperature_tuple && condition_tuple) {
-    weather->temperature  = temperature_tuple->value->int32;
-    weather->condition    = condition_tuple->value->int32;
-    weather->sunrise      = sunrise_tuple->value->int32;
-    weather->sunset       = sunset_tuple->value->int32;
-    weather->pub_date     = pub_date_tuple->value->cstring;
-    weather->error        = WEATHER_E_OK;
-    weather->service      = service_tuple->value->cstring;
-    weather->scale        = scale_tuple->value->cstring;
-    weather->neighborhood = neighborhood_tuple->value->cstring;
-    weather->debug        = (bool)debug_tuple->value->int32;
-    weather->battery      = (bool)battery_tuple->value->int32;
-    weather->updated      = time(NULL);
+    weather->temperature = temperature_tuple->value->int32;
+    weather->condition   = condition_tuple->value->int32;
+    weather->sunrise     = sunrise_tuple->value->int32;
+    weather->sunset      = sunset_tuple->value->int32;
+    weather->pub_date    = pub_date_tuple->value->cstring;
+    weather->error       = WEATHER_E_OK;
+    weather->locale      = locale_tuple->value->cstring;
+    weather->tzoffset    = tzoffset_tuple->value->int32;
+    weather->updated     = time(NULL);
+    weather->service     = service_tuple->value->cstring;
+    weather->scale       = scale_tuple->value->cstring;
+    weather->debug       = (bool)debug_tuple->value->int32;
+    weather->battery     = (bool)battery_tuple->value->int32;
 
     if (weather->battery) {
       battery_enable_display();
@@ -52,26 +57,30 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     } else {
       debug_disable_display();
     }
+    
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather - temp:%i cond:%i pd:%s tzos:%i loc:%s", 
+      weather->temperature, weather->condition, weather->pub_date, weather->tzoffset, weather->locale);
 
-    weather_layer_update(weather);
-
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Got temperature %i and condition %i via %s for %s debug %i batt %i", 
-      weather->temperature, weather->condition, weather->service, weather->neighborhood, weather->debug, weather->battery);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Configuration - serv:%s scale:%s debug:%i batt:%i", 
+      weather->service, weather->scale, weather->debug, weather->battery);
   }
+  // Initial Javascript Ready message
   else if (js_ready_tuple) {
     weather->js_ready = true;
-    initial_jsready_callback();
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Javascript reports that it is ready");
+    initial_jsready_callback();
   }
   else if (error_tuple) {
     weather->error = WEATHER_E_NETWORK;
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Got error %s", error_tuple->value->cstring);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Error: %s", error_tuple->value->cstring);
   }
   else {
     weather->error = WEATHER_E_PHONE;
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Got message with unknown keys... temperature=%p condition=%p error=%p",
       temperature_tuple, condition_tuple, error_tuple);
   }
+
+  weather_layer_update(weather);
 
   // Succes! reset the retry count...
   retry_count = 0;

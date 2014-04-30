@@ -40,7 +40,6 @@ static GFont large_font, small_font;
 
 // Why do the work if we're already displaying what we want
 static WeatherIcon current_icon;
-static int         current_temp;
 
 // Initial animation dots
 static AppTimer *weather_animation_timer;
@@ -120,11 +119,6 @@ void weather_layer_set_icon(WeatherIcon icon)
 
 void weather_layer_set_temperature(int16_t t, bool is_stale) 
 {
-  if (current_temp == t) {
-    return;
-  }
-  current_temp = t;
-
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
   snprintf(wld->temp_str, sizeof(wld->temp_str), "%i%s", t, is_stale ? " " : "°");
@@ -177,7 +171,10 @@ void weather_layer_update(WeatherData *weather_data)
   }
   else {
 
-    time_t current_time = time(NULL);
+    time_t current_time, utc;
+    time(&current_time);
+
+    utc = current_time + weather_data->tzoffset; 
 
     // Show the temperature as 'stale' if it has not been updated in WEATHER_STALE_TIMEOUT
     bool stale = false;
@@ -188,10 +185,16 @@ void weather_layer_update(WeatherData *weather_data)
 
     // Day/night check
     bool night_time = false;
-    if (current_time < (weather_data->sunrise - CIVIL_TWILIGHT_BUFFER) || 
-        current_time > (weather_data->sunset  + CIVIL_TWILIGHT_BUFFER)) {
+    if (utc < (weather_data->sunrise - CIVIL_TWILIGHT_BUFFER) || 
+        utc > (weather_data->sunset  + CIVIL_TWILIGHT_BUFFER)) {
       night_time = true;
     }
+
+    /*
+    APP_LOG(APP_LOG_LEVEL_DEBUG, 
+       "ct:%i, utc:%i sr:%i, ss:%i, nt:%i", 
+       (int)current_time, (int)utc, weather_data->sunrise, weather_data->sunset, night_time);
+    */
 
     if (strcmp(weather_data->service, SERVICE_YAHOO_WEATHER) == 0) {
       weather_layer_set_icon(yahoo_weather_icon_for_condition(weather_data->condition, night_time));
