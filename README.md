@@ -4,9 +4,9 @@ Weather My Way (Pebble SDK 2.0)
 
 This is my attempt at both learning about the Pebble SDK and adjusting an app for my own needs. Give it a try! 
 
-![pebble screen1](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot1.png)
-![pebble screen2](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot2.png)
-![pebble screen3](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot3.png)
+![pebble screen1](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot1.png)&nbsp;
+![pebble screen2](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot2.png)&nbsp;
+![pebble screen3](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot3.png)&nbsp;
 ![pebble screen4](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot4.png)
 
 ## Configuration 
