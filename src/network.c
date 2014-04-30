@@ -71,7 +71,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     initial_jsready_callback();
   }
   else if (error_tuple) {
-    weather->error = WEATHER_E_NETWORK;
+    weather->error   = WEATHER_E_NETWORK;
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Error: %s", error_tuple->value->cstring);
   }
   else {

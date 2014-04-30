@@ -63,6 +63,9 @@ void weather_animate(void *context)
     }
     animation_step = (animation_step + 1) % 3;
     weather_animation_timer = app_timer_register(WEATHER_ANIMATION_TIMEOUT, weather_animate, weather_data);
+  } 
+  else if (weather_data->error != WEATHER_E_OK) {
+    weather_layer_set_icon(WEATHER_ICON_PHONE_ERROR);
   }
 }
 
