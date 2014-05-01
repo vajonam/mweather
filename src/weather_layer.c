@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "network.h"
 #include "weather_layer.h"
+#include "debug_layer.h"
 
 static Layer *weather_layer;
 
@@ -66,6 +67,7 @@ void weather_animate(void *context)
   } 
   else if (weather_data->error != WEATHER_E_OK) {
     weather_layer_set_icon(WEATHER_ICON_PHONE_ERROR);
+    debug_update_message("Phone error, animate");
   }
 }
 
@@ -168,25 +170,39 @@ void weather_layer_update(WeatherData *weather_data)
     animation_timer_enabled = false;
   }
 
+  time_t current_time = time(NULL);
+  bool stale = false;
+  if (current_time - weather_data->updated > WEATHER_STALE_TIMEOUT) {
+    stale = true;
+  }
+
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "ct:%i wup:%i, stale:%i", 
+    (int)current_time, (int)weather_data->updated, (int)WEATHER_STALE_TIMEOUT);
+
   // Update the weather icon and temperature
   if (weather_data->error) {
-    weather_layer_set_icon(WEATHER_ICON_PHONE_ERROR);
-  }
-  else {
-
-    time_t current_time, utc;
-    time(&current_time);
-
-    utc = current_time + weather_data->tzoffset; 
+    // Only update the error icon if the weather data is stale
+    if (stale) {
+      switch (weather_data->error) {
+        case WEATHER_E_NETWORK:
+          weather_layer_set_icon(WEATHER_ICON_CLOUD_ERROR);
+          debug_update_message("Network error, update");
+          break;
+        case WEATHER_E_DISCONNECTED:
+        case WEATHER_E_PHONE:
+        default:
+          weather_layer_set_icon(WEATHER_ICON_PHONE_ERROR);
+          debug_update_message("Phone error, update");
+          break;
+      }
+    }
+  } else {
 
     // Show the temperature as 'stale' if it has not been updated in WEATHER_STALE_TIMEOUT
-    bool stale = false;
-    if (current_time - weather_data->updated > WEATHER_STALE_TIMEOUT) {
-      stale = true;
-    }
     weather_layer_set_temperature(weather_data->temperature, stale);
 
     // Day/night check
+    time_t utc = current_time + weather_data->tzoffset;
     bool night_time = false;
     if (utc < (weather_data->sunrise - CIVIL_TWILIGHT_BUFFER) || 
         utc > (weather_data->sunset  + CIVIL_TWILIGHT_BUFFER)) {

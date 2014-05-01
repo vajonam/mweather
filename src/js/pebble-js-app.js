@@ -114,7 +114,7 @@ var fetchYahooWeather = function(latitude, longitude) {
         'sunrise':     Date.parse(new Date().toDateString()+" "+sunrise) / 1000,
         'sunset':      Date.parse(new Date().toDateString()+" "+sunset) / 1000,
         'locale':      neighborhood,
-        'pubdate':     pubdate.getHours()+':'+pubdate.getMinutes(),
+        'pubdate':     pubdate.getHours()+':'+('0'+pubdate.getMinutes()).slice(-2),
         'tzoffset':    new Date().getTimezoneOffset() * 60,
         'service':     weatherService,
         'scale':       weatherScale,
@@ -155,7 +155,7 @@ var fetchOpenWeather = function(latitude, longitude) {
         'sunrise':     sunrise,
         'sunset':      sunset,
         'locale':      response.name,
-        'pubdate':     pubdate.getHours()+':'+pubdate.getMinutes(),
+        'pubdate':     pubdate.getHours()+':'+('0'+pubdate.getMinutes()).slice(-2),
         'tzoffset':    new Date().getTimezoneOffset() * 60,
         'service':     weatherService,
         'scale':       weatherScale,
@@ -223,9 +223,9 @@ var postDebugMessage = function (data) {
     return;
   }
   try {
-    if (typeof data.sr !== "undefined") {
-      delete data.sr;
-      delete data.ss;
+    if (typeof data.sunrise !== "undefined") {
+      delete data.sunrise;
+      delete data.sunset;
     }
     post(EXTERNAL_DEBUG_URL, 'data='+JSON.stringify(data));
   } catch (e) {
