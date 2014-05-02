@@ -42,6 +42,7 @@ void weather_layer_update(WeatherData *weather_data);
 void weather_layer_destroy();
 void weather_layer_set_icon(WeatherIcon icon);
 void weather_layer_set_temperature(int16_t temperature, bool is_stale);
+void weather_layer_clear_temperature();
 uint8_t open_weather_icon_for_condition(int condition, bool night_time);
 uint8_t yahoo_weather_icon_for_condition(int condition, bool night_time);
 

@@ -67,6 +67,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   // Initial Javascript Ready message
   else if (js_ready_tuple) {
     weather->js_ready = true;
+    weather->error    = WEATHER_E_OK;
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Javascript reports that it is ready");
     initial_jsready_callback();
   }
@@ -178,6 +179,11 @@ void request_weather(WeatherData *weather_data)
   if (retry_count > MAX_RETRY) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Too many retries, let's wait for the next main loop request to try again.");
     retry_count = 0;
+    return;
+  }
+
+  if (!bluetooth_connection_service_peek()) {
+    weather_data->error = WEATHER_E_DISCONNECTED;
     return;
   }
 

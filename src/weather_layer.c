@@ -67,7 +67,7 @@ void weather_animate(void *context)
   } 
   else if (weather_data->error != WEATHER_E_OK) {
     weather_layer_set_icon(WEATHER_ICON_PHONE_ERROR);
-    debug_update_message("Phone error, animate");
+    debug_update_message("js_ready failure");
   }
 }
 
@@ -120,6 +120,12 @@ void weather_layer_set_icon(WeatherIcon icon)
     gbitmap_destroy(wld->icon);
   }
   wld->icon = new_icon;
+}
+
+void weather_layer_clear_temperature()
+{
+  WeatherLayerData *wld = layer_get_data(weather_layer);
+  text_layer_set_text(wld->temp_layer, "");
 }
 
 void weather_layer_set_temperature(int16_t t, bool is_stale) 
@@ -176,23 +182,24 @@ void weather_layer_update(WeatherData *weather_data)
     stale = true;
   }
 
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "ct:%i wup:%i, stale:%i", 
-    (int)current_time, (int)weather_data->updated, (int)WEATHER_STALE_TIMEOUT);
+  // APP_LOG(APP_LOG_LEVEL_DEBUG, "ct:%i wup:%i, stale:%i", 
+  //   (int)current_time, (int)weather_data->updated, (int)WEATHER_STALE_TIMEOUT);
 
   // Update the weather icon and temperature
   if (weather_data->error) {
     // Only update the error icon if the weather data is stale
     if (stale) {
+      weather_layer_clear_temperature();
       switch (weather_data->error) {
         case WEATHER_E_NETWORK:
           weather_layer_set_icon(WEATHER_ICON_CLOUD_ERROR);
-          debug_update_message("Network error, update");
+          debug_update_message("Network error");
           break;
         case WEATHER_E_DISCONNECTED:
         case WEATHER_E_PHONE:
         default:
           weather_layer_set_icon(WEATHER_ICON_PHONE_ERROR);
-          debug_update_message("Phone error, update");
+          debug_update_message("Phone disco / error");
           break;
       }
     }
