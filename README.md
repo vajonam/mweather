@@ -2,7 +2,11 @@
 Weather My Way (Pebble SDK 2.0)
 =================================
 
-This is my attempt at both learning about the Pebble SDK and adjusting an app for my own needs. Give it a try! 
+This is my attempt at both learning about the Pebble SDK by adjusting an app for my own needs. The original Futura Weather watchface was the cleanest and best looking design I had seen but I prefer YAHOO! Weather data. So, I added the option to switch between both. 
+
+I make no claims about the icons nor the design of this app, all credit for that goes to those listed below. 
+
+Give it a shot and let me know what you think! [Download pbw here](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/release/weather-my-way-v1.0.pbw)
 
 ![pebble screen1](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot1.png)&nbsp;
 ![pebble screen2](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot2.png)&nbsp;
@@ -34,7 +38,7 @@ b=[on|off]      // battery enabled
  - Minor rewrites, separation of concerns
 
 ## TODO
-- Better network link monitoring, including bluetooth service
+- Better network link monitoring
 - Refactor global WeatherData object
 
 ### Based on work by:
