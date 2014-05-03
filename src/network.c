@@ -110,13 +110,7 @@ static char *translate_error(AppMessageResult result)
 
 static void appmsg_in_dropped(AppMessageResult reason, void *context)
 {
-  WeatherData *weather_data = (WeatherData*) context;
-
   APP_LOG(APP_LOG_LEVEL_DEBUG, "In dropped: %s", translate_error(reason));
-
-  // Request a new update...
-  retry_count++;
-  request_weather(weather_data);
 }
 
 static void appmsg_out_sent(DictionaryIterator *sent, void *context) 
