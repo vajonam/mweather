@@ -6,7 +6,7 @@ This is my attempt at both learning about the Pebble SDK by adjusting an app for
 
 I make no claims about the icons nor the design of this app, all credit for that goes to those listed below. 
 
-Give it a shot and let me know what you think! [Download pbw here](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/release/weather-my-way-v1.0.pbw)
+Give it a shot and let me know what you think! [Download pbw here](https://github.com/jaredbiehler/weather-my-way/releases/download/1.0.1/weather-my-way.pbw)
 
 ![pebble screen1](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot1.png)&nbsp;
 ![pebble screen2](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot2.png)&nbsp;
