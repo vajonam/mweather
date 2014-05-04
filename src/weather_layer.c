@@ -378,14 +378,14 @@ uint8_t yahoo_weather_icon_for_condition(int c, bool night_time)
     return WEATHER_ICON_CLOUDY;
   }
   // Cloudly Night and` Cloudly Day
-  else if (c >= 27 || c <= 30) {
+  else if (c >= 27 && c <= 30) {
     if (night_time)
       return WEATHER_ICON_PARTLY_CLOUDY_NIGHT;
     else
       return WEATHER_ICON_PARTLY_CLOUDY_DAY;
   }
   // Clear / Fair Night && Sunny / Fair Day
-  else if (c >= 31 || c <= 34) {
+  else if (c >= 31 && c <= 34) {
     if (night_time)
       return WEATHER_ICON_CLEAR_NIGHT;
     else

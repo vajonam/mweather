@@ -54,7 +54,6 @@ Pebble.addEventListener("appmessage", function(data) {
  * for the latest config settings. So I persist them in a rather ugly Global variable. 
  */
 Pebble.addEventListener("showConfiguration", function (e) {
-    
     var options = {
       's': Global.latestConfig.weatherService,
       'd': Global.latestConfig.debugEnabled,
@@ -75,7 +74,7 @@ Pebble.addEventListener("webviewclosed", function(e) {
         var settings = JSON.parse(decodeURIComponent(e.response));
 
         var config = {};
-        config.weatherService = settings.service === SERVICE_YAHOO_WEATHER ? SERVICE_YAHOO_WEATHER : SERVICE_OPEN_WEATHER
+        config.weatherService = settings.service === SERVICE_YAHOO_WEATHER ? SERVICE_YAHOO_WEATHER : SERVICE_OPEN_WEATHER;
         config.weatherScale   = settings.scale   === 'F' ? 'F' : 'C';
         config.debugEnabled   = settings.debug   === 'true';
         config.batteryEnabled = settings.battery === 'on';
@@ -108,7 +107,7 @@ var nack = function (data, retry) {
 var updateWeather = function () {
   if (Global.updateInProgress && 
       new Date().getTime() < Global.lastUpdateAttempt.getTime() + Global.updateWaitTimeout) {
-    console.log("Upadte already progress in the last "+(Global.updateWaitTimeout/60000)+" minutes");
+    console.log("Update already started in the last "+(Global.updateWaitTimeout/60000)+" minutes");
     return;
   }
   Global.updateInProgress  = true;
@@ -145,7 +144,7 @@ var fetchYahooWeather = function(latitude, longitude) {
   neighbor    = 'SELECT neighborhood FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R";';
   query       = 'SELECT * FROM weather.forecast WHERE woeid IN ('+subselect+') AND u="'+Global.latestConfig.weatherScale.toLowerCase()+'";';
   multi       = "SELECT * FROM yql.query.multi WHERE queries='"+query+" "+neighbor+"'";
-  options.url = "https://query.yahooapis.com/v1/public/yql?format=json&q=" + encodeURIComponent(multi);
+  options.url = "https://query.yahooapis.com/v1/public/yql?format=json&q="+encodeURIComponent(multi)+"&nocache="+new Date().getTime();
 
   options.parse = function(response) {
       var sunrise, sunset, pubdate, neighborhood;
@@ -214,7 +213,7 @@ var fetchOpenWeather = function(latitude, longitude) {
 
 var fetchWeather = function(options) {
 
-  //console.log('URL: ' + options.url);
+  console.log('URL: ' + options.url);
 
   getJson(options.url, function(err, response) {
 
