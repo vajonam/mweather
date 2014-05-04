@@ -6,7 +6,7 @@ This is my attempt at learning about the Pebble SDK by adjusting an app for my o
 
 I make no claims about the icons nor the design of this app, all credit for that goes to those listed below. 
 
-Give it a shot and let me know what you think! [Download pbw here](https://github.com/jaredbiehler/weather-my-way/releases/download/1.0.2/weather-my-way-v1.0.2.pbw)
+Give it a shot and let me know what you think: [download pbw here](https://github.com/jaredbiehler/weather-my-way/releases/download/1.0.2/weather-my-way-v1.0.2.pbw)
 
 ![pebble screen1](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot1.png)&nbsp;
 ![pebble screen2](https://raw.githubusercontent.com/jaredbiehler/weather-my-way/master/screenshots/pebble-screenshot2.png)&nbsp;
@@ -33,13 +33,15 @@ b=[on|off]      // battery enabled
  - Configurable minimal battery display
  - Configurable weather scale (°F / °C)
  - Configurable debug mode ((L)ast updated, (P)ublish Date, Neighborhood)
+ - JQuery Mobile configuration screen [here](http://jaredbiehler.github.io/weather-my-way/config/)
  - Config settings are persisted 
- - No longer subscribed to second changes, minute & day
- - Minor rewrites, separation of concerns
+ - No longer subscribed to second ticks, minute & day for better battery performance
+ - Tested on iOS 7.1 & Android 4.3
+ - Improved network link monitoring (limited retries on both Pebble and JS sides)
+ - many rewrites, separation of concerns
 
 ## TODO
-- Better network link monitoring
-- Refactor global WeatherData object
+- Reach: refactor global WeatherData object
 
 ### Based on work by:
  - "Futura Weather 2" by Niknam - https://github.com/Niknam/futura-weather-sdk2.0
