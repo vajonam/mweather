@@ -2,7 +2,7 @@
 Weather My Way (Pebble SDK 2.0)
 =================================
 
-This is my attempt at both learning about the Pebble SDK by adjusting an app for my own needs. The original Futura Weather watchface was the cleanest and best looking design I had seen but I prefer YAHOO! Weather data. So, I added the option to switch between both. 
+This is my attempt at learning about the Pebble SDK by adjusting an app for my own needs. The original Futura Weather watchface was the cleanest and best looking design I had seen but I prefer YAHOO! Weather data. So, I added the option to switch between both. 
 
 I make no claims about the icons nor the design of this app, all credit for that goes to those listed below. 
 
