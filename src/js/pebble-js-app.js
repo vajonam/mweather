@@ -73,6 +73,11 @@ Pebble.addEventListener("webviewclosed", function(e) {
       try {
         var settings = JSON.parse(decodeURIComponent(e.response));
 
+        // Android 'cancel' sends a blank object
+        if (Object.keys(settings).length <= 0) {
+          return; 
+        }
+
         var config = {};
         config.weatherService = settings.service === SERVICE_YAHOO_WEATHER ? SERVICE_YAHOO_WEATHER : SERVICE_OPEN_WEATHER;
         config.weatherScale   = settings.scale   === 'F' ? 'F' : 'C';
