@@ -32,9 +32,9 @@ static void handle_battery(BatteryChargeState charge_state)
     uint8_t charge = charge_state.charge_percent;
     if (charge >= 90) {
       dots = MAX_DOTS;
-    } else if (charge >= 60 && charge < 90) {
+    } else if (charge >= 65 && charge < 90) {
       dots = 3;
-    } else if (charge >= 30 && charge < 60) {
+    } else if (charge >= 35 && charge < 65) {
       dots = 2;
     } else {
       dots = 1;
