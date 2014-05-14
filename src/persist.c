@@ -14,7 +14,7 @@ void load_persisted_values(WeatherData *weather_data)
 
   if (weather_data->debug) {
     debug_enable_display();
-    debug_update_message("Init...");
+    debug_update_message("Initializing...");
   } else {
     debug_disable_display();
   }

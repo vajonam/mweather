@@ -40,8 +40,8 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     weather->locale      = locale_tuple->value->cstring;
     weather->tzoffset    = tzoffset_tuple->value->int32;
     weather->updated     = time(NULL);
-    weather->service     = service_tuple->value->cstring;
-    weather->scale       = scale_tuple->value->cstring;
+    weather->service     = strcmp(service_tuple->value->cstring, SERVICE_OPEN_WEATHER) == 0 ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
+    weather->scale       = strcmp(scale_tuple->value->cstring, SCALE_CELSIUS) == 0 ? SCALE_CELSIUS : SCALE_FAHRENHEIT;
     weather->debug       = (bool)debug_tuple->value->int32;
     weather->battery     = (bool)battery_tuple->value->int32;
 
@@ -69,6 +69,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     weather->js_ready = true;
     weather->error    = WEATHER_E_OK;
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Javascript reports that it is ready");
+    debug_update_message("JS ready");
     initial_jsready_callback();
   }
   else if (error_tuple) {

@@ -16,6 +16,8 @@
 
 #define SERVICE_OPEN_WEATHER "open"
 #define SERVICE_YAHOO_WEATHER "yahoo"
+#define SCALE_FAHRENHEIT "F"
+#define SCALE_CELSIUS "C"
 
 typedef enum {
   WEATHER_E_OK = 0,

@@ -29,12 +29,17 @@ static uint8_t WEATHER_ICONS[] = {
   RESOURCE_ID_ICON_LOADING1,
   RESOURCE_ID_ICON_LOADING2,
   RESOURCE_ID_ICON_LOADING3,
+  RESOURCE_ID_ICON_FAIR_DAY,
+  RESOURCE_ID_ICON_FAIR_NIGHT,
+  RESOURCE_ID_ICON_RAIN_SUN,
+  RESOURCE_ID_ICON_THUNDER_SUN,
 };
 
 // Buffer the day / night time switch around sunrise & sunset
 const int CIVIL_TWILIGHT_BUFFER = 900; // 15 minutes
-const int WEATHER_ANIMATION_TIMEOUT = 1000; // 1 second animation 
-const int WEATHER_STALE_TIMEOUT = 60 * 60 * 3; // 3 hours in seconds
+const int WEATHER_ANIMATION_REFRESH = 1000; // 1 second animation 
+const int WEATHER_ANIMATION_TIMEOUT = 60; // 60 * WEATHER_ANIMATION_REFRESH = 60s
+const int WEATHER_STALE_TIMEOUT = 60 * 60 * 2; // 2 hours in seconds
 
 // Keep pointers to the two fonts we use.
 static GFont large_font, small_font;
@@ -53,21 +58,24 @@ void weather_animate(void *context)
 
   if (weather_data->updated == 0 && weather_data->error == WEATHER_E_OK) {    
     // 'Animate' loading icon until the first successful weather request
-    if (animation_step <= 0) {
+    if (animation_step % 3 <= 0) {
       weather_layer_set_icon(WEATHER_ICON_LOADING1);
     }
-    else if (animation_step == 1) {
+    else if (animation_step % 3 == 1) {
       weather_layer_set_icon(WEATHER_ICON_LOADING2);
     }
-    else if (animation_step >= 2) {
+    else if (animation_step % 3 >= 2) {
       weather_layer_set_icon(WEATHER_ICON_LOADING3);
     }
-    animation_step = (animation_step + 1) % 3;
-    weather_animation_timer = app_timer_register(WEATHER_ANIMATION_TIMEOUT, weather_animate, weather_data);
+    animation_step = animation_step + 1;
+    if (animation_step > WEATHER_ANIMATION_TIMEOUT) {
+      weather_data->error = WEATHER_E_NETWORK;
+    }
+    weather_animation_timer = app_timer_register(WEATHER_ANIMATION_REFRESH, weather_animate, weather_data);
   } 
   else if (weather_data->error != WEATHER_E_OK) {
+    animation_step = 0;
     weather_layer_set_icon(WEATHER_ICON_PHONE_ERROR);
-    debug_update_message("js_ready failure");
   }
 }
 
@@ -222,10 +230,10 @@ void weather_layer_update(WeatherData *weather_data)
        (int)current_time, (int)utc, weather_data->sunrise, weather_data->sunset, night_time);
     */
 
-    if (strcmp(weather_data->service, SERVICE_YAHOO_WEATHER) == 0) {
-      weather_layer_set_icon(yahoo_weather_icon_for_condition(weather_data->condition, night_time));
-    } else {
+    if (strcmp(weather_data->service, SERVICE_OPEN_WEATHER) == 0) {
       weather_layer_set_icon(open_weather_icon_for_condition(weather_data->condition, night_time));
+    } else {
+      weather_layer_set_icon(yahoo_weather_icon_for_condition(weather_data->condition, night_time));
     }
   }
 }
@@ -259,7 +267,7 @@ void weather_layer_destroy()
  */
 uint8_t open_weather_icon_for_condition(int c, bool night_time) 
 {
-  //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Open Weather icon selection.");
+  //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Open Weather icon selection. c: %i, night: %i", c, night_time);
 
   // Thunderstorm
   if (c < 300) {
@@ -269,9 +277,21 @@ uint8_t open_weather_icon_for_condition(int c, bool night_time)
   else if (c < 500) {
     return WEATHER_ICON_DRIZZLE;
   }
+  // Freezing Rain
+  else if (c == 511) {
+    return WEATHER_ICON_RAIN_SLEET;
+  }
   // Rain / Freezing rain / Shower rain
   else if (c < 600) {
     return WEATHER_ICON_RAIN;
+  }
+  // Sleet
+  else if (c == 611 || c == 612) {
+    return WEATHER_ICON_SNOW_SLEET;
+  }
+  // Rain and snow
+  else if (c == 615 || c == 616) {
+    return WEATHER_ICON_RAIN_SNOW;
   }
   // Snow
   else if (c < 700) {
@@ -292,6 +312,13 @@ uint8_t open_weather_icon_for_condition(int c, bool night_time)
     else
       return WEATHER_ICON_CLEAR_DAY;
   }
+    // Few clouds
+  else if (c == 801) {
+    if (night_time)
+      return WEATHER_ICON_FAIR_NIGHT;
+    else
+      return WEATHER_ICON_FAIR_DAY;
+  }
   // few/scattered/broken clouds
   else if (c < 804) {
     if (night_time)
@@ -303,8 +330,12 @@ uint8_t open_weather_icon_for_condition(int c, bool night_time)
   else if (c == 804) {
     return WEATHER_ICON_CLOUDY;
   }
+  // Hail
+  else if (c == 906) {
+    return WEATHER_ICON_SLEET;
+  }
   // Extreme
-  else if ((c >= 900 && c < 903) || (c > 904 && c < 1000)) {
+  else if ((c >= 900 && c <= 902) || c == 905 || (c >= 957 && c <= 962)) {
     return WEATHER_ICON_WIND;
   }
   // Cold
@@ -314,6 +345,13 @@ uint8_t open_weather_icon_for_condition(int c, bool night_time)
   // Hot
   else if (c == 904) {
       return WEATHER_ICON_HOT;
+  }
+  // Gentle to strong breeze
+  else if (c >= 950 && c <= 956) {
+    if (night_time)
+      return WEATHER_ICON_FAIR_NIGHT;
+    else
+      return WEATHER_ICON_FAIR_DAY;
   }
   else {
     // Weather condition not available
@@ -349,12 +387,12 @@ uint8_t yahoo_weather_icon_for_condition(int c, bool night_time)
   else if (c == 7) {
     return WEATHER_ICON_SNOW_SLEET;
   }
-  // Drizzle
-  else if (c == 9 || c == 40) {
+  // Drizzle // Showers
+  else if (c == 9 || c == 11 || c == 40) {
     return WEATHER_ICON_DRIZZLE;
   }
-  // Rain / Showers / Scattered Showers / Thundershowers
-  else if (c == 11 || c == 12 || c == 37  || c == 45 || c == 47) {
+  // Rain / Scattered Showers / Thundershowers
+  else if (c == 12 || c == 45) {
     return WEATHER_ICON_RAIN;
   }
   // Snow / Heavy Snow / Scattered Snow
@@ -373,34 +411,48 @@ uint8_t yahoo_weather_icon_for_condition(int c, bool night_time)
   else if (c == 25) {
     return WEATHER_ICON_COLD;
   }
-  // overcast clouds
-  else if (c == 26) {
+  // Cloudy, Mostly Cloudy
+  else if (c >= 26 && c <= 28) {
     return WEATHER_ICON_CLOUDY;
   }
-  // Cloudly Night and` Cloudly Day
-  else if (c >= 27 && c <= 30) {
+  // Partly Cloudy or Fair
+  else if (c == 29 || c == 30 || c == 44) {
     if (night_time)
       return WEATHER_ICON_PARTLY_CLOUDY_NIGHT;
     else
       return WEATHER_ICON_PARTLY_CLOUDY_DAY;
   }
-  // Clear / Fair Night && Sunny / Fair Day
-  else if (c >= 31 && c <= 34) {
+  // Clear Day Night
+  else if (c == 31 || c == 32) {
     if (night_time)
       return WEATHER_ICON_CLEAR_NIGHT;
     else
       return WEATHER_ICON_CLEAR_DAY;
   }
+  // Fair Day Night
+  else if (c == 33 || c == 34) {
+    if (night_time)
+      return WEATHER_ICON_FAIR_NIGHT;
+    else
+      return WEATHER_ICON_FAIR_DAY;
+  }
   // Hot
   else if (c == 36) {
       return WEATHER_ICON_HOT;
   }
-  // Partly Cloudy
-  else if (c == 44) {
+  // Isolated / Scattered Thunderstorm
+  else if ((c >= 37 && c <= 39) || c == 47) {
     if (night_time)
-      return WEATHER_ICON_PARTLY_CLOUDY_NIGHT;
+      return WEATHER_ICON_THUNDER;
     else
-      return WEATHER_ICON_PARTLY_CLOUDY_DAY;
+      return WEATHER_ICON_THUNDER_SUN;
+  }
+  // Scattered Showers
+  else if (c == 40) {
+    if (night_time)
+      return WEATHER_ICON_RAIN;
+    else
+      return WEATHER_ICON_RAIN_SUN;
   }
   // Weather condition not available
   else if (c == 3200) {

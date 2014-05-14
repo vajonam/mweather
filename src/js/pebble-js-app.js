@@ -6,10 +6,15 @@ var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config
 var Global = {
   'externalDebug':     false, // POST logs to external server - dangerous! lat lon recorded
   'updateInProgress':  false,
-  'updateWaitTimeout': 2 * 60 * 1000, // two minutes in ms
+  'updateWaitTimeout': 1 * 60 * 1000, // one minute in ms
   'lastUpdateAttempt': new Date(),
   'maxRetry':          3,
-  'latestConfig':      {'debugEnabled':false}, // default needed for console.log messages
+  'latestConfig': {
+    'debugEnabled':   false,
+    'batteryEnabled': true,
+    'weatherService': SERVICE_YAHOO_WEATHER,
+    'weatherScale':   'F'
+  },
 };
 
 // Allow console messages to be turned on / off 
@@ -38,10 +43,10 @@ Pebble.addEventListener("appmessage", function(data) {
     console.log("Got a message - Starting weather request ... " + JSON.stringify(data));
     try {
       var config = {};
-      config.weatherService = data.payload.service;
+      config.weatherService = data.payload.service === SERVICE_OPEN_WEATHER ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
       config.debugEnabled   = data.payload.debug   === 1;
       config.batteryEnabled = data.payload.battery === 1;
-      config.weatherScale   = data.payload.scale;
+      config.weatherScale   = data.payload.scale   === 'C' ? 'C' : 'F';
       Global.latestConfig = config;
       updateWeather();
     } catch (e) {
@@ -79,8 +84,8 @@ Pebble.addEventListener("webviewclosed", function(e) {
         }
 
         var config = {};
-        config.weatherService = settings.service === SERVICE_YAHOO_WEATHER ? SERVICE_YAHOO_WEATHER : SERVICE_OPEN_WEATHER;
-        config.weatherScale   = settings.scale   === 'F' ? 'F' : 'C';
+        config.weatherService = settings.service === SERVICE_OPEN_WEATHER ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
+        config.weatherScale   = settings.scale   === 'C' ? 'C' : 'F';
         config.debugEnabled   = settings.debug   === 'true';
         config.batteryEnabled = settings.battery === 'on';
         Global.latestConfig = config;
@@ -125,10 +130,10 @@ var updateWeather = function () {
 var locationSuccess = function (pos) {
     var coordinates = pos.coords;
     console.log("Got coordinates: " + JSON.stringify(coordinates));
-    if (Global.latestConfig.weatherService === SERVICE_YAHOO_WEATHER) {
-      fetchYahooWeather(coordinates.latitude, coordinates.longitude);
-    } else {
+    if (Global.latestConfig.weatherService === SERVICE_OPEN_WEATHER) {
       fetchOpenWeather(coordinates.latitude, coordinates.longitude);
+    } else {
+      fetchYahooWeather(coordinates.latitude, coordinates.longitude);
     }
 }
 
@@ -146,24 +151,30 @@ var fetchYahooWeather = function(latitude, longitude) {
     , options = {};
 
   subselect   = 'SELECT woeid FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R"';
-  neighbor    = 'SELECT neighborhood FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R";';
+  neighbor    = 'SELECT * FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R";';
   query       = 'SELECT * FROM weather.forecast WHERE woeid IN ('+subselect+') AND u="'+Global.latestConfig.weatherScale.toLowerCase()+'";';
   multi       = "SELECT * FROM yql.query.multi WHERE queries='"+query+" "+neighbor+"'";
   options.url = "https://query.yahooapis.com/v1/public/yql?format=json&q="+encodeURIComponent(multi)+"&nocache="+new Date().getTime();
 
   options.parse = function(response) {
-      var sunrise, sunset, pubdate, neighborhood;
+      var sunrise, sunset, pubdate, locale;
       sunrise = response.query.results.results[0].channel.astronomy.sunrise;
       sunset  = response.query.results.results[0].channel.astronomy.sunset;
       pubdate = new Date(Date.parse(response.query.results.results[0].channel.item.pubDate));
-      neighborhood = ''+response.query.results.results[1].Result.neighborhood;
+      locale  = response.query.results.results[1].Result.neighborhood;
+      if (locale === null) {
+        locale = response.query.results.results[1].Result.city;
+      }
+      if (locale === null) {
+        locale = 'unknown';
+      }
 
       return {
         'condition':   parseInt(response.query.results.results[0].channel.item.condition.code),
         'temperature': parseInt(response.query.results.results[0].channel.item.condition.temp),
         'sunrise':     Date.parse(new Date().toDateString()+" "+sunrise) / 1000,
         'sunset':      Date.parse(new Date().toDateString()+" "+sunset) / 1000,
-        'locale':      neighborhood,
+        'locale':      locale,
         'pubdate':     pubdate.getHours()+':'+('0'+pubdate.getMinutes()).slice(-2),
         'tzoffset':    new Date().getTimezoneOffset() * 60,
         'service':     Global.latestConfig.weatherService,
@@ -185,13 +196,13 @@ var fetchOpenWeather = function(latitude, longitude) {
       var temperature, sunrise, sunset, condition, pubdate;
 
       var tempResult = response.main.temp;
-      if (Global.latestConfig.weatherScale === 'F') {
-        // Convert temperature to Fahrenheit 
-        temperature = Math.round(((tempResult - 273.15) * 1.8) + 32);
-      }
-      else {
-        // Otherwise, convert temperature to Celsius
+      if (Global.latestConfig.weatherScale === 'C') {
+        // Convert temperature to Celsius
         temperature = Math.round(tempResult - 273.15);
+      } 
+      else {
+        // Otherwise, convert temperature to Fahrenheit 
+        temperature = Math.round(((tempResult - 273.15) * 1.8) + 32);
       }
 
       condition = response.weather[0].id;

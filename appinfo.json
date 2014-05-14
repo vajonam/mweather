@@ -2,9 +2,9 @@
   "uuid": "24dc18f4-19a2-4800-a7b0-abec28e4d163",
   "shortName": "Weather My Way",
   "longName": "Weather My Way",
-  "companyName": "Pebble Community",
-  "versionCode": 36,
-  "versionLabel": "1.0.0",
+  "companyName": "Jared Biehler",
+  "versionCode": 1,
+  "versionLabel": "1.0.4",
   "capabilities": [ "configurable" ],
   "watchapp": {
     "watchface": true
@@ -151,6 +151,26 @@
         "type": "png",
         "name": "ICON_WIND",
         "file": "images/wind.png"
+      },
+      {
+        "type": "png",
+        "name": "ICON_FAIR_DAY",
+        "file": "images/fair-day.png"
+      },
+      {
+        "type": "png",
+        "name": "ICON_FAIR_NIGHT",
+        "file": "images/fair-night.png"
+      },
+      {
+        "type": "png",
+        "name": "ICON_RAIN_SUN",
+        "file": "images/rain-sun.png"
+      },
+      {
+        "type": "png",
+        "name": "ICON_THUNDER_SUN",
+        "file": "images/thunder-sun.png"
       },
       {
         "name": "FUTURA_18",

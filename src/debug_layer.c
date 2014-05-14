@@ -68,11 +68,8 @@ void debug_update_weather(WeatherData *weather_data)
     time_t currentTime = time(NULL);
     localtime(&currentTime);
 
-  } else {
-    snprintf(debug_msg, sizeof(debug_msg), "Weather N/A");
-  }
-
-  text_layer_set_text(debug_layer, debug_msg);
+    text_layer_set_text(debug_layer, debug_msg);
+  } 
 }
 
 void debug_layer_destroy() 
