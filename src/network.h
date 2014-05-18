@@ -31,10 +31,10 @@ typedef struct {
   int condition;
   int sunrise;
   int sunset;
-  char* pub_date;
-  char* service;
-  char* locale;
-  char* scale;
+  char pub_date[6];
+  char service[6];
+  char locale[255];
+  char scale[2];
   bool debug;
   bool js_ready;
   bool battery; 

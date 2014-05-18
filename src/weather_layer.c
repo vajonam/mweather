@@ -269,8 +269,11 @@ uint8_t open_weather_icon_for_condition(int c, bool night_time)
 {
   //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Open Weather icon selection. c: %i, night: %i", c, night_time);
 
+  if (c < 100) {
+    return WEATHER_ICON_NOT_AVAILABLE;
+  }
   // Thunderstorm
-  if (c < 300) {
+  else if (c < 300) {
     return WEATHER_ICON_THUNDER;
   }
   // Drizzle

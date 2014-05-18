@@ -4,16 +4,16 @@ var EXTERNAL_DEBUG_URL    = '';
 var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config/';
 
 var Global = {
-  'externalDebug':     false, // POST logs to external server - dangerous! lat lon recorded
-  'updateInProgress':  false,
-  'updateWaitTimeout': 1 * 60 * 1000, // one minute in ms
-  'lastUpdateAttempt': new Date(),
-  'maxRetry':          3,
-  'latestConfig': {
-    'debugEnabled':   false,
-    'batteryEnabled': true,
-    'weatherService': SERVICE_YAHOO_WEATHER,
-    'weatherScale':   'F'
+  externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
+  updateInProgress:  false,
+  updateWaitTimeout: 1 * 60 * 1000, // one minute in ms
+  lastUpdateAttempt: new Date(),
+  maxRetry:          3,
+  config: {
+    debugEnabled:   false,
+    batteryEnabled: true,
+    weatherService: SERVICE_YAHOO_WEATHER,
+    weatherScale:   'F'
   },
 };
 
@@ -21,7 +21,7 @@ var Global = {
 (function(){
     var original = console.log;
     var logMessage = function (message) {
-        if (Global.latestConfig.debugEnabled) {
+        if (Global.config.debugEnabled) {
           original.apply(console, arguments);
         }  
     };
@@ -42,28 +42,26 @@ Pebble.addEventListener("ready", function(e) {
 Pebble.addEventListener("appmessage", function(data) {
     console.log("Got a message - Starting weather request ... " + JSON.stringify(data));
     try {
-      var config = {};
-      config.weatherService = data.payload.service === SERVICE_OPEN_WEATHER ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
-      config.debugEnabled   = data.payload.debug   === 1;
-      config.batteryEnabled = data.payload.battery === 1;
-      config.weatherScale   = data.payload.scale   === 'C' ? 'C' : 'F';
-      Global.latestConfig = config;
+      Global.config.weatherService = data.payload.service === SERVICE_OPEN_WEATHER ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
+      Global.config.debugEnabled   = data.payload.debug   === 1;
+      Global.config.batteryEnabled = data.payload.battery === 1;
+      Global.config.weatherScale   = data.payload.scale   === 'C' ? 'C' : 'F';
       updateWeather();
-    } catch (e) {
-      console.warn("Could not retrieve data sent from Pebble: "+e.message);
+    } catch (ex) {
+      console.warn("Could not retrieve data sent from Pebble: "+ex.message);
     }
 });
 
 /**
- * This is the reason for the Global.latestConfig variable - I couldn't think of a way (short of asking Pebble)
+ * This is the reason for the Global.config variable - I couldn't think of a way (short of asking Pebble)
  * for the latest config settings. So I persist them in a rather ugly Global variable. 
  */
 Pebble.addEventListener("showConfiguration", function (e) {
     var options = {
-      's': Global.latestConfig.weatherService,
-      'd': Global.latestConfig.debugEnabled,
-      'u': Global.latestConfig.weatherScale,
-      'b': Global.latestConfig.batteryEnabled ? 'on' : 'off'
+      's': Global.config.weatherService,
+      'd': Global.config.debugEnabled,
+      'u': Global.config.weatherScale,
+      'b': Global.config.batteryEnabled ? 'on' : 'off'
     }
     var url = CONFIGURATION_URL+'?'+serialize(options);
     console.log('Configuration requested using url: '+url);
@@ -83,17 +81,32 @@ Pebble.addEventListener("webviewclosed", function(e) {
           return; 
         }
 
-        var config = {};
-        config.weatherService = settings.service === SERVICE_OPEN_WEATHER ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
-        config.weatherScale   = settings.scale   === 'C' ? 'C' : 'F';
-        config.debugEnabled   = settings.debug   === 'true';
-        config.batteryEnabled = settings.battery === 'on';
-        Global.latestConfig = config;
-
         console.log("Settings received: "+JSON.stringify(settings));
-        updateWeather();
-      } catch(e) {
-        console.warn("Unable to parse response from configuration:"+e.message);
+
+        var refreshNeeded = (settings.service !== Global.config.weatherService ||
+                             settings.scale   !== Global.config.weatherScale);
+
+        Global.config.weatherService = settings.service === SERVICE_OPEN_WEATHER ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
+        Global.config.weatherScale   = settings.scale   === 'C' ? 'C' : 'F';
+        Global.config.debugEnabled   = settings.debug   === 'true';
+        Global.config.batteryEnabled = settings.battery === 'on';
+        
+        var config = {
+          service: Global.config.weatherService,
+          scale:   Global.config.weatherScale,
+          debug:   Global.config.debugEnabled   ? 1 : 0,
+          battery: Global.config.batteryEnabled ? 1 : 0
+        };
+
+        Pebble.sendAppMessage(config, ack, function(ev){
+          nack(config);
+        });
+
+        if (refreshNeeded) {
+          updateWeather();
+        }
+      } catch(ex) {
+        console.warn("Unable to parse response from configuration:"+ex.message);
       }
     }
 });
@@ -130,7 +143,7 @@ var updateWeather = function () {
 var locationSuccess = function (pos) {
     var coordinates = pos.coords;
     console.log("Got coordinates: " + JSON.stringify(coordinates));
-    if (Global.latestConfig.weatherService === SERVICE_OPEN_WEATHER) {
+    if (Global.config.weatherService === SERVICE_OPEN_WEATHER) {
       fetchOpenWeather(coordinates.latitude, coordinates.longitude);
     } else {
       fetchYahooWeather(coordinates.latitude, coordinates.longitude);
@@ -152,7 +165,7 @@ var fetchYahooWeather = function(latitude, longitude) {
 
   subselect   = 'SELECT woeid FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R"';
   neighbor    = 'SELECT * FROM geo.placefinder WHERE text="'+latitude+','+longitude+'" AND gflags="R";';
-  query       = 'SELECT * FROM weather.forecast WHERE woeid IN ('+subselect+') AND u="'+Global.latestConfig.weatherScale.toLowerCase()+'";';
+  query       = 'SELECT * FROM weather.forecast WHERE woeid IN ('+subselect+') AND u="'+Global.config.weatherScale.toLowerCase()+'";';
   multi       = "SELECT * FROM yql.query.multi WHERE queries='"+query+" "+neighbor+"'";
   options.url = "https://query.yahooapis.com/v1/public/yql?format=json&q="+encodeURIComponent(multi)+"&nocache="+new Date().getTime();
 
@@ -170,17 +183,13 @@ var fetchYahooWeather = function(latitude, longitude) {
       }
 
       return {
-        'condition':   parseInt(response.query.results.results[0].channel.item.condition.code),
-        'temperature': parseInt(response.query.results.results[0].channel.item.condition.temp),
-        'sunrise':     Date.parse(new Date().toDateString()+" "+sunrise) / 1000,
-        'sunset':      Date.parse(new Date().toDateString()+" "+sunset) / 1000,
-        'locale':      locale,
-        'pubdate':     pubdate.getHours()+':'+('0'+pubdate.getMinutes()).slice(-2),
-        'tzoffset':    new Date().getTimezoneOffset() * 60,
-        'service':     Global.latestConfig.weatherService,
-        'scale':       Global.latestConfig.weatherScale,
-        'debug':       Global.latestConfig.debugEnabled   ? 1 : 0,
-        'battery':     Global.latestConfig.batteryEnabled ? 1 : 0
+        condition:   parseInt(response.query.results.results[0].channel.item.condition.code),
+        temperature: parseInt(response.query.results.results[0].channel.item.condition.temp),
+        sunrise:     Date.parse(new Date().toDateString()+" "+sunrise) / 1000,
+        sunset:      Date.parse(new Date().toDateString()+" "+sunset) / 1000,
+        locale:      locale,
+        pubdate:     pubdate.getHours()+':'+('0'+pubdate.getMinutes()).slice(-2),
+        tzoffset:    new Date().getTimezoneOffset() * 60
       };
   };
 
@@ -196,7 +205,7 @@ var fetchOpenWeather = function(latitude, longitude) {
       var temperature, sunrise, sunset, condition, pubdate;
 
       var tempResult = response.main.temp;
-      if (Global.latestConfig.weatherScale === 'C') {
+      if (Global.config.weatherScale === 'C') {
         // Convert temperature to Celsius
         temperature = Math.round(tempResult - 273.15);
       } 
@@ -211,17 +220,13 @@ var fetchOpenWeather = function(latitude, longitude) {
       pubdate   = new Date(response.dt*1000); 
 
       return {
-        'condition':   condition,
-        'temperature': temperature, 
-        'sunrise':     sunrise,
-        'sunset':      sunset,
-        'locale':      response.name,
-        'pubdate':     pubdate.getHours()+':'+('0'+pubdate.getMinutes()).slice(-2),
-        'tzoffset':    new Date().getTimezoneOffset() * 60,
-        'service':     Global.latestConfig.weatherService,
-        'scale':       Global.latestConfig.weatherScale,
-        'debug':       Global.latestConfig.debugEnabled   ? 1 : 0,
-        'battery':     Global.latestConfig.batteryEnabled ? 1 : 0
+        condition:   condition,
+        temperature: temperature, 
+        sunrise:     sunrise,
+        sunset:      sunset,
+        locale:      response.name,
+        pubdate:     pubdate.getHours()+':'+('0'+pubdate.getMinutes()).slice(-2),
+        tzoffset:    new Date().getTimezoneOffset() * 60
       };
   };
   fetchWeather(options);
@@ -247,8 +252,8 @@ var fetchWeather = function(options) {
       });
       postDebugMessage(weather);
     
-    } catch (e) {
-      console.warn("Could not find weather data in response: " + e.message);
+    } catch (ex) {
+      console.warn("Could not find weather data in response: " + ex.message);
       var error = { "error": "HTTP Error" };
       Pebble.sendAppMessage(error, ack, nack);
       postDebugMessage(error);
@@ -268,8 +273,8 @@ var getJson = function(url, callback) {
             //console.log(req.responseText);
             var response = JSON.parse(req.responseText);
             callback(null, response);
-          } catch (e) {
-            callback(e.message);
+          } catch (ex) {
+            callback(ex.message);
           }
         } else {
           callback("Error request status not 200, status: "+req.status);
@@ -277,8 +282,8 @@ var getJson = function(url, callback) {
       }
     };
     req.send(null);
-  } catch(e) {
-    callback("Unable to GET JSON: "+e.message);
+  } catch(ex) {
+    callback("Unable to GET JSON: "+ex.message);
   }
 };
 
@@ -287,13 +292,9 @@ var postDebugMessage = function (data) {
     return;
   }
   try {
-    if (typeof data.sunrise !== "undefined") {
-      delete data.sunrise;
-      delete data.sunset;
-    }
     post(EXTERNAL_DEBUG_URL, 'data='+JSON.stringify(data));
-  } catch (e) {
-    console.warn('Post Debug Message failed:'+e.message);
+  } catch (ex) {
+    console.warn('Post Debug Message failed:'+ex.message);
   }  
 };
 
@@ -302,8 +303,8 @@ var post = function(url, data) {
     var req = new XMLHttpRequest();
     req.open('POST', url, true);
     req.send(data);
-  } catch(e) {
-    console.warn('POST failed: ' + e.message);
+  } catch(ex) {
+    console.warn('POST failed: ' + ex.message);
   }
 };
 

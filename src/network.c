@@ -14,6 +14,9 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 
   WeatherData *weather = (WeatherData*) context;
 
+  Tuple *error_tuple       = dict_find(received, KEY_ERROR);
+  Tuple *js_ready_tuple    = dict_find(received, KEY_JS_READY);
+
   Tuple *temperature_tuple = dict_find(received, KEY_TEMPERATURE);
   Tuple *condition_tuple   = dict_find(received, KEY_CONDITION);
   Tuple *sunrise_tuple     = dict_find(received, KEY_SUNRISE);
@@ -21,13 +24,11 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   Tuple *pub_date_tuple    = dict_find(received, KEY_PUB_DATE);
   Tuple *locale_tuple      = dict_find(received, KEY_LOCALE);
   Tuple *tzoffset_tuple    = dict_find(received, KEY_TZOFFSET);
-  Tuple *error_tuple       = dict_find(received, KEY_ERROR);
+
   Tuple *service_tuple     = dict_find(received, KEY_SERVICE);
   Tuple *debug_tuple       = dict_find(received, KEY_DEBUG);
   Tuple *scale_tuple       = dict_find(received, KEY_SCALE);
   Tuple *battery_tuple     = dict_find(received, KEY_BATTERY);
-  Tuple *js_ready_tuple    = dict_find(received, KEY_JS_READY);
-
 
   // look to see if this was a weather update first
   if (temperature_tuple && condition_tuple) {
@@ -35,15 +36,32 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     weather->condition   = condition_tuple->value->int32;
     weather->sunrise     = sunrise_tuple->value->int32;
     weather->sunset      = sunset_tuple->value->int32;
-    weather->pub_date    = pub_date_tuple->value->cstring;
     weather->error       = WEATHER_E_OK;
-    weather->locale      = locale_tuple->value->cstring;
     weather->tzoffset    = tzoffset_tuple->value->int32;
     weather->updated     = time(NULL);
-    weather->service     = strcmp(service_tuple->value->cstring, SERVICE_OPEN_WEATHER) == 0 ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
-    weather->scale       = strcmp(scale_tuple->value->cstring, SCALE_CELSIUS) == 0 ? SCALE_CELSIUS : SCALE_FAHRENHEIT;
-    weather->debug       = (bool)debug_tuple->value->int32;
-    weather->battery     = (bool)battery_tuple->value->int32;
+
+    strncpy(weather->pub_date, pub_date_tuple->value->cstring, 6);
+    strncpy(weather->locale, locale_tuple->value->cstring, 255);
+
+    if (weather->debug) {
+      debug_enable_display();
+      debug_update_weather(weather);
+    } 
+    
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather - temp:%i cond:%i pd:%s tzos:%i loc:%s", 
+      weather->temperature, weather->condition, weather->pub_date, weather->tzoffset, weather->locale);
+  }
+  else if (service_tuple) {
+    char* service = strcmp(service_tuple->value->cstring, SERVICE_OPEN_WEATHER) == 0 ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
+    char* scale   = strcmp(scale_tuple->value->cstring, SCALE_CELSIUS) == 0 ? SCALE_CELSIUS : SCALE_FAHRENHEIT;
+    strncpy(weather->service, service, 6);
+    strncpy(weather->scale, scale, 2);
+
+    weather->debug   = (bool)debug_tuple->value->int32;
+    weather->battery = (bool)battery_tuple->value->int32;
+
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Configuration - serv:%s scale:%s debug:%i batt:%i", 
+      weather->service, weather->scale, weather->debug, weather->battery);
 
     if (weather->battery) {
       battery_enable_display();
@@ -57,12 +75,8 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     } else {
       debug_disable_display();
     }
-    
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather - temp:%i cond:%i pd:%s tzos:%i loc:%s", 
-      weather->temperature, weather->condition, weather->pub_date, weather->tzoffset, weather->locale);
 
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Configuration - serv:%s scale:%s debug:%i batt:%i", 
-      weather->service, weather->scale, weather->debug, weather->battery);
+    store_persisted_values(weather);
   }
   // Initial Javascript Ready message
   else if (js_ready_tuple) {
@@ -84,7 +98,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 
   weather_layer_update(weather);
 
-  // Succes! reset the retry count...
+    // Succes! reset the retry count...
   retry_count = 0;
 }
 

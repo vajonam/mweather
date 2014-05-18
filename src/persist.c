@@ -29,22 +29,18 @@ void load_persisted_values(WeatherData *weather_data)
   }
   
   // Weather Service
-  static char service[10];
   if (persist_exists(KEY_WEATHER_SERVICE)) {
-    persist_read_string(KEY_WEATHER_SERVICE, service, sizeof(service));
+    persist_read_string(KEY_WEATHER_SERVICE, weather_data->service, sizeof(weather_data->service));
   } else {
-    strcpy(service, DEFAULT_WEATHER_SERVICE);
+    strcpy(weather_data->service, DEFAULT_WEATHER_SERVICE);
   }
-  weather_data->service = service;
 
   // Weather Scale
-  static char scale[5];
   if (persist_exists(KEY_WEATHER_SCALE)) {
-    persist_read_string(KEY_WEATHER_SCALE, scale, sizeof(scale));
+    persist_read_string(KEY_WEATHER_SCALE, weather_data->scale, sizeof(weather_data->scale));
   } else {
-    strcpy(scale, DEFAULT_WEATHER_SCALE);
+    strcpy(weather_data->scale, DEFAULT_WEATHER_SCALE);
   }
-  weather_data->scale = scale;
 
   APP_LOG(APP_LOG_LEVEL_DEBUG, "PersistLoad:  d:%d b:%d s:%s u:%s", 
       weather_data->debug, weather_data->battery, weather_data->service, weather_data->scale);

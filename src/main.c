@@ -112,8 +112,6 @@ static void deinit(void)
   free(weather_data);
 
   close_network();
-
-  store_persisted_values(weather_data);
 }
 
 int main(void) {
