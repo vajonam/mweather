@@ -98,7 +98,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 
   weather_layer_update(weather);
 
-    // Succes! reset the retry count...
+  // Succes! reset the retry count...
   retry_count = 0;
 }
 

@@ -5,40 +5,11 @@
 
 static Layer *weather_layer;
 
-static uint8_t WEATHER_ICONS[] = {
-  RESOURCE_ID_ICON_CLEAR_DAY,
-  RESOURCE_ID_ICON_CLEAR_NIGHT,
-  RESOURCE_ID_ICON_RAIN,
-  RESOURCE_ID_ICON_SNOW,
-  RESOURCE_ID_ICON_SLEET,
-  RESOURCE_ID_ICON_WIND,
-  RESOURCE_ID_ICON_FOG,
-  RESOURCE_ID_ICON_CLOUDY,
-  RESOURCE_ID_ICON_PARTLY_CLOUDY_DAY,
-  RESOURCE_ID_ICON_PARTLY_CLOUDY_NIGHT,
-  RESOURCE_ID_ICON_THUNDER,
-  RESOURCE_ID_ICON_RAIN_SNOW,
-  RESOURCE_ID_ICON_RAIN_SLEET,
-  RESOURCE_ID_ICON_SNOW_SLEET,
-  RESOURCE_ID_ICON_COLD,
-  RESOURCE_ID_ICON_HOT,
-  RESOURCE_ID_ICON_DRIZZLE,
-  RESOURCE_ID_ICON_NOT_AVAILABLE,
-  RESOURCE_ID_ICON_PHONE_ERROR,
-  RESOURCE_ID_ICON_CLOUD_ERROR,
-  RESOURCE_ID_ICON_LOADING1,
-  RESOURCE_ID_ICON_LOADING2,
-  RESOURCE_ID_ICON_LOADING3,
-  RESOURCE_ID_ICON_FAIR_DAY,
-  RESOURCE_ID_ICON_FAIR_NIGHT,
-  RESOURCE_ID_ICON_RAIN_SUN,
-  RESOURCE_ID_ICON_THUNDER_SUN,
-};
-
 // Buffer the day / night time switch around sunrise & sunset
 const int CIVIL_TWILIGHT_BUFFER = 900; // 15 minutes
 const int WEATHER_ANIMATION_REFRESH = 1000; // 1 second animation 
-const int WEATHER_ANIMATION_TIMEOUT = 60; // 60 * WEATHER_ANIMATION_REFRESH = 60s
+const int WEATHER_INITIAL_RETRY_TIMEOUT = 65; // Maybe our initial request failed? Try again!
+const int WEATHER_ANIMATION_TIMEOUT = 90; // 60 * WEATHER_ANIMATION_REFRESH = 60s
 const int WEATHER_STALE_TIMEOUT = 60 * 60 * 2; // 2 hours in seconds
 
 // Keep pointers to the two fonts we use.
@@ -52,26 +23,42 @@ static AppTimer *weather_animation_timer;
 static bool animation_timer_enabled = true;
 static int  animation_step = 0;
 
+
+static void weather_animate_update(Layer *me, GContext *ctx) 
+{
+  int dots = 3; 
+  int spacer = 15;
+  
+  graphics_context_set_fill_color(ctx, GColorBlack);
+
+  for (int i=1; i<=dots; i++) {
+    if (i == animation_step) {
+      graphics_fill_circle(ctx, GPoint((i*spacer), 8), 5);
+    } else {
+      graphics_fill_circle(ctx, GPoint((i*spacer), 8), 3);
+    }
+  } 
+}
+
 void weather_animate(void *context)
 {
   WeatherData *weather_data = (WeatherData*) context;
+  WeatherLayerData *wld = layer_get_data(weather_layer);
 
   if (weather_data->updated == 0 && weather_data->error == WEATHER_E_OK) {    
-    // 'Animate' loading icon until the first successful weather request
-    if (animation_step % 3 <= 0) {
-      weather_layer_set_icon(WEATHER_ICON_LOADING1);
+    
+    animation_step = (animation_step % 3) + 1;
+    layer_mark_dirty(wld->loading_layer);
+    weather_animation_timer = app_timer_register(WEATHER_ANIMATION_REFRESH, weather_animate, weather_data);
+
+    if (animation_step == WEATHER_INITIAL_RETRY_TIMEOUT) {
+      // Fire off one last desperate attempt...
+      request_weather(weather_data);
     }
-    else if (animation_step % 3 == 1) {
-      weather_layer_set_icon(WEATHER_ICON_LOADING2);
-    }
-    else if (animation_step % 3 >= 2) {
-      weather_layer_set_icon(WEATHER_ICON_LOADING3);
-    }
-    animation_step = animation_step + 1;
+
     if (animation_step > WEATHER_ANIMATION_TIMEOUT) {
       weather_data->error = WEATHER_E_NETWORK;
     }
-    weather_animation_timer = app_timer_register(WEATHER_ANIMATION_REFRESH, weather_animate, weather_data);
   } 
   else if (weather_data->error != WEATHER_E_OK) {
     animation_step = 0;
@@ -104,6 +91,12 @@ void weather_layer_create(GRect frame, Window *window)
   wld->icon_layer = bitmap_layer_create(GRect(9, 13, 60, 60));
   layer_add_child(weather_layer, bitmap_layer_get_layer(wld->icon_layer));
 
+  wld->loading_layer = layer_create(GRect(43, 35, 60, 20));
+  layer_set_update_proc(wld->loading_layer, weather_animate_update);
+  layer_add_child(weather_layer, wld->loading_layer);
+
+  wld->large_icons = gbitmap_create_with_resource(RESOURCE_ID_ICON_60X60);
+
   wld->icon = NULL;
 
   layer_add_child(window_get_root_layer(window), weather_layer);
@@ -118,7 +111,11 @@ void weather_layer_set_icon(WeatherIcon icon)
 
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
-  GBitmap *new_icon =  gbitmap_create_with_resource(WEATHER_ICONS[icon]);
+  int size = 60;
+
+  GBitmap *new_icon =  gbitmap_create_as_sub_bitmap(
+    wld->large_icons, GRect(icon%5*size, ((int)(icon/5))*size, size, size)
+  );
   // Display the new bitmap
   bitmap_layer_set_bitmap(wld->icon_layer, new_icon);
 
@@ -178,10 +175,13 @@ void weather_layer_update(WeatherData *weather_data)
     return;
   }
 
+  WeatherLayerData *wld = layer_get_data(weather_layer);
+
   if (weather_animation_timer && animation_timer_enabled) {
     app_timer_cancel(weather_animation_timer);
     // this is only needed to stop the error message when cancelling an already cancelled timer... 
     animation_timer_enabled = false;
+    layer_set_hidden(wld->loading_layer, true);
   }
 
   time_t current_time = time(NULL);
@@ -250,10 +250,14 @@ void weather_layer_destroy()
   text_layer_destroy(wld->temp_layer);
   text_layer_destroy(wld->temp_layer_background);
   bitmap_layer_destroy(wld->icon_layer);
+  layer_destroy(wld->loading_layer);
 
   // Destroy the previous bitmap if we have one
   if (wld->icon != NULL) {
     gbitmap_destroy(wld->icon);
+  }
+  if (wld->large_icons != NULL) {
+    gbitmap_destroy(wld->large_icons);
   }
   layer_destroy(weather_layer);
 
