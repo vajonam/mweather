@@ -12,9 +12,9 @@
   "appKeys": {
     "temperature": 0,
     "condition": 1,
-	  "sunrise": 2,
-	  "sunset": 3,
-	  "pubdate": 4,
+    "sunrise": 2,
+    "sunset": 3,
+    "pubdate": 4,
     "error": 5,
     "service": 6,
     "locale": 7,
