@@ -1,6 +1,6 @@
 // Persisted Values
 #define DEFAULT_WEATHER_SCALE "F"  // F Fahrenheit or C Celsius
-#define DEFAULT_DEBUG_MODE false
+#define DEFAULT_DEBUG_MODE true
 #define DEFAULT_WEATHER_SERVICE "yahoo"
 #define DEFAULT_DISPLAY_BATTERY true
 

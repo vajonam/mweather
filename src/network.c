@@ -14,9 +14,11 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 
   WeatherData *weather = (WeatherData*) context;
 
+  // Program Control
   Tuple *error_tuple       = dict_find(received, KEY_ERROR);
   Tuple *js_ready_tuple    = dict_find(received, KEY_JS_READY);
 
+  // Current Weather (Via Yahoo, Open Weather Map)
   Tuple *temperature_tuple = dict_find(received, KEY_TEMPERATURE);
   Tuple *condition_tuple   = dict_find(received, KEY_CONDITION);
   Tuple *sunrise_tuple     = dict_find(received, KEY_SUNRISE);
@@ -25,12 +27,23 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   Tuple *locale_tuple      = dict_find(received, KEY_LOCALE);
   Tuple *tzoffset_tuple    = dict_find(received, KEY_TZOFFSET);
 
+  // Configuration Settings
   Tuple *service_tuple     = dict_find(received, KEY_SERVICE);
   Tuple *debug_tuple       = dict_find(received, KEY_DEBUG);
   Tuple *scale_tuple       = dict_find(received, KEY_SCALE);
   Tuple *battery_tuple     = dict_find(received, KEY_BATTERY);
 
-  // look to see if this was a weather update first
+  // Hourly Weather
+  Tuple *h1_temp_tuple = dict_find(received, KEY_H1_TEMP);
+  Tuple *h1_cond_tuple = dict_find(received, KEY_H1_COND);
+  Tuple *h1_time_tuple = dict_find(received, KEY_H1_TIME);
+  Tuple *h1_pop_tuple  = dict_find(received, KEY_H1_POP);
+  Tuple *h2_temp_tuple = dict_find(received, KEY_H2_TEMP);
+  Tuple *h2_cond_tuple = dict_find(received, KEY_H2_COND);
+  Tuple *h2_time_tuple = dict_find(received, KEY_H2_TIME);
+  Tuple *h2_pop_tuple  = dict_find(received, KEY_H2_POP);
+
+  // Weather update
   if (temperature_tuple && condition_tuple) {
     weather->temperature = temperature_tuple->value->int32;
     weather->condition   = condition_tuple->value->int32;
@@ -51,6 +64,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather - temp:%i cond:%i pd:%s tzos:%i loc:%s", 
       weather->temperature, weather->condition, weather->pub_date, weather->tzoffset, weather->locale);
   }
+  // Configuration Update
   else if (service_tuple) {
     char* service = strcmp(service_tuple->value->cstring, SERVICE_OPEN_WEATHER) == 0 ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
     char* scale   = strcmp(scale_tuple->value->cstring, SCALE_CELSIUS) == 0 ? SCALE_CELSIUS : SCALE_FAHRENHEIT;
@@ -77,6 +91,19 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     }
 
     store_persisted_values(weather);
+  }
+  // Hourly Weather Update
+  else if (h1_temp_tuple) {
+    weather->h1_temp = h1_temp_tuple->value->int32;
+    weather->h1_cond = h1_cond_tuple->value->int32;
+    weather->h1_time = h1_time_tuple->value->int32;
+    weather->h1_pop  = h1_pop_tuple->value->int32;
+    weather->h2_temp = h2_temp_tuple->value->int32;
+    weather->h2_cond = h2_cond_tuple->value->int32;
+    weather->h2_time = h2_time_tuple->value->int32;
+    weather->h2_pop  = h2_pop_tuple->value->int32;
+
+    weather->hourly_updated = time(NULL);
   }
   // Initial Javascript Ready message
   else if (js_ready_tuple) {
@@ -171,6 +198,7 @@ void init_network(WeatherData *weather_data)
 
   weather_data->error    = WEATHER_E_OK;
   weather_data->updated  = 0;
+  weather_data->hourly_updated = 0;
   weather_data->js_ready = false;
 
   retry_count = 0;

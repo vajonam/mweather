@@ -5,7 +5,7 @@
   "companyName": "Jared Biehler",
   "versionCode": 1,
   "versionLabel": "1.0.4",
-  "capabilities": [ "configurable" ],
+  "capabilities": [ "configurable", "location" ],
   "watchapp": {
     "watchface": true
   },
@@ -22,15 +22,18 @@
     "js_ready": 9,
     "scale": 10,
     "battery": 11,
-    "tzoffset": 12
+    "tzoffset": 12,
+    "h1_temp": 13,
+    "h1_cond": 14,
+    "h1_time": 15,
+    "h1_pop": 16,
+    "h2_temp": 17,
+    "h2_cond": 18,
+    "h2_time": 19,
+    "h2_pop": 20
   },
   "resources": {
     "media": [
-      {
-        "type": "png",
-        "name": "ICON_60X60",
-        "file": "images/60x60.png"
-      },
       {
         "type": "png",
         "name": "ICON_40X40",
@@ -47,6 +50,13 @@
         "file": "fonts/futura_condensed_bold-webfont.ttf"
       },
       {
+        "name": "FUTURA_14",
+        "trackingAdjust": 3,
+        "characterRegex": "[A-Za-z0-9 ]",
+        "file": "fonts/futura.ttf",
+        "type": "font"
+      },
+      {
         "name": "FUTURA_18",
         "trackingAdjust": 3,
         "characterRegex": "[A-Za-z0-9 ]",
@@ -54,14 +64,7 @@
         "type": "font"
       },
       {
-        "name": "FUTURA_40",
-        "trackingAdjust": -4,
-        "characterRegex": "[0-9\u00b0 -]",
-        "file": "fonts/futura.ttf",
-        "type": "font"
-      },
-      {
-        "name": "FUTURA_35",
+        "name": "FUTURA_30",
         "trackingAdjust": -4,
         "characterRegex": "[0-9\u00b0 -]",
         "file": "fonts/futura.ttf",

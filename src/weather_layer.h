@@ -2,12 +2,31 @@
 #define WEATHER_LAYER_H
 
 typedef struct {
+	Layer *loading_layer;
 	TextLayer *temp_layer_background;
 	TextLayer *temp_layer;
-	GBitmap *icon;
-	GBitmap *large_icons;
-	BitmapLayer *icon_layer;
-	Layer *loading_layer;
+
+	GBitmap *primary_icons;
+	GBitmap *hourly_icons;
+
+	int primary_icon_size;
+	int hourly_icon_size;
+
+	GBitmap *primary_icon;
+	BitmapLayer *primary_icon_layer;
+
+	GBitmap *h1_icon;
+	BitmapLayer *h1_icon_layer;
+	TextLayer *h1_time_layer;
+	TextLayer *h1_temp_layer;
+	TextLayer *h1_pop_layer;
+
+    GBitmap *h2_icon;
+	BitmapLayer *h2_icon_layer;
+	TextLayer *h2_time_layer;
+	TextLayer *h2_temp_layer;
+	TextLayer *h2_pop_layer;
+
 	char temp_str[6];
 } WeatherLayerData;
 
@@ -40,14 +59,20 @@ typedef enum {
 	WEATHER_ICON_COUNT
 } WeatherIcon;
 
+typedef enum {
+	PERIOD_PRIMARY = 0,
+	PERIOD_HOUR1,
+	PERIOD_HOUR2
+} WeatherPeriod;
+
 void weather_layer_create(GRect frame, Window *window);
 void weather_animate(void *context);
 void weather_layer_update(WeatherData *weather_data);
 void weather_layer_destroy();
-void weather_layer_set_icon(WeatherIcon icon);
 void weather_layer_set_temperature(int16_t temperature, bool is_stale);
 void weather_layer_clear_temperature();
 uint8_t open_weather_icon_for_condition(int condition, bool night_time);
 uint8_t yahoo_weather_icon_for_condition(int condition, bool night_time);
+uint8_t wunder_weather_icon_for_condition(int c, bool night_time);
 
 #endif

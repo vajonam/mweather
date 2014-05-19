@@ -10,8 +10,8 @@
 
 #define TIME_FRAME      (GRect(0, 3, 144, 168-6))
 #define DATE_FRAME      (GRect(1, 66, 144, 168-62))
-#define WEATHER_FRAME   (GRect(0, 90, 144, 80))
-#define DEBUG_FRAME     (GRect(0, 168-15, 144, 15))
+#define WEATHER_FRAME   (GRect(0, 95, 144, 73))
+#define DEBUG_FRAME     (GRect(0, 80, 144, 15))
 #define BATTERY_FRAME   (GRect(110, 0, 144, 8))
 
 /* Keep a pointer to the current weather data as a global variable */
@@ -31,7 +31,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
     time_layer_update();
     if (!initial_request) {
       debug_update_weather(weather_data);
-      weather_layer_update(weather_data);
+      //weather_layer_update(weather_data);
     }
   }
 
@@ -39,19 +39,24 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
     date_layer_update(tick_time);
   }
 
-  /*
-   * Useful for showing all icons using Yahoo, subscribe to SECOND_UNIT tick service
+  ///*
+  // * Useful for showing all icons using Yahoo, subscribe to SECOND_UNIT tick service
   weather_data->temperature = tick_time->tm_sec;
   weather_data->condition = tick_time->tm_sec;
   weather_data->updated = time(NULL);
+  weather_data->hourly_updated = time(NULL);
+  weather_data->h1_cond = tick_time->tm_sec;
+  weather_data->h2_cond = tick_time->tm_sec;
+  weather_data->h1_time = time(NULL);
+  weather_data->h2_time = time(NULL);
   weather_layer_update(weather_data);
-   */
+  //
 
   // Refresh the weather info every 15 mins, targeting 18 mins after the hour (Yahoo updates around then)
   if ((units_changed & MINUTE_UNIT) && 
       (tick_time->tm_min % 15 == 3) &&
       !initial_request) {
-    request_weather(weather_data);
+    //request_weather(weather_data);
   }
 } 
 
@@ -66,7 +71,7 @@ void initial_jsready_callback()
     app_timer_cancel(initial_jsready_timer);
   }
 
-  request_weather(weather_data); 
+  //request_weather(weather_data); 
 }
 
 static void init(void) 
@@ -100,7 +105,7 @@ static void init(void)
   handle_tick(localtime(&now), MINUTE_UNIT | DAY_UNIT );
 
   // And then every minute
-  tick_timer_service_subscribe(MINUTE_UNIT, handle_tick);
+  tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
 }
 
 static void deinit(void) 

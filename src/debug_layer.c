@@ -12,7 +12,7 @@ static bool is_enabled = false;
 void debug_layer_create(GRect frame, Window *window)
 {
   debug_layer = text_layer_create(frame);
-  text_layer_set_text_color(debug_layer, GColorBlack);
+  text_layer_set_text_color(debug_layer, GColorWhite);
   text_layer_set_background_color(debug_layer, GColorClear);
   text_layer_set_font(debug_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
   text_layer_set_text_alignment(debug_layer, GTextAlignmentRight);
