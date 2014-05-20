@@ -36,8 +36,8 @@
     "media": [
       {
         "type": "png",
-        "name": "ICON_40X40",
-        "file": "images/40x40.png"
+        "name": "ICON_45X45",
+        "file": "images/45x45.png"
       },
       {
         "type": "png",
@@ -50,9 +50,9 @@
         "file": "fonts/futura_condensed_bold-webfont.ttf"
       },
       {
-        "name": "FUTURA_14",
-        "trackingAdjust": 3,
-        "characterRegex": "[A-Za-z0-9 ]",
+        "name": "FUTURA_17",
+        "trackingAdjust": -2,
+        "characterRegex": "[0-9\u00b0 -]",
         "file": "fonts/futura.ttf",
         "type": "font"
       },
@@ -65,7 +65,7 @@
       },
       {
         "name": "FUTURA_30",
-        "trackingAdjust": -4,
+        "trackingAdjust": -3,
         "characterRegex": "[0-9\u00b0 -]",
         "file": "fonts/futura.ttf",
         "type": "font"

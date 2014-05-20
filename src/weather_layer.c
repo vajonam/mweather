@@ -178,9 +178,9 @@ void weather_layer_create(GRect frame, Window *window)
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
   large_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FUTURA_30));
-  small_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FUTURA_14));
+  small_font = fonts_load_custom_font(resource_get_handle(RESOURCE_ID_FUTURA_17));
 
-  wld->primary_icon_size = 40;
+  wld->primary_icon_size = 45;
   wld->hourly_icon_size = 30;
 
   // Add background layer
@@ -189,50 +189,62 @@ void weather_layer_create(GRect frame, Window *window)
   layer_add_child(weather_layer, text_layer_get_layer(wld->temp_layer_background));
 
 
-
   // Primary bitmap layer
-  wld->primary_icon_layer = bitmap_layer_create(GRect(10, 0, wld->primary_icon_size, wld->primary_icon_size));
+  wld->primary_icon_layer = bitmap_layer_create(GRect(7, 0, wld->primary_icon_size, wld->primary_icon_size));
   layer_add_child(weather_layer, bitmap_layer_get_layer(wld->primary_icon_layer));
 
   // Primary temperature layer
-  wld->temp_layer = text_layer_create(GRect(5, 42, 70, 70));
-  text_layer_set_background_color(wld->temp_layer, GColorClear);
-  text_layer_set_text_alignment(wld->temp_layer, GTextAlignmentCenter);
-  text_layer_set_font(wld->temp_layer, large_font);
-  layer_add_child(weather_layer, text_layer_get_layer(wld->temp_layer));
+  wld->primary_temp_layer = text_layer_create(GRect(0, 38, 70, 35));
+  text_layer_set_background_color(wld->primary_temp_layer, GColorClear);
+  text_layer_set_text_alignment(wld->primary_temp_layer, GTextAlignmentCenter);
+  text_layer_set_font(wld->primary_temp_layer, large_font);
+  layer_add_child(weather_layer, text_layer_get_layer(wld->primary_temp_layer));
 
   
-  wld->h1_time_layer = text_layer_create(GRect(75, 5, 50, 20));
+  wld->h1_time_layer = text_layer_create(GRect(70, 5, 30, 20));
   //text_layer_set_background_color(wld->h1_time_layer, GColorWhite);
   text_layer_set_text_color(wld->h1_time_layer, GColorBlack);
   text_layer_set_text_alignment(wld->h1_time_layer, GTextAlignmentCenter);
-  text_layer_set_font(wld->h1_time_layer, small_font);
+  //text_layer_set_font(wld->h1_time_layer, small_font);
   layer_add_child(weather_layer, text_layer_get_layer(wld->h1_time_layer));
-  
 
+  wld->h1_temp_layer = text_layer_create(GRect(70, 47, 38, 20));
+  //text_layer_set_background_color(wld->h1_temp_layer, GColorWhite);
+  text_layer_set_text_color(wld->h1_temp_layer, GColorBlack);
+  text_layer_set_text_alignment(wld->h1_temp_layer, GTextAlignmentCenter);
+  text_layer_set_font(wld->h1_temp_layer, small_font);
+  layer_add_child(weather_layer, text_layer_get_layer(wld->h1_temp_layer));
+  
   // Hour1 bitmap layer
-  wld->h1_icon_layer = bitmap_layer_create(GRect(75, 30, wld->hourly_icon_size, wld->hourly_icon_size));
+  wld->h1_icon_layer = bitmap_layer_create(GRect(70, 20, wld->hourly_icon_size, wld->hourly_icon_size));
   layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h1_icon_layer));
 
   
-  wld->h2_time_layer = text_layer_create(GRect(110, 5, 50, 20));
+  wld->h2_time_layer = text_layer_create(GRect(110, 5, 30, 20));
   //text_layer_set_background_color(wld->h2_time_layer, GColorWhite);
   text_layer_set_text_color(wld->h1_time_layer, GColorBlack);
   text_layer_set_text_alignment(wld->h2_time_layer, GTextAlignmentCenter);
-  text_layer_set_font(wld->h2_time_layer, small_font);
+  //text_layer_set_font(wld->h2_time_layer, small_font);
   layer_add_child(weather_layer, text_layer_get_layer(wld->h2_time_layer));
+
+  wld->h2_temp_layer = text_layer_create(GRect(108, 47, 38, 20));
+  //text_layer_set_background_color(wld->h2_temp_layer, GColorWhite);
+  text_layer_set_text_color(wld->h2_temp_layer, GColorBlack);
+  text_layer_set_text_alignment(wld->h2_temp_layer, GTextAlignmentCenter);
+  text_layer_set_font(wld->h2_temp_layer, small_font);
+  layer_add_child(weather_layer, text_layer_get_layer(wld->h2_temp_layer));
    
   // Hour2 bitmap layer
-  wld->h2_icon_layer = bitmap_layer_create(GRect(110, 30, wld->hourly_icon_size, wld->hourly_icon_size));
+  wld->h2_icon_layer = bitmap_layer_create(GRect(109, 20, wld->hourly_icon_size, wld->hourly_icon_size));
   layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h2_icon_layer));
 
 
 
-  wld->loading_layer = layer_create(GRect(43, 30, 40, 20));
+  wld->loading_layer = layer_create(GRect(43, 27, 50, 20));
   layer_set_update_proc(wld->loading_layer, weather_animate_update);
   layer_add_child(weather_layer, wld->loading_layer);
 
-  wld->primary_icons = gbitmap_create_with_resource(RESOURCE_ID_ICON_40X40);
+  wld->primary_icons = gbitmap_create_with_resource(RESOURCE_ID_ICON_45X45);
   wld->hourly_icons  = gbitmap_create_with_resource(RESOURCE_ID_ICON_30X30);
 
   wld->primary_icon = NULL;
@@ -247,43 +259,23 @@ void weather_layer_create(GRect frame, Window *window)
 void weather_layer_clear_temperature()
 {
   WeatherLayerData *wld = layer_get_data(weather_layer);
-  text_layer_set_text(wld->temp_layer, "");
+  text_layer_set_text(wld->primary_temp_layer, "");
 }
 
 void weather_layer_set_temperature(int16_t t, bool is_stale) 
 {
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
-  snprintf(wld->temp_str, sizeof(wld->temp_str), "%i%s", t, is_stale ? " " : "°");
+  snprintf(wld->primary_temp_str, sizeof(wld->primary_temp_str), 
+    "%i%s", t, is_stale ? " " : "°");
 
-  // Temperature between -9° -> 9° or 20° -> 99°
-  if ((t >= -9 && t <= 9) || (t >= 20 && t < 100)) {
-    // text_layer_set_font(wld->temp_layer, small_font);
-    // text_layer_set_text_alignment(wld->temp_layer, GTextAlignmentCenter);
+  text_layer_set_text(wld->primary_temp_layer, wld->primary_temp_str);
+}
 
-  	// Is the temperature below zero?
-  	if (wld->temp_str[0] == '-') {
-  	  memmove(
-            wld->temp_str + 1 + 1,
-            wld->temp_str + 1,
-            5 - (1 + 1)
-        );
-  	  memcpy(&wld->temp_str[1], " ", 1);
-  	}
-  }
-  /*
-  // Temperature between 10° -> 19°
-  else if (t >= 10 && t < 20) {
-    text_layer_set_font(wld->temp_layer, large_font);
-    text_layer_set_text_alignment(wld->temp_layer, GTextAlignmentLeft);
-  }
-  // Temperature above 99° or below -9°
-  else {
-    text_layer_set_font(wld->temp_layer, small_font);
-    text_layer_set_text_alignment(wld->temp_layer, GTextAlignmentCenter);
-  }
-  */
-  text_layer_set_text(wld->temp_layer, wld->temp_str);
+static bool is_night_time(int sunrise, int sunset, int utc) 
+{
+  return utc < (sunrise - CIVIL_TWILIGHT_BUFFER) || 
+         utc > (sunset  + CIVIL_TWILIGHT_BUFFER);
 }
 
 // Update the bottom half of the screen: icon and temperature
@@ -319,7 +311,7 @@ void weather_layer_update(WeatherData *weather_data)
       weather_layer_clear_temperature();
       switch (weather_data->error) {
         case WEATHER_E_NETWORK:
-          weather_layer_set_icon_primary(WEATHER_ICON_CLOUD_ERROR);
+          weather_layer_set_icon_primary(WEATHER_ICON_PHONE_ERROR);
           debug_update_message("Network error");
           break;
         case WEATHER_E_DISCONNECTED:
@@ -337,11 +329,7 @@ void weather_layer_update(WeatherData *weather_data)
 
     // Day/night check
     time_t utc = current_time + weather_data->tzoffset;
-    bool night_time = false;
-    if (utc < (weather_data->sunrise - CIVIL_TWILIGHT_BUFFER) || 
-        utc > (weather_data->sunset  + CIVIL_TWILIGHT_BUFFER)) {
-      night_time = true;
-    }
+    bool night_time = is_night_time(weather_data->sunrise, weather_data->sunset, utc);
 
     /*
     APP_LOG(APP_LOG_LEVEL_DEBUG, 
@@ -357,8 +345,8 @@ void weather_layer_update(WeatherData *weather_data)
 
     if (weather_data->hourly_updated != 0) {
 
-      time_t h1t = weather_data->h1_time;
-      time_t h2t = weather_data->h2_time;
+      time_t h1t = weather_data->h1_time - weather_data->tzoffset;
+      time_t h2t = weather_data->h2_time - weather_data->tzoffset;
       strftime(time_h1, sizeof(time_h1), "%I%p", localtime(&h1t));
       strftime(time_h2, sizeof(time_h2), "%I%p", localtime(&h2t));
 
@@ -374,10 +362,19 @@ void weather_layer_update(WeatherData *weather_data)
 
       localtime(&current_time);
 
+      night_time = is_night_time(weather_data->sunrise, weather_data->sunset, weather_data->h1_time);
       weather_layer_set_icon_h1(wunder_weather_icon_for_condition(weather_data->h1_cond, night_time));
+
+      night_time = is_night_time(weather_data->sunrise, weather_data->sunset, weather_data->h2_time);
       weather_layer_set_icon_h2(wunder_weather_icon_for_condition(weather_data->h2_cond, night_time));
 
+      snprintf(wld->h1_temp_str, sizeof(wld->h1_temp_str), 
+        "%i%s", weather_data->h1_temp, "°");
+      snprintf(wld->h2_temp_str, sizeof(wld->h2_temp_str), 
+        "%i%s", weather_data->h2_temp, "°");
 
+      text_layer_set_text(wld->h1_temp_layer, wld->h1_temp_str);
+      text_layer_set_text(wld->h2_temp_layer, wld->h2_temp_str);
     }
   }
 }
@@ -391,13 +388,15 @@ void weather_layer_destroy()
 
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
-  text_layer_destroy(wld->temp_layer);
+  text_layer_destroy(wld->primary_temp_layer);
   text_layer_destroy(wld->temp_layer_background);
   bitmap_layer_destroy(wld->primary_icon_layer);
   bitmap_layer_destroy(wld->h1_icon_layer);
   bitmap_layer_destroy(wld->h2_icon_layer);
   text_layer_destroy(wld->h1_time_layer);
   text_layer_destroy(wld->h2_time_layer);
+  text_layer_destroy(wld->h1_temp_layer);
+  text_layer_destroy(wld->h2_temp_layer);
   layer_destroy(wld->loading_layer);
 
   // Destroy the previous bitmap if we have one
@@ -457,6 +456,10 @@ uint8_t open_weather_icon_for_condition(int c, bool night_time)
   else if (c == 615 || c == 616) {
     return WEATHER_ICON_RAIN_SNOW;
   }
+  // Rain and snow
+  else if (c == 622) {
+    return WEATHER_ICON_HEAVY_SNOW;
+  }
   // Snow
   else if (c < 700) {
     return WEATHER_ICON_SNOW;
@@ -483,12 +486,19 @@ uint8_t open_weather_icon_for_condition(int c, bool night_time)
     else
       return WEATHER_ICON_FAIR_DAY;
   }
-  // few/scattered/broken clouds
-  else if (c < 804) {
+  // scattered clouds
+  else if (c == 802) {
     if (night_time)
       return WEATHER_ICON_PARTLY_CLOUDY_NIGHT;
     else
       return WEATHER_ICON_PARTLY_CLOUDY_DAY;
+  }
+  // broken clouds
+  else if (c == 803) {
+    if (night_time)
+      return WEATHER_ICON_CLOUDY;
+    else
+      return WEATHER_ICON_MOSTLY_CLOUDY_DAY;
   }
   // overcast clouds
   else if (c == 804) {
@@ -559,9 +569,13 @@ uint8_t yahoo_weather_icon_for_condition(int c, bool night_time)
   else if (c == 12 || c == 45) {
     return WEATHER_ICON_RAIN;
   }
-  // Snow / Heavy Snow / Scattered Snow
-  else if ((c >= 13 && c <= 16) || (c >= 41 && c <= 43) || c == 46) {
+  // Snow / Scattered Snow / Show Showers
+  else if (c == 13 || c == 14 || c == 16 || c == 42 || c == 46) {
     return WEATHER_ICON_SNOW;
+  }
+  // Heavy Snow / Blowing Snow
+  else if (c == 15 || c == 41 || c == 43) {
+    return WEATHER_ICON_HEAVY_SNOW;
   }
   // Sleet
   else if (c == 17 || c == 18) {
@@ -575,9 +589,16 @@ uint8_t yahoo_weather_icon_for_condition(int c, bool night_time)
   else if (c == 25) {
     return WEATHER_ICON_COLD;
   }
-  // Cloudy, Mostly Cloudy
-  else if (c >= 26 && c <= 28) {
+  // Cloudy
+  else if (c == 26) {
     return WEATHER_ICON_CLOUDY;
+  }
+  // Mostly Cloudy
+  else if (c == 27 || c == 28) {
+    if (night_time)
+      return WEATHER_ICON_CLOUDY;
+    else
+      return WEATHER_ICON_MOSTLY_CLOUDY_DAY;
   }
   // Partly Cloudy or Fair
   else if (c == 29 || c == 30 || c == 44) {

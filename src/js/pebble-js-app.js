@@ -1,13 +1,13 @@
 var SERVICE_OPEN_WEATHER  = "open";
 var SERVICE_YAHOO_WEATHER = "yahoo";
-var EXTERNAL_DEBUG_URL    = 'http://lightrook.com/pebble/log.php';
+var EXTERNAL_DEBUG_URL    = '';
 var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config/';
 
 var Global = {
-  externalDebug:     true, // POST logs to external server - dangerous! lat lon recorded
-  wuApiKey:          'f396fadbb2f8f169',
-  hourlyIndex1:      3, // 3 Hours from now 
-  hourlyIndex2:      8, // 8 hours from now
+  externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
+  wuApiKey:          '', // register for a free developer API key! 
+  hourlyIndex1:      2, // 3 Hours from now 
+  hourlyIndex2:      8, // 9 hours from now
   updateInProgress:  false,
   updateWaitTimeout: 1 * 60 * 1000, // one minute in ms
   lastUpdateAttempt: new Date(),
@@ -244,14 +244,14 @@ var fetchOpenWeather = function(latitude, longitude) {
 var fetchWunderWeather = function(latitude, longitude) {
 
   var options = {};
-  //options.url = 'http://api.wunderground.com/api/'+Global.wuApiKey+'/hourly/q/'+latitude+','+longitude+'.json';
+  options.url = 'http://api.wunderground.com/api/'+Global.wuApiKey+'/hourly/q/'+latitude+','+longitude+'.json';
 
   options.parse = function(response) {
         
       var h1 = response.hourly_forecast[Global.hourlyIndex1]
         , h2 = response.hourly_forecast[Global.hourlyIndex2];  
 
-      var data = {
+      return {
         h1_temp: parseInt(h1.temp.english),
         h1_cond: parseInt(h1.fctcode), 
         h1_time: parseInt(h1.FCTTIME.epoch),
@@ -262,23 +262,7 @@ var fetchWunderWeather = function(latitude, longitude) {
         h2_pop:  parseInt(h2.pop)
       };
   };
-
-    var data = {
-        h1_temp: 56,
-        h1_cond: 1, 
-        h1_time: 1400479200,
-        h1_pop:  0,
-        h2_temp: 41,
-        h2_cond: 1, 
-        h2_time: 1400497200,
-        h2_pop:  0
-      };
-
-
-  Pebble.sendAppMessage(data, ack, function(ev){
-    nack(data);
-  });
-  //fetchWeather(options);
+  fetchWeather(options);
 };
 
 
