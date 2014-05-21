@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Configurable</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.2/jquery.mobile.min.css" />
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquerymobile/1.4.2/jquery.mobile.min.js"></script>
+</head>
+<body>
+<div data-role="page" id="main">
+
+    <div data-role="content" class="ui-body ui-body-a">
+
+        <div data-role="fieldcontain">
+            <fieldset data-role="controlgroup">
+                <legend>Weather Provider:</legend>
+                <input type="radio" name="weather-service" id="radioyahoo" value="yahoo" class="custom" />
+                <label for="radioyahoo">YAHOO! Weather</label>
+
+                <input type="radio" name="weather-service" id="radioopen" value="open" class="custom" />
+                <label for="radioopen">Open Weather Map</label>
+
+            </fieldset>
+        </div>
+
+        <div data-role="fieldcontain" >
+            <fieldset data-role="controlgroup" data-type="horizontal">
+                <legend>Temperature Scale:</legend>
+                <input type="radio" name="weather-scale" id="radioF" value="F" class="custom" />
+                <label for="radioF">°Fahrenheit</label>
+
+                <input type="radio" name="weather-scale" id="radioC" value="C" class="custom" />
+                <label for="radioC">°Celsius</label>
+
+            </fieldset>
+        </div>
+
+        <div data-role="fieldcontain">
+            <label for="flipbattery">Display Battery:</label>
+            <select name="flipbattery" id="flipbattery" data-role="slider">
+                <option value="off">Off</option>
+                <option value="on">On</option>
+            </select>
+        </div>
+
+
+        <div data-role="fieldcontain">
+            <label for="flipdebug">Debug Mode:</label>
+            <select name="flipdebug" id="flipdebug" data-role="slider">
+                <option value="off">Off</option>
+                <option value="on">On</option>
+            </select>
+        </div>
+
+        <fieldset class="ui-grid-a">
+            <div class="ui-block-a"><button type="submit" data-theme="d" id="b-cancel">Cancel</button></div>
+            <div class="ui-block-b"><button type="submit" data-theme="b" id="b-submit">Save</button></div>
+        </fieldset>
+
+    </div>
+</div>
+<script>
+    function saveOptions() {
+        return {
+            'service': $("#radioyahoo").is(':checked')    ? 'yahoo' : 'open',
+            'scale':   $("#radioF").is(':checked')        ? 'F'     : 'C',
+            'battery': $("select")[0].selectedIndex === 0 ? 'off'   : 'on',
+            'debug':   $("select")[1].selectedIndex === 0 ? 'false' : 'true'
+        };
+    }
+
+    function getURLParameter(name) {
+        return decodeURI(
+                (RegExp(name + '=' + '(.+?)(&|$)').exec(location.search)||[,null])[1]
+        );
+    }
+
+    $().ready(function() {
+        var service = getURLParameter('s');
+        if (service === 'open') {
+            $("#radioopen").attr("checked", "checked");
+        } else {
+            $("#radioyahoo").attr("checked", "checked");
+        }
+        $("input[name='weather-service']").checkboxradio("refresh");
+
+        var scale = getURLParameter('u');
+        if (scale === 'C') {
+            $("#radioC").attr("checked", "checked");
+        } else {
+            $("#radioF").attr("checked", "checked");
+        }
+        $("input[name='weather-scale']").checkboxradio("refresh");
+
+        var switches = $("select");
+
+        var battery = getURLParameter('b');
+        if (battery === 'on') {
+            switches[0].selectedIndex = 1;
+        } else {
+            switches[0].selectedIndex = 0;
+        }
+
+        var debug = getURLParameter('d');
+        if (debug === 'true') {
+            switches[1].selectedIndex = 1;
+        } else {
+            switches[1].selectedIndex = 0;
+        }
+
+        switches.slider("refresh");
+
+        $("#b-cancel").click(function() {
+            console.log("Cancel");
+            document.location = "pebblejs://close";
+        });
+
+        $("#b-submit").click(function() {
+            console.log("Submit");
+
+            var location = "pebblejs://close#" + encodeURIComponent(JSON.stringify(saveOptions()));
+            console.log("Warping to: " + location);
+            console.log(location);
+            document.location = location;
+        });
+
+    });
+</script>
+</body>
+</html>
