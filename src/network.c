@@ -43,6 +43,8 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   Tuple *h2_time_tuple = dict_find(received, KEY_H2_TIME);
   Tuple *h2_pop_tuple  = dict_find(received, KEY_H2_POP);
 
+  Tuple *hourly_enabled_tuple = dict_find(received, KEY_HOURLY_ENABLED);
+
   // Weather update
   if (temperature_tuple && condition_tuple) {
     weather->temperature = temperature_tuple->value->int32;
@@ -59,7 +61,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     if (weather->debug) {
       debug_enable_display();
       debug_update_weather(weather);
-    } 
+    }
     
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather - temp:%i cond:%i pd:%s tzos:%i loc:%s", 
       weather->temperature, weather->condition, weather->pub_date, weather->tzoffset, weather->locale);
@@ -112,6 +114,11 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     APP_LOG(APP_LOG_LEVEL_DEBUG, "Javascript reports that it is ready");
     debug_update_message("JS ready");
     initial_jsready_callback();
+  }
+  // Hourly enabled
+  else if (hourly_enabled_tuple) {
+    weather->hourly_enabled = (bool)hourly_enabled_tuple->value->int32;
+    weather->hourly_updated = time(NULL);
   }
   else if (error_tuple) {
     weather->error   = WEATHER_E_NETWORK;
@@ -198,8 +205,10 @@ void init_network(WeatherData *weather_data)
 
   weather_data->error    = WEATHER_E_OK;
   weather_data->updated  = 0;
-  weather_data->hourly_updated = 0;
   weather_data->js_ready = false;
+
+  weather_data->hourly_updated = 0;
+  weather_data->hourly_enabled = true;
 
   retry_count = 0;
 }

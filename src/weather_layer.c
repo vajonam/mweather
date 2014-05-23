@@ -167,7 +167,8 @@ void weather_animate(void *context)
   } 
   else if (weather_data->error != WEATHER_E_OK) {
     animation_step = 0;
-    weather_layer_set_icon_primary(WEATHER_ICON_PHONE_ERROR);
+    layer_set_hidden(wld->loading_layer, true);
+    weather_layer_set_icon_primary(W_ICON_PHONE_ERROR);
   }
 }
 
@@ -190,25 +191,25 @@ void weather_layer_create(GRect frame, Window *window)
 
 
   // Primary bitmap layer
-  wld->primary_icon_layer = bitmap_layer_create(GRect(7, 0, wld->primary_icon_size, wld->primary_icon_size));
+  wld->primary_icon_layer = bitmap_layer_create(HOURLY_ENABLED_PRIMARY_ICON_POINT);
   layer_add_child(weather_layer, bitmap_layer_get_layer(wld->primary_icon_layer));
 
   // Primary temperature layer
-  wld->primary_temp_layer = text_layer_create(GRect(0, 38, 70, 35));
+  wld->primary_temp_layer = text_layer_create(HOURLY_ENABLED_PRIMARY_TEMP_POINT);
   text_layer_set_background_color(wld->primary_temp_layer, GColorClear);
   text_layer_set_text_alignment(wld->primary_temp_layer, GTextAlignmentCenter);
   text_layer_set_font(wld->primary_temp_layer, large_font);
   layer_add_child(weather_layer, text_layer_get_layer(wld->primary_temp_layer));
 
   
-  wld->h1_time_layer = text_layer_create(GRect(70, 5, 30, 20));
+  wld->h1_time_layer = text_layer_create(GRect(68, 5, 30, 20));
   //text_layer_set_background_color(wld->h1_time_layer, GColorWhite);
   text_layer_set_text_color(wld->h1_time_layer, GColorBlack);
   text_layer_set_text_alignment(wld->h1_time_layer, GTextAlignmentCenter);
   //text_layer_set_font(wld->h1_time_layer, small_font);
   layer_add_child(weather_layer, text_layer_get_layer(wld->h1_time_layer));
 
-  wld->h1_temp_layer = text_layer_create(GRect(70, 47, 38, 20));
+  wld->h1_temp_layer = text_layer_create(GRect(67, 47, 38, 20));
   //text_layer_set_background_color(wld->h1_temp_layer, GColorWhite);
   text_layer_set_text_color(wld->h1_temp_layer, GColorBlack);
   text_layer_set_text_alignment(wld->h1_temp_layer, GTextAlignmentCenter);
@@ -216,18 +217,18 @@ void weather_layer_create(GRect frame, Window *window)
   layer_add_child(weather_layer, text_layer_get_layer(wld->h1_temp_layer));
   
   // Hour1 bitmap layer
-  wld->h1_icon_layer = bitmap_layer_create(GRect(70, 20, wld->hourly_icon_size, wld->hourly_icon_size));
+  wld->h1_icon_layer = bitmap_layer_create(GRect(68, 20, wld->hourly_icon_size, wld->hourly_icon_size));
   layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h1_icon_layer));
 
   
-  wld->h2_time_layer = text_layer_create(GRect(110, 5, 30, 20));
+  wld->h2_time_layer = text_layer_create(GRect(109, 5, 30, 20));
   //text_layer_set_background_color(wld->h2_time_layer, GColorWhite);
   text_layer_set_text_color(wld->h1_time_layer, GColorBlack);
   text_layer_set_text_alignment(wld->h2_time_layer, GTextAlignmentCenter);
   //text_layer_set_font(wld->h2_time_layer, small_font);
   layer_add_child(weather_layer, text_layer_get_layer(wld->h2_time_layer));
 
-  wld->h2_temp_layer = text_layer_create(GRect(108, 47, 38, 20));
+  wld->h2_temp_layer = text_layer_create(GRect(107, 47, 38, 20));
   //text_layer_set_background_color(wld->h2_temp_layer, GColorWhite);
   text_layer_set_text_color(wld->h2_temp_layer, GColorBlack);
   text_layer_set_text_alignment(wld->h2_temp_layer, GTextAlignmentCenter);
@@ -235,7 +236,7 @@ void weather_layer_create(GRect frame, Window *window)
   layer_add_child(weather_layer, text_layer_get_layer(wld->h2_temp_layer));
    
   // Hour2 bitmap layer
-  wld->h2_icon_layer = bitmap_layer_create(GRect(109, 20, wld->hourly_icon_size, wld->hourly_icon_size));
+  wld->h2_icon_layer = bitmap_layer_create(GRect(108, 20, wld->hourly_icon_size, wld->hourly_icon_size));
   layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h2_icon_layer));
 
 
@@ -288,6 +289,25 @@ void weather_layer_update(WeatherData *weather_data)
 
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
+  /*
+  bool hidden = false;
+  if (weather_data->hourly_enabled) {
+    layer_set_frame(bitmap_layer_get_layer(wld->primary_icon_layer), HOURLY_ENABLED_PRIMARY_ICON_POINT);
+    layer_set_frame(text_layer_get_layer(wld->primary_temp_layer), HOURLY_ENABLED_PRIMARY_TEMP_POINT);
+    hidden = false;
+  } else {
+    layer_set_frame(bitmap_layer_get_layer(wld->primary_icon_layer), HOURLY_DISABLED_PRIMARY_ICON_POINT);
+    layer_set_frame(text_layer_get_layer(wld->primary_temp_layer), HOURLY_DISABLED_PRIMARY_TEMP_POINT);
+    hidden = true;
+  }
+  layer_set_hidden(text_layer_get_layer(wld->h1_time_layer), hidden);
+  layer_set_hidden(bitmap_layer_get_layer(wld->h1_icon_layer), hidden);
+  layer_set_hidden(text_layer_get_layer(wld->h1_temp_layer), hidden);
+  layer_set_hidden(text_layer_get_layer(wld->h2_time_layer), hidden);
+  layer_set_hidden(bitmap_layer_get_layer(wld->h2_icon_layer), hidden);
+  layer_set_hidden(text_layer_get_layer(wld->h2_temp_layer), hidden);
+  */
+
   if (weather_animation_timer && animation_timer_enabled) {
     app_timer_cancel(weather_animation_timer);
     // this is only needed to stop the error message when cancelling an already cancelled timer... 
@@ -311,13 +331,13 @@ void weather_layer_update(WeatherData *weather_data)
       weather_layer_clear_temperature();
       switch (weather_data->error) {
         case WEATHER_E_NETWORK:
-          weather_layer_set_icon_primary(WEATHER_ICON_PHONE_ERROR);
+          weather_layer_set_icon_primary(W_ICON_PHONE_ERROR);
           debug_update_message("Network error");
           break;
         case WEATHER_E_DISCONNECTED:
         case WEATHER_E_PHONE:
         default:
-          weather_layer_set_icon_primary(WEATHER_ICON_PHONE_ERROR);
+          weather_layer_set_icon_primary(W_ICON_PHONE_ERROR);
           debug_update_message("Phone disco / error");
           break;
       }
@@ -430,106 +450,106 @@ uint8_t open_weather_icon_for_condition(int c, bool night_time)
   //APP_LOG(APP_LOG_LEVEL_DEBUG, "In Open Weather icon selection. c: %i, night: %i", c, night_time);
 
   if (c < 100) {
-    return WEATHER_ICON_NOT_AVAILABLE;
+    return W_ICON_NOT_AVAILABLE;
   }
   // Thunderstorm
   else if (c < 300) {
-    return WEATHER_ICON_THUNDER;
+    return W_ICON_THUNDER;
   }
   // Drizzle
   else if (c < 500) {
-    return WEATHER_ICON_DRIZZLE;
+    return W_ICON_DRIZZLE;
   }
   // Freezing Rain
   else if (c == 511) {
-    return WEATHER_ICON_RAIN_SLEET;
+    return W_ICON_RAIN_SLEET;
   }
   // Rain / Freezing rain / Shower rain
   else if (c < 600) {
-    return WEATHER_ICON_RAIN;
+    return W_ICON_RAIN;
   }
   // Sleet
   else if (c == 611 || c == 612) {
-    return WEATHER_ICON_SNOW_SLEET;
+    return W_ICON_SNOW_SLEET;
   }
   // Rain and snow
   else if (c == 615 || c == 616) {
-    return WEATHER_ICON_RAIN_SNOW;
+    return W_ICON_RAIN_SNOW;
   }
   // Rain and snow
   else if (c == 622) {
-    return WEATHER_ICON_HEAVY_SNOW;
+    return W_ICON_HEAVY_SNOW;
   }
   // Snow
   else if (c < 700) {
-    return WEATHER_ICON_SNOW;
+    return W_ICON_SNOW;
   }
   // Fog / Mist / Haze / etc.
   else if (c < 771) {
-    return WEATHER_ICON_FOG;
+    return W_ICON_FOG;
   }
   // Tornado / Squalls
   else if (c < 800) {
-    return WEATHER_ICON_WIND;
+    return W_ICON_WIND;
   }
   // Sky is clear
   else if (c == 800) {
     if (night_time)
-      return WEATHER_ICON_CLEAR_NIGHT;
+      return W_ICON_CLEAR_NIGHT;
     else
-      return WEATHER_ICON_CLEAR_DAY;
+      return W_ICON_CLEAR_DAY;
   }
     // Few clouds
   else if (c == 801) {
     if (night_time)
-      return WEATHER_ICON_FAIR_NIGHT;
+      return W_ICON_FAIR_NIGHT;
     else
-      return WEATHER_ICON_FAIR_DAY;
+      return W_ICON_FAIR_DAY;
   }
   // scattered clouds
   else if (c == 802) {
     if (night_time)
-      return WEATHER_ICON_PARTLY_CLOUDY_NIGHT;
+      return W_ICON_PARTLY_CLOUDY_NIGHT;
     else
-      return WEATHER_ICON_PARTLY_CLOUDY_DAY;
+      return W_ICON_PARTLY_CLOUDY_DAY;
   }
   // broken clouds
   else if (c == 803) {
     if (night_time)
-      return WEATHER_ICON_CLOUDY;
+      return W_ICON_CLOUDY;
     else
-      return WEATHER_ICON_MOSTLY_CLOUDY_DAY;
+      return W_ICON_MOSTLY_CLOUDY_DAY;
   }
   // overcast clouds
   else if (c == 804) {
-    return WEATHER_ICON_CLOUDY;
+    return W_ICON_CLOUDY;
   }
   // Hail
   else if (c == 906) {
-    return WEATHER_ICON_SLEET;
+    return W_ICON_SLEET;
   }
   // Extreme
   else if ((c >= 900 && c <= 902) || c == 905 || (c >= 957 && c <= 962)) {
-    return WEATHER_ICON_WIND;
+    return W_ICON_WIND;
   }
   // Cold
   else if (c == 903) {
-      return WEATHER_ICON_COLD;
+      return W_ICON_COLD;
   }
   // Hot
   else if (c == 904) {
-      return WEATHER_ICON_HOT;
+      return W_ICON_HOT;
   }
   // Gentle to strong breeze
   else if (c >= 950 && c <= 956) {
     if (night_time)
-      return WEATHER_ICON_FAIR_NIGHT;
+      return W_ICON_FAIR_NIGHT;
     else
-      return WEATHER_ICON_FAIR_DAY;
+      return W_ICON_FAIR_DAY;
   }
   else {
     // Weather condition not available
-    return WEATHER_ICON_NOT_AVAILABLE;
+    return W_ICON_NOT_AVAILABLE;
   }
 }
 
@@ -543,108 +563,108 @@ uint8_t yahoo_weather_icon_for_condition(int c, bool night_time)
   
   // Tornado / Hurricane / Wind
   if ((c >= 0 && c <= 2) || c == 23 || c == 24) {
-    return WEATHER_ICON_WIND;
+    return W_ICON_WIND;
   }
   // Thunderstorm
   else if (c == 3 || c == 4 || c == 38 || c == 39) {
-    return WEATHER_ICON_THUNDER;
+    return W_ICON_THUNDER;
   }
   // Rain & Snow
   else if (c == 5) {
-    return WEATHER_ICON_RAIN_SNOW;
+    return W_ICON_RAIN_SNOW;
   }
   // Rain & Sleet / Mixed 
   else if (c == 6 || c == 8 || c == 10 || c == 35) {
-    return WEATHER_ICON_RAIN_SLEET;
+    return W_ICON_RAIN_SLEET;
   }
   // Snow & Sleet
   else if (c == 7) {
-    return WEATHER_ICON_SNOW_SLEET;
+    return W_ICON_SNOW_SLEET;
   }
   // Drizzle // Showers
   else if (c == 9 || c == 11 || c == 40) {
-    return WEATHER_ICON_DRIZZLE;
+    return W_ICON_DRIZZLE;
   }
   // Rain / Scattered Showers / Thundershowers
   else if (c == 12 || c == 45) {
-    return WEATHER_ICON_RAIN;
+    return W_ICON_RAIN;
   }
   // Snow / Scattered Snow / Show Showers
   else if (c == 13 || c == 14 || c == 16 || c == 42 || c == 46) {
-    return WEATHER_ICON_SNOW;
+    return W_ICON_SNOW;
   }
   // Heavy Snow / Blowing Snow
   else if (c == 15 || c == 41 || c == 43) {
-    return WEATHER_ICON_HEAVY_SNOW;
+    return W_ICON_HEAVY_SNOW;
   }
   // Sleet
   else if (c == 17 || c == 18) {
-    return WEATHER_ICON_SLEET;
+    return W_ICON_SLEET;
   }
   // Fog / Mist / Haze / etc.
   else if (c >= 19 && c <= 22) {
-    return WEATHER_ICON_FOG;
+    return W_ICON_FOG;
   }
   // Cold
   else if (c == 25) {
-    return WEATHER_ICON_COLD;
+    return W_ICON_COLD;
   }
   // Cloudy
   else if (c == 26) {
-    return WEATHER_ICON_CLOUDY;
+    return W_ICON_CLOUDY;
   }
   // Mostly Cloudy
   else if (c == 27 || c == 28) {
     if (night_time)
-      return WEATHER_ICON_CLOUDY;
+      return W_ICON_CLOUDY;
     else
-      return WEATHER_ICON_MOSTLY_CLOUDY_DAY;
+      return W_ICON_MOSTLY_CLOUDY_DAY;
   }
   // Partly Cloudy or Fair
   else if (c == 29 || c == 30 || c == 44) {
     if (night_time)
-      return WEATHER_ICON_PARTLY_CLOUDY_NIGHT;
+      return W_ICON_PARTLY_CLOUDY_NIGHT;
     else
-      return WEATHER_ICON_PARTLY_CLOUDY_DAY;
+      return W_ICON_PARTLY_CLOUDY_DAY;
   }
   // Clear Day Night
   else if (c == 31 || c == 32) {
     if (night_time)
-      return WEATHER_ICON_CLEAR_NIGHT;
+      return W_ICON_CLEAR_NIGHT;
     else
-      return WEATHER_ICON_CLEAR_DAY;
+      return W_ICON_CLEAR_DAY;
   }
   // Fair Day Night
   else if (c == 33 || c == 34) {
     if (night_time)
-      return WEATHER_ICON_FAIR_NIGHT;
+      return W_ICON_FAIR_NIGHT;
     else
-      return WEATHER_ICON_FAIR_DAY;
+      return W_ICON_FAIR_DAY;
   }
   // Hot
   else if (c == 36) {
-      return WEATHER_ICON_HOT;
+      return W_ICON_HOT;
   }
   // Isolated / Scattered Thunderstorm
   else if ((c >= 37 && c <= 39) || c == 47) {
     if (night_time)
-      return WEATHER_ICON_THUNDER;
+      return W_ICON_THUNDER;
     else
-      return WEATHER_ICON_THUNDER_SUN;
+      return W_ICON_THUNDER_SUN;
   }
   // Scattered Showers
   else if (c == 40) {
     if (night_time)
-      return WEATHER_ICON_RAIN;
+      return W_ICON_RAIN;
     else
-      return WEATHER_ICON_RAIN_SUN;
+      return W_ICON_RAIN_SUN;
   }
   // Weather condition not available
   else if (c == 3200) {
-      return WEATHER_ICON_NOT_AVAILABLE;
+      return W_ICON_NOT_AVAILABLE;
   }
   else {
-    return WEATHER_ICON_NOT_AVAILABLE;
+    return W_ICON_NOT_AVAILABLE;
   }
 }
 
@@ -659,90 +679,90 @@ uint8_t wunder_weather_icon_for_condition(int c, bool night_time)
   // Clear
   if (c == 1) {
     if (night_time)
-      return WEATHER_ICON_CLEAR_NIGHT;
+      return W_ICON_CLEAR_NIGHT;
     else
-      return WEATHER_ICON_CLEAR_DAY;
+      return W_ICON_CLEAR_DAY;
   }
   // Partly Cloudy
   else if (c == 2) {
     if (night_time)
-      return WEATHER_ICON_FAIR_NIGHT;
+      return W_ICON_FAIR_NIGHT;
     else
-      return WEATHER_ICON_FAIR_DAY;
+      return W_ICON_FAIR_DAY;
   }
   // Mostly CLoudly
   else if (c == 3) {
     if (night_time)
-      return WEATHER_ICON_PARTLY_CLOUDY_NIGHT;
+      return W_ICON_PARTLY_CLOUDY_NIGHT;
     else
-      return WEATHER_ICON_PARTLY_CLOUDY_DAY;
+      return W_ICON_PARTLY_CLOUDY_DAY;
   }
   // Cloudly
   else if (c == 4) {
-    return WEATHER_ICON_CLOUDY;
+    return W_ICON_CLOUDY;
   }
   // Haze / Fog
   else if (c == 5 || c == 6) {
-    return WEATHER_ICON_FOG;
+    return W_ICON_FOG;
   }
   // Very Warm
   else if (c == 7) {
-      return WEATHER_ICON_HOT;
+      return W_ICON_HOT;
   }
   // Very Cold
   else if (c == 8) {
-    return WEATHER_ICON_COLD;
+    return W_ICON_COLD;
   }
   // Blowing Snow
   else if (c == 9 || c == 20 || c == 21 || c == 24) {
-    return WEATHER_ICON_SNOW;
+    return W_ICON_SNOW;
   }
   // Chance of Showers
   else if (c == 10) {
     if (night_time)
-      return WEATHER_ICON_DRIZZLE;
+      return W_ICON_DRIZZLE;
     else
-      return WEATHER_ICON_RAIN_SUN;
+      return W_ICON_RAIN_SUN;
   }
   // Showers
   else if (c == 11) {
-    return WEATHER_ICON_DRIZZLE;
+    return W_ICON_DRIZZLE;
   }
   // Chance of Rain
   else if (c == 12) {
     if (night_time)
-      return WEATHER_ICON_RAIN;
+      return W_ICON_RAIN;
     else
-      return WEATHER_ICON_RAIN_SUN;
+      return W_ICON_RAIN_SUN;
   }
   // Rain
   else if (c == 13) {
-    return WEATHER_ICON_RAIN;
+    return W_ICON_RAIN;
   }
   // Chance of Thunderstorm
   else if (c == 14) {
     if (night_time)
-      return WEATHER_ICON_THUNDER;
+      return W_ICON_THUNDER;
     else
-      return WEATHER_ICON_THUNDER_SUN;
+      return W_ICON_THUNDER_SUN;
   }
   // Thunderstorms
   else if (c == 15) {
-    return WEATHER_ICON_THUNDER;
+    return W_ICON_THUNDER;
   }
   // Flurries 
   else if (c == 16) {
-    return WEATHER_ICON_SLEET;
+    return W_ICON_SLEET;
   }
   // Chance of Snow Showers, Snow Showers (wtf)
   else if (c == 18 || c == 19) {
-    return WEATHER_ICON_SNOW_SLEET;
+    return W_ICON_SNOW_SLEET;
   }
   // Chance of Ice Pellets, Ice Pellets
   else if (c == 22 || c == 23) {
-    return WEATHER_ICON_SLEET;
+    return W_ICON_SLEET;
   }
   else {
-    return WEATHER_ICON_NOT_AVAILABLE;
+    return W_ICON_NOT_AVAILABLE;
   }
 }

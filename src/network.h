@@ -21,6 +21,7 @@
 #define KEY_H2_COND 18
 #define KEY_H2_TIME 19
 #define KEY_H2_POP 20
+#define KEY_HOURLY_ENABLED 21
 
 #define SERVICE_OPEN_WEATHER "open"
 #define SERVICE_YAHOO_WEATHER "yahoo"
@@ -56,6 +57,7 @@ typedef struct {
   int h2_cond;
   int h2_time;
   int h2_pop;
+  bool hourly_enabled;
   time_t hourly_updated;
 
   bool js_ready; 

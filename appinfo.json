@@ -30,7 +30,8 @@
     "h2_temp": 17,
     "h2_cond": 18,
     "h2_time": 19,
-    "h2_pop": 20
+    "h2_pop": 20,
+    "hourly_enabled": 21
   },
   "resources": {
     "media": [

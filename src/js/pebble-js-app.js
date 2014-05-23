@@ -1,11 +1,11 @@
 var SERVICE_OPEN_WEATHER  = "open";
 var SERVICE_YAHOO_WEATHER = "yahoo";
 var EXTERNAL_DEBUG_URL    = '';
-var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config/';
+var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config/hourly.html';
 
 var Global = {
   externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
-  wuApiKey:          '', // register for a free developer API key! 
+  wuApiKey:          null, // register for a free api key!
   hourlyIndex1:      2, // 3 Hours from now 
   hourlyIndex2:      8, // 9 hours from now
   updateInProgress:  false,
@@ -25,7 +25,7 @@ var Global = {
 (function(){
     var original = console.log;
     var logMessage = function (message) {
-        if (Global.config.debugEnabled) {
+        if (true) {
           original.apply(console, arguments);
         }  
     };
@@ -50,6 +50,7 @@ Pebble.addEventListener("appmessage", function(data) {
       Global.config.debugEnabled   = data.payload.debug   === 1;
       Global.config.batteryEnabled = data.payload.battery === 1;
       Global.config.weatherScale   = data.payload.scale   === 'C' ? 'C' : 'F';
+      Global.wuApiKey              = window.localStorage.getItem('wuApiKey');
       updateWeather();
     } catch (ex) {
       console.warn("Could not retrieve data sent from Pebble: "+ex.message);
@@ -65,7 +66,8 @@ Pebble.addEventListener("showConfiguration", function (e) {
       's': Global.config.weatherService,
       'd': Global.config.debugEnabled,
       'u': Global.config.weatherScale,
-      'b': Global.config.batteryEnabled ? 'on' : 'off'
+      'b': Global.config.batteryEnabled ? 'on' : 'off',
+      'a': Global.wuApiKey
     }
     var url = CONFIGURATION_URL+'?'+serialize(options);
     console.log('Configuration requested using url: '+url);
@@ -94,6 +96,13 @@ Pebble.addEventListener("webviewclosed", function(e) {
         Global.config.weatherScale   = settings.scale   === 'C' ? 'C' : 'F';
         Global.config.debugEnabled   = settings.debug   === 'true';
         Global.config.batteryEnabled = settings.battery === 'on';
+        Global.wuApiKey              = settings.wuApiKey;
+
+        if (Global.wuApiKey !== null) {
+          window.localStorage.setItem('wuApiKey', Global.wuApiKey);
+        } else {
+          window.localStorage.removeItem('wuApiKey');
+        }
         
         var config = {
           service: Global.config.weatherService,
@@ -154,8 +163,14 @@ var locationSuccess = function (pos) {
     } else {
       fetchYahooWeather(coordinates.latitude, coordinates.longitude);
     }
-    if (Global.config.wuApiKey !== '') {
+    if (Global.wuApiKey !== null) {
       fetchWunderWeather(coordinates.latitude, coordinates.longitude);
+    } else {
+      var data = {hourly_enabled: 0};
+      console.log("Hourly disabled, no WU ApiKey");
+      Pebble.sendAppMessage(data, ack, function(ev){
+          nack(data);
+      });
     }
 }
 

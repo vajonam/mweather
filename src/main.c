@@ -11,7 +11,7 @@
 #define TIME_FRAME      (GRect(0, 3, 144, 168-6))
 #define DATE_FRAME      (GRect(1, 66, 144, 168-62))
 #define WEATHER_FRAME   (GRect(0, 98, 144, 70))
-#define DEBUG_FRAME     (GRect(0, 81, 144, 15))
+#define DEBUG_FRAME     (GRect(0, 82, 144, 15))
 #define BATTERY_FRAME   (GRect(110, 0, 144, 8))
 
 /* Keep a pointer to the current weather data as a global variable */
@@ -41,6 +41,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 
   /*
    * Useful for showing all icons using Yahoo, subscribe to SECOND_UNIT tick service
+   *
   weather_data->temperature = (tick_time->tm_sec + rand()%60) * (rand()%3 ? 1 : -1);
   weather_data->condition = tick_time->tm_sec;
   weather_data->updated = time(NULL);
@@ -52,7 +53,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
   weather_data->h1_temp = (tick_time->tm_sec + rand()%60) * (rand()%3 ? 1 : -1);
   weather_data->h2_temp = (tick_time->tm_sec + rand()%60) * (rand()%3 ? 1 : -1);
   weather_layer_update(weather_data);
-   */
+    */
 
   // Refresh the weather info every 15 mins, targeting 18 mins after the hour (Yahoo updates around then)
   if ((units_changed & MINUTE_UNIT) && 
