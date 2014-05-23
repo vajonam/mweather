@@ -89,8 +89,8 @@
         return {
             'service': $("#radioyahoo").is(':checked') ? 'yahoo' : 'open',
             'scale':   $("#radioF").is(':checked')     ? 'F' : 'C',
-            'battery': $("select[name=flipbattery]").prop('selectedIndex') ? 'off' : 'on',
-            'debug':   $("select[name=flipdebug]").prop('selectedIndex')   ? 'false' : 'true'
+            'battery': $("select[name=flipbattery]").prop('selectedIndex') ? 'on' : 'off',
+            'debug':   $("select[name=flipdebug]").prop('selectedIndex')   ? 'true' : 'false'
         };
     }
 
@@ -133,7 +133,7 @@
         }
         $("input[name='weather-scale']").checkboxradio("refresh");
 
-        var apikey = localStorage.getItem('wuApiKey');
+        var apikey = window.localStorage.getItem('wuApiKey');
         if (apikey !== null) {
             flipHourly.prop('selectedIndex', 1);
             $("#text-apikey").val(apikey);
@@ -172,10 +172,10 @@
             if (hourlyEnabled) {
                 var apiKey = $("#text-apikey").val();
                 if (apiKey !== null) {
-                    localStorage.setItem('wuApiKey', apiKey);
+                    window.localStorage.setItem('wuApiKey', apiKey);
                 }
             } else {
-                localStorage.removeItem('wuApiKey');
+                window.localStorage.removeItem('wuApiKey');
             }
 
             var location = "pebblejs://close#" + (JSON.stringify(saveOptions()));
