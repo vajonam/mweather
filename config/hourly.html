@@ -90,7 +90,8 @@
             'service': $("#radioyahoo").is(':checked') ? 'yahoo' : 'open',
             'scale':   $("#radioF").is(':checked')     ? 'F' : 'C',
             'battery': $("select[name=flipbattery]").prop('selectedIndex') ? 'on' : 'off',
-            'debug':   $("select[name=flipdebug]").prop('selectedIndex')   ? 'true' : 'false'
+            'debug':   $("select[name=flipdebug]").prop('selectedIndex')   ? 'true' : 'false',
+            'wuApiKey':$("select[name=fliphourly]").prop('selectedIndex')  ? $("#text-apikey").val() : null
         };
     }
 
@@ -133,8 +134,8 @@
         }
         $("input[name='weather-scale']").checkboxradio("refresh");
 
-        var apikey = window.localStorage.getItem('wuApiKey');
-        if (apikey !== null) {
+        var apikey = getURLParameter('a');
+        if (apikey !== 'null') {
             flipHourly.prop('selectedIndex', 1);
             $("#text-apikey").val(apikey);
         } else {
@@ -144,10 +145,10 @@
 
         var flipBattery = $("select[name=flipbattery]");
         var battery = getURLParameter('b');
-        if (battery === 'on') {
-            flipBattery.prop('selectedIndex', 1);
-        } else {
+        if (battery === 'off') {
             flipBattery.prop('selectedIndex', 0);
+        } else {
+            flipBattery.prop('selectedIndex', 1);
         }
 
         var flipDebug = $("select[name=flipdebug]");
@@ -167,16 +168,6 @@
 
         $("#b-submit").click(function() {
             console.log("Submit");
-
-            var hourlyEnabled = $("select[name=fliphourly]").prop('selectedIndex') === 1;
-            if (hourlyEnabled) {
-                var apiKey = $("#text-apikey").val();
-                if (apiKey !== null) {
-                    window.localStorage.setItem('wuApiKey', apiKey);
-                }
-            } else {
-                window.localStorage.removeItem('wuApiKey');
-            }
 
             var location = "pebblejs://close#" + (JSON.stringify(saveOptions()));
             console.log("Warping to: " + location);
