@@ -23,7 +23,6 @@ static int  animation_step = 0;
 static char time_h1[] = "00XX";
 static char time_h2[] = "00XX";
 
-
 static void weather_animate_update(Layer *me, GContext *ctx) 
 {
   int dots = 3; 
@@ -40,94 +39,29 @@ static void weather_animate_update(Layer *me, GContext *ctx)
   } 
 }
 
-static void weather_layer_set_icon_primary(WeatherIcon icon) 
+static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) 
 {
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
-  int size  = wld->primary_icon_size;
+  static int size = 0;
+  static BitmapLayer *layer = NULL;
+  static GBitmap *icons = NULL;
 
-  GBitmap *new_icon =  gbitmap_create_as_sub_bitmap(
-    wld->primary_icons, GRect(icon%5*size, ((int)(icon/5))*size, size, size)
-  );
-  // Display the new bitmap
-  bitmap_layer_set_bitmap(wld->primary_icon_layer, new_icon);
-
-  // Destroy the ex-current icon if it existed
-  if (wld->primary_icon != NULL) {
-    // A cast is needed here to get rid of the const-ness
-    gbitmap_destroy(wld->primary_icon);
-  }
-  wld->primary_icon = new_icon;
-}
-
-static void weather_layer_set_icon_h1(WeatherIcon icon) 
-{
-  WeatherLayerData *wld = layer_get_data(weather_layer);
-
-  int size  = wld->hourly_icon_size;
-
-  GBitmap *new_icon =  gbitmap_create_as_sub_bitmap(
-    wld->hourly_icons, GRect(icon%5*size, ((int)(icon/5))*size, size, size)
-  );
-  // Display the new bitmap
-  bitmap_layer_set_bitmap(wld->h1_icon_layer, new_icon);
-
-  // Destroy the ex-current icon if it existed
-  if (wld->h1_icon != NULL) {
-    // A cast is needed here to get rid of the const-ness
-    gbitmap_destroy(wld->h1_icon);
-  }
-  wld->h1_icon = new_icon;
-}
-
-static void weather_layer_set_icon_h2(WeatherIcon icon) 
-{
-  WeatherLayerData *wld = layer_get_data(weather_layer);
-
-  int size  = wld->hourly_icon_size;
-
-  GBitmap *new_icon =  gbitmap_create_as_sub_bitmap(
-    wld->hourly_icons, GRect(icon%5*size, ((int)(icon/5))*size, size, size)
-  );
-  // Display the new bitmap
-  bitmap_layer_set_bitmap(wld->h2_icon_layer, new_icon);
-
-  // Destroy the ex-current icon if it existed
-  if (wld->h2_icon != NULL) {
-    // A cast is needed here to get rid of the const-ness
-    gbitmap_destroy(wld->h2_icon);
-  }
-  wld->h2_icon = new_icon;
-}
-
-/*
-static void weather_layer_set_icon(WeatherIcon icon, WeatherPeriod period) 
-{
-  WeatherLayerData *wld = layer_get_data(weather_layer);
-
-  int size = 0;
-  BitmapLayer *layer = NULL;
-  GBitmap *icons = NULL;
-  GBitmap *current_icon = NULL;
-
-  switch (period) {
-    case PERIOD_PRIMARY:
+  switch (area) {
+    case AREA_PRIMARY:
       size  = wld->primary_icon_size;
       layer = wld->primary_icon_layer;
       icons = wld->primary_icons;
-      current_icon = wld->primary_icon;
       break;
-    case PERIOD_HOUR1:
+    case AREA_HOURLY1:
       size  = wld->hourly_icon_size;
       layer = wld->h1_icon_layer;
       icons = wld->hourly_icons;
-      current_icon = wld->h1_icon;
       break;
-    case PERIOD_HOUR2:
+    case AREA_HOURLY2:
       size  = wld->hourly_icon_size;
       layer = wld->h2_icon_layer;
       icons = wld->hourly_icons;
-      current_icon = wld->h2_icon;
       break;
   } 
 
@@ -137,14 +71,30 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherPeriod period)
   // Display the new bitmap
   bitmap_layer_set_bitmap(layer, new_icon);
 
-  // Destroy the ex-current icon if it existed
-  if (current_icon != NULL) {
-    // A cast is needed here to get rid of the const-ness
-    gbitmap_destroy(current_icon);
-  }
-  current_icon = new_icon;
+  switch (area) {
+    case AREA_PRIMARY:
+      if (wld->primary_icon != NULL) gbitmap_destroy(wld->primary_icon);
+      wld->primary_icon = new_icon;
+      break;
+    case AREA_HOURLY1:
+      if (wld->h1_icon != NULL) gbitmap_destroy(wld->h1_icon);
+      wld->h1_icon = new_icon;
+      break;
+    case AREA_HOURLY2:
+      if (wld->h2_icon != NULL) gbitmap_destroy(wld->h2_icon);
+      wld->h2_icon = new_icon;
+      break;
+  } 
 }
-*/
+
+static void weather_layer_set_error()
+{
+  WeatherLayerData *wld = layer_get_data(weather_layer);
+  
+  layer_set_frame(bitmap_layer_get_layer(wld->primary_icon_layer), PRIMARY_ICON_ERROR_FRAME);
+  weather_layer_set_icon(W_ICON_PHONE_ERROR, AREA_PRIMARY);
+}
+
 void weather_animate(void *context)
 {
   WeatherData *weather_data = (WeatherData*) context;
@@ -168,7 +118,7 @@ void weather_animate(void *context)
   else if (weather_data->error != WEATHER_E_OK) {
     animation_step = 0;
     layer_set_hidden(wld->loading_layer, true);
-    weather_layer_set_icon_primary(W_ICON_PHONE_ERROR);
+    weather_layer_set_error();
   }
 }
 
@@ -189,13 +139,8 @@ void weather_layer_create(GRect frame, Window *window)
   text_layer_set_background_color(wld->temp_layer_background, GColorWhite);
   layer_add_child(weather_layer, text_layer_get_layer(wld->temp_layer_background));
 
-
-  // Primary bitmap layer
-  wld->primary_icon_layer = bitmap_layer_create(HOURLY_ENABLED_PRIMARY_ICON_POINT);
-  layer_add_child(weather_layer, bitmap_layer_get_layer(wld->primary_icon_layer));
-
   // Primary temperature layer
-  wld->primary_temp_layer = text_layer_create(HOURLY_ENABLED_PRIMARY_TEMP_POINT);
+  wld->primary_temp_layer = text_layer_create(GRect(2, 38, 70, 35));
   text_layer_set_background_color(wld->primary_temp_layer, GColorClear);
   text_layer_set_text_alignment(wld->primary_temp_layer, GTextAlignmentCenter);
   text_layer_set_font(wld->primary_temp_layer, large_font);
@@ -203,14 +148,11 @@ void weather_layer_create(GRect frame, Window *window)
 
   
   wld->h1_time_layer = text_layer_create(GRect(68, 5, 30, 20));
-  //text_layer_set_background_color(wld->h1_time_layer, GColorWhite);
   text_layer_set_text_color(wld->h1_time_layer, GColorBlack);
   text_layer_set_text_alignment(wld->h1_time_layer, GTextAlignmentCenter);
-  //text_layer_set_font(wld->h1_time_layer, small_font);
   layer_add_child(weather_layer, text_layer_get_layer(wld->h1_time_layer));
 
   wld->h1_temp_layer = text_layer_create(GRect(67, 47, 38, 20));
-  //text_layer_set_background_color(wld->h1_temp_layer, GColorWhite);
   text_layer_set_text_color(wld->h1_temp_layer, GColorBlack);
   text_layer_set_text_alignment(wld->h1_temp_layer, GTextAlignmentCenter);
   text_layer_set_font(wld->h1_temp_layer, small_font);
@@ -221,25 +163,24 @@ void weather_layer_create(GRect frame, Window *window)
   layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h1_icon_layer));
 
   
-  wld->h2_time_layer = text_layer_create(GRect(109, 5, 30, 20));
-  //text_layer_set_background_color(wld->h2_time_layer, GColorWhite);
+  wld->h2_time_layer = text_layer_create(GRect(108, 5, 30, 20));
   text_layer_set_text_color(wld->h1_time_layer, GColorBlack);
   text_layer_set_text_alignment(wld->h2_time_layer, GTextAlignmentCenter);
-  //text_layer_set_font(wld->h2_time_layer, small_font);
   layer_add_child(weather_layer, text_layer_get_layer(wld->h2_time_layer));
 
-  wld->h2_temp_layer = text_layer_create(GRect(107, 47, 38, 20));
-  //text_layer_set_background_color(wld->h2_temp_layer, GColorWhite);
+  wld->h2_temp_layer = text_layer_create(GRect(106, 47, 38, 20));
   text_layer_set_text_color(wld->h2_temp_layer, GColorBlack);
   text_layer_set_text_alignment(wld->h2_temp_layer, GTextAlignmentCenter);
   text_layer_set_font(wld->h2_temp_layer, small_font);
   layer_add_child(weather_layer, text_layer_get_layer(wld->h2_temp_layer));
    
   // Hour2 bitmap layer
-  wld->h2_icon_layer = bitmap_layer_create(GRect(108, 20, wld->hourly_icon_size, wld->hourly_icon_size));
+  wld->h2_icon_layer = bitmap_layer_create(GRect(107, 20, wld->hourly_icon_size, wld->hourly_icon_size));
   layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h2_icon_layer));
 
-
+  // Primary bitmap layer
+  wld->primary_icon_layer = bitmap_layer_create(PRIMARY_ICON_NORMAL_FRAME);
+  layer_add_child(weather_layer, bitmap_layer_get_layer(wld->primary_icon_layer));
 
   wld->loading_layer = layer_create(GRect(43, 27, 50, 20));
   layer_set_update_proc(wld->loading_layer, weather_animate_update);
@@ -289,25 +230,6 @@ void weather_layer_update(WeatherData *weather_data)
 
   WeatherLayerData *wld = layer_get_data(weather_layer);
 
-  /*
-  bool hidden = false;
-  if (weather_data->hourly_enabled) {
-    layer_set_frame(bitmap_layer_get_layer(wld->primary_icon_layer), HOURLY_ENABLED_PRIMARY_ICON_POINT);
-    layer_set_frame(text_layer_get_layer(wld->primary_temp_layer), HOURLY_ENABLED_PRIMARY_TEMP_POINT);
-    hidden = false;
-  } else {
-    layer_set_frame(bitmap_layer_get_layer(wld->primary_icon_layer), HOURLY_DISABLED_PRIMARY_ICON_POINT);
-    layer_set_frame(text_layer_get_layer(wld->primary_temp_layer), HOURLY_DISABLED_PRIMARY_TEMP_POINT);
-    hidden = true;
-  }
-  layer_set_hidden(text_layer_get_layer(wld->h1_time_layer), hidden);
-  layer_set_hidden(bitmap_layer_get_layer(wld->h1_icon_layer), hidden);
-  layer_set_hidden(text_layer_get_layer(wld->h1_temp_layer), hidden);
-  layer_set_hidden(text_layer_get_layer(wld->h2_time_layer), hidden);
-  layer_set_hidden(bitmap_layer_get_layer(wld->h2_icon_layer), hidden);
-  layer_set_hidden(text_layer_get_layer(wld->h2_temp_layer), hidden);
-  */
-
   if (weather_animation_timer && animation_timer_enabled) {
     app_timer_cancel(weather_animation_timer);
     // this is only needed to stop the error message when cancelling an already cancelled timer... 
@@ -331,18 +253,20 @@ void weather_layer_update(WeatherData *weather_data)
       weather_layer_clear_temperature();
       switch (weather_data->error) {
         case WEATHER_E_NETWORK:
-          weather_layer_set_icon_primary(W_ICON_PHONE_ERROR);
+          weather_layer_set_error();
           debug_update_message("Network error");
           break;
         case WEATHER_E_DISCONNECTED:
         case WEATHER_E_PHONE:
         default:
-          weather_layer_set_icon_primary(W_ICON_PHONE_ERROR);
+          weather_layer_set_error();
           debug_update_message("Phone disco / error");
           break;
       }
     }
   } else {
+
+    layer_set_frame(bitmap_layer_get_layer(wld->primary_icon_layer), PRIMARY_ICON_NORMAL_FRAME);
 
     // Show the temperature as 'stale' if it has not been updated in WEATHER_STALE_TIMEOUT
     weather_layer_set_temperature(weather_data->temperature, stale);
@@ -358,12 +282,12 @@ void weather_layer_update(WeatherData *weather_data)
     */
 
     if (strcmp(weather_data->service, SERVICE_OPEN_WEATHER) == 0) {
-      weather_layer_set_icon_primary(open_weather_icon_for_condition(weather_data->condition, night_time));
+      weather_layer_set_icon(open_weather_icon_for_condition(weather_data->condition, night_time), AREA_PRIMARY);
     } else {
-      weather_layer_set_icon_primary(yahoo_weather_icon_for_condition(weather_data->condition, night_time));
+      weather_layer_set_icon(yahoo_weather_icon_for_condition(weather_data->condition, night_time), AREA_PRIMARY);
     }
 
-    if (weather_data->hourly_updated != 0) {
+    if (weather_data->hourly_updated != 0 && weather_data->hourly_enabled) {
 
       time_t h1t = weather_data->h1_time - weather_data->tzoffset;
       time_t h2t = weather_data->h2_time - weather_data->tzoffset;
@@ -383,10 +307,10 @@ void weather_layer_update(WeatherData *weather_data)
       localtime(&current_time);
 
       night_time = is_night_time(weather_data->sunrise, weather_data->sunset, weather_data->h1_time);
-      weather_layer_set_icon_h1(wunder_weather_icon_for_condition(weather_data->h1_cond, night_time));
+      weather_layer_set_icon(wunder_weather_icon_for_condition(weather_data->h1_cond, night_time), AREA_HOURLY1);
 
       night_time = is_night_time(weather_data->sunrise, weather_data->sunset, weather_data->h2_time);
-      weather_layer_set_icon_h2(wunder_weather_icon_for_condition(weather_data->h2_cond, night_time));
+      weather_layer_set_icon(wunder_weather_icon_for_condition(weather_data->h2_cond, night_time), AREA_HOURLY2);
 
       snprintf(wld->h1_temp_str, sizeof(wld->h1_temp_str), 
         "%i%s", weather_data->h1_temp, "°");

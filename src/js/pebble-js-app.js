@@ -1,7 +1,7 @@
 var SERVICE_OPEN_WEATHER  = "open";
 var SERVICE_YAHOO_WEATHER = "yahoo";
 var EXTERNAL_DEBUG_URL    = '';
-var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config/hourly.html';
+var CONFIGURATION_URL     = 'http://jaredbiehler.github.io/weather-my-way/config/';
 
 var Global = {
   externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
@@ -89,8 +89,9 @@ Pebble.addEventListener("webviewclosed", function(e) {
 
         console.log("Settings received: "+JSON.stringify(settings));
 
-        var refreshNeeded = (settings.service !== Global.config.weatherService ||
-                             settings.scale   !== Global.config.weatherScale);
+        var refreshNeeded = (settings.service  !== Global.config.weatherService ||
+                             settings.scale    !== Global.config.weatherScale   || 
+                             settings.wuApiKey !== Global.wuApiKey);
 
         Global.config.weatherService = settings.service === SERVICE_OPEN_WEATHER ? SERVICE_OPEN_WEATHER : SERVICE_YAHOO_WEATHER;
         Global.config.weatherScale   = settings.scale   === 'C' ? 'C' : 'F';
@@ -267,11 +268,11 @@ var fetchWunderWeather = function(latitude, longitude) {
         , h2 = response.hourly_forecast[Global.hourlyIndex2];  
 
       return {
-        h1_temp: parseInt(h1.temp.english),
+        h1_temp: Global.config.weatherScale === 'C' ? parseInt(h1.temp.metric) : parseInt(h1.temp.english),
         h1_cond: parseInt(h1.fctcode), 
         h1_time: parseInt(h1.FCTTIME.epoch),
         h1_pop:  parseInt(h1.pop),
-        h2_temp: parseInt(h2.temp.english),
+        h2_temp: Global.config.weatherScale === 'C' ? parseInt(h2.temp.metric) : parseInt(h2.temp.english),
         h2_cond: parseInt(h2.fctcode), 
         h2_time: parseInt(h2.FCTTIME.epoch),
         h2_pop:  parseInt(h2.pop)
@@ -283,7 +284,7 @@ var fetchWunderWeather = function(latitude, longitude) {
 
 var fetchWeather = function(options) {
 
-  console.log('URL: ' + options.url);
+  //console.log('URL: ' + options.url);
 
   getJson(options.url, function(err, response) {
 

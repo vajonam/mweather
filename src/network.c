@@ -63,7 +63,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
       debug_update_weather(weather);
     }
     
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather - temp:%i cond:%i pd:%s tzos:%i loc:%s", 
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather temp:%i cond:%i pd:%s tzos:%i loc:%s", 
       weather->temperature, weather->condition, weather->pub_date, weather->tzoffset, weather->locale);
   }
   // Configuration Update
@@ -76,7 +76,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     weather->debug   = (bool)debug_tuple->value->int32;
     weather->battery = (bool)battery_tuple->value->int32;
 
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Configuration - serv:%s scale:%s debug:%i batt:%i", 
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Configuration serv:%s scale:%s debug:%i batt:%i", 
       weather->service, weather->scale, weather->debug, weather->battery);
 
     if (weather->battery) {
@@ -105,13 +105,14 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     weather->h2_time = h2_time_tuple->value->int32;
     weather->h2_pop  = h2_pop_tuple->value->int32;
 
+    weather->hourly_enabled = true;
     weather->hourly_updated = time(NULL);
   }
   // Initial Javascript Ready message
   else if (js_ready_tuple) {
     weather->js_ready = true;
     weather->error    = WEATHER_E_OK;
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Javascript reports that it is ready");
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Javascript is ready");
     debug_update_message("JS ready");
     initial_jsready_callback();
   }
@@ -126,7 +127,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   }
   else {
     weather->error = WEATHER_E_PHONE;
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Got message with unknown keys... temperature=%p condition=%p error=%p",
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Message with unknown keys: t=%p c=%p e=%p",
       temperature_tuple, condition_tuple, error_tuple);
   }
 
@@ -208,7 +209,7 @@ void init_network(WeatherData *weather_data)
   weather_data->js_ready = false;
 
   weather_data->hourly_updated = 0;
-  weather_data->hourly_enabled = true;
+  weather_data->hourly_enabled = false;
 
   retry_count = 0;
 }
@@ -220,10 +221,10 @@ void close_network()
 
 void request_weather(WeatherData *weather_data)
 {
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "Request weather called, retry count: %i", retry_count);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "Request weather, retry: %i", retry_count);
 
   if (retry_count > MAX_RETRY) {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Too many retries, let's wait for the next main loop request to try again.");
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Too many retries");
     retry_count = 0;
     return;
   }
@@ -237,7 +238,7 @@ void request_weather(WeatherData *weather_data)
   app_message_outbox_begin(&iter);
   
   if (iter == NULL) {
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "null iter");
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Null iter");
     return;
   }
 

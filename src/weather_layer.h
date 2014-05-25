@@ -1,7 +1,5 @@
-#define HOURLY_ENABLED_PRIMARY_ICON_POINT  (GRect(9, 0, 45, 45))
-#define HOURLY_DISABLED_PRIMARY_ICON_POINT (GRect(20, 12, 45, 45))
-#define HOURLY_ENABLED_PRIMARY_TEMP_POINT  (GRect(2, 38, 70, 35))
-#define HOURLY_DISABLED_PRIMARY_TEMP_POINT (GRect(75, 17, 70, 35))
+#define PRIMARY_ICON_NORMAL_FRAME  (GRect(9, 0, 45, 45))
+#define PRIMARY_ICON_ERROR_FRAME   (GRect(50, 12, 45, 45))
 
 #ifndef W_LAYER_H
 #define W_LAYER_H
@@ -65,6 +63,12 @@ typedef enum {
 	W_ICON_NOT_AVAILABLE,
 	W_ICON_COUNT
 } WeatherIcon;
+
+typedef enum {
+	AREA_PRIMARY = 0,
+	AREA_HOURLY1,
+	AREA_HOURLY2
+} WeatherDisplayArea;
 
 void weather_layer_create(GRect frame, Window *window);
 void weather_animate(void *context);
