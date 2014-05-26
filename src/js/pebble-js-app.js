@@ -14,7 +14,7 @@ var Global = {
   maxRetry:          3,
   retryWait:         500, // ms
   config: {
-    debugEnabled:   true,
+    debugEnabled:   false,
     batteryEnabled: true,
     weatherService: SERVICE_YAHOO_WEATHER,
     weatherScale:   'F'
@@ -25,7 +25,7 @@ var Global = {
 (function(){
     var original = console.log;
     var logMessage = function (message) {
-        if (true) {
+        if (Global.config.debugEnabled) {
           original.apply(console, arguments);
         }  
     };
@@ -41,6 +41,11 @@ Pebble.addEventListener("ready", function(e) {
     Pebble.sendAppMessage(data, ack, function(e){
       nack(data);
     });
+    var initialInstall = window.localStorage.getItem('initialInstall');
+    if (initialInstall === null && Global.wuApiKey === null) {
+      window.localStorage.setItem('initialInstall', false);
+      Pebble.showSimpleNotificationOnPebble("API Key Needed", "This watchface requires a free API key from Weather Underground. Please visit Settings in the Pebble App to find out more!");
+    }
 });
 
 Pebble.addEventListener("appmessage", function(data) {
