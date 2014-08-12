@@ -192,8 +192,8 @@ static void appmsg_out_failed(DictionaryIterator *failed, AppMessageResult reaso
 
 void init_network(WeatherData *weather_data)
 {
-  int max_in  = app_message_inbox_size_maximum();
-  int max_out = app_message_outbox_size_maximum();
+  int max_in  = 1200; //app_message_inbox_size_maximum();
+  int max_out = 500; //app_message_outbox_size_maximum();
 
   app_message_register_inbox_received(appmsg_in_received);
   app_message_register_inbox_dropped(appmsg_in_dropped);

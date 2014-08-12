@@ -3,8 +3,8 @@
   "shortName": "Weather My Way",
   "longName": "Weather My Way",
   "companyName": "Jared Biehler",
-  "versionCode": 5,
-  "versionLabel": "1.1.0",
+  "versionCode": 6,
+  "versionLabel": "1.1.1",
   "capabilities": [ "configurable", "location" ],
   "watchapp": {
     "watchface": true
