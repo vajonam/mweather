@@ -35,6 +35,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
       debug_update_weather(weather_data);
       weather_layer_update(weather_data);
     }
+    adjust_time_layer();
   }
 
   if (units_changed & HOUR_UNIT) {
@@ -44,6 +45,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
       debug_update_weather(weather_data);
       weather_layer_update(weather_data);
     }
+    adjust_time_layer();
   }
 
   if (units_changed & DAY_UNIT) {

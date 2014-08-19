@@ -79,24 +79,27 @@ void hour_layer_update()
     strftime(   min_text, 
               sizeof(min_text), "%M", 
               currentLocalTime);
-
-  // Drop the first char of hour_text if needed
-  if (!clock_is_24h_style() ) { 
-	layer_set_frame(time_layer, GRect(-10, 0, 144, 98));
-
-	if ((hour_text[0] == '0'))
+    if (!clock_is_24h_style() && (hour_text[0] == '0'))
 		memmove(hour_text, &hour_text[1], sizeof(hour_text) - 1);
-  	if (strcmp(hour_text,"11") == 0 ) 
-	     	layer_set_frame(time_layer, GRect(-10, 0, 144, 98));
-	if (strcmp(hour_text,"12") == 0 ) 
-	     	layer_set_frame(time_layer, GRect(-4, 0, 144, 98));
-	if (strcmp(hour_text,"1") == 0 ) 
-		layer_set_frame(time_layer, GRect(-12, 0, 144, 98));
-	  
-   }  
- 
+  // Drop the first char of hour_text if needed
 
   text_layer_set_text(hour_layer, hour_text);
+}
+
+void adjust_time_layer() {
+
+	if (!clock_is_24h_style()) {
+		layer_set_frame(time_layer, GRect(-10, 0, 144, 98));
+		if (strcmp(hour_text, "11") == 0)
+			layer_set_frame(time_layer, GRect(-10, 0, 144, 98));
+		if (strcmp(hour_text, "12") == 0)
+			layer_set_frame(time_layer, GRect(-4, 0, 144, 98));
+		if (strcmp(hour_text, "1") == 0)
+			layer_set_frame(time_layer, GRect(-12, 0, 144, 98));
+
+	}
+
+	layer_mark_dirty(time_layer);
 }
 
 void min_layer_update()
