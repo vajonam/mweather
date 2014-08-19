@@ -13,6 +13,7 @@ void min_layer_update();
 
 void date_layer_destroy();
 void time_layer_destroy();
+void adjust_time_layer();
 
 
 #endif
