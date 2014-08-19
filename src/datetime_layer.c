@@ -134,6 +134,8 @@ void time_layer_destroy()
 {
   text_layer_destroy(min_layer);
   text_layer_destroy(hour_layer);
+  layer_destroy(time_layer);
+
   fonts_unload_custom_font(font_time);
 }
 
