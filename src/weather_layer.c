@@ -78,11 +78,10 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area)
     case AREA_HOURLY1:
     	 APP_LOG(APP_LOG_LEVEL_DEBUG, "tryning to resize started");
       if (wld->h1_icon != NULL) gbitmap_destroy(wld->h1_icon);
-      wld->h1_icon = new_icon;
-      wld->h1_resized_data = NULL;
       wld->h1_resized_data = malloc((new_icon->bounds.size.h * new_icon->row_size_bytes) * sizeof(uint8_t));
   	    	new_icon = scaleBitmap(new_icon, 65, 65, wld->h1_resized_data);
   	    	 APP_LOG(APP_LOG_LEVEL_DEBUG, "tryning to resize finish");
+  	  wld->h1_icon = new_icon;
 
       break;
     case AREA_HOURLY2:
