@@ -2,6 +2,7 @@
 #include "network.h"
 #include "weather_layer.h"
 #include "debug_layer.h"
+#include "gbitmap_tools.h"
 
 static Layer *weather_layer;
 
@@ -46,45 +47,58 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area)
   static int size = 0;
   static BitmapLayer *layer = NULL;
   static GBitmap *icons = NULL;
+  size  = wld->primary_icon_size;
+  icons = wld->primary_icons;
 
   switch (area) {
     case AREA_PRIMARY:
-      size  = wld->primary_icon_size;
       layer = wld->primary_icon_layer;
-      icons = wld->primary_icons;
       break;
     case AREA_HOURLY1:
-      size  = wld->hourly_icon_size;
       layer = wld->h1_icon_layer;
-      icons = wld->hourly_icons;
       break;
     case AREA_HOURLY2:
-      size  = wld->hourly_icon_size;
       layer = wld->h2_icon_layer;
-      icons = wld->hourly_icons;
       break;
   } 
 
   GBitmap *new_icon =  gbitmap_create_as_sub_bitmap(
     icons, GRect(icon%5*size, ((int)(icon/5))*size, size, size)
   );
+
+
+
   // Display the new bitmap
-  bitmap_layer_set_bitmap(layer, new_icon);
 
   switch (area) {
     case AREA_PRIMARY:
-      if (wld->primary_icon != NULL) gbitmap_destroy(wld->primary_icon);
+    	if (wld->primary_icon != NULL) gbitmap_destroy(wld->primary_icon);
       wld->primary_icon = new_icon;
       break;
     case AREA_HOURLY1:
+    	 APP_LOG(APP_LOG_LEVEL_DEBUG, "tryning to resize started");
       if (wld->h1_icon != NULL) gbitmap_destroy(wld->h1_icon);
       wld->h1_icon = new_icon;
+      wld->h1_resized_data = NULL;
+      wld->h1_resized_data = malloc((new_icon->bounds.size.h * new_icon->row_size_bytes) * sizeof(uint8_t));
+  	    	new_icon = scaleBitmap(new_icon, 65, 65, wld->h1_resized_data);
+  	    	 APP_LOG(APP_LOG_LEVEL_DEBUG, "tryning to resize finish");
+
       break;
     case AREA_HOURLY2:
-      if (wld->h2_icon != NULL) gbitmap_destroy(wld->h2_icon);
-      wld->h2_icon = new_icon;
+   	 APP_LOG(APP_LOG_LEVEL_DEBUG, "2 tryning to resize started");
+if (wld->h2_icon != NULL) gbitmap_destroy(wld->h2_icon);
+        	wld->h2_icon = new_icon;
+        	wld->h2_resized_data = NULL;
+        	// wld->h2_resized_data = malloc((new_icon->bounds.size.h * new_icon->row_size_bytes) * sizeof(uint8_t));
+        	        // new_icon = scaleBitmap(new_icon, 65, 65, wld->h2_resized_data);
+        	    	 APP_LOG(APP_LOG_LEVEL_DEBUG, "2 tryning to resize started");
+
       break;
   } 
+
+  bitmap_layer_set_bitmap(layer, new_icon);
+
 }
 
 static void weather_layer_set_error()
@@ -187,7 +201,6 @@ void weather_layer_create(GRect frame, Window *window)
   layer_add_child(weather_layer, wld->loading_layer);
 
   wld->primary_icons = gbitmap_create_with_resource(RESOURCE_ID_ICON_45X45);
-  wld->hourly_icons  = gbitmap_create_with_resource(RESOURCE_ID_ICON_30X30);
 
   wld->primary_icon = NULL;
   wld->h1_icon = NULL;
@@ -356,9 +369,9 @@ void weather_layer_destroy()
   if (wld->h2_icon != NULL) {
     gbitmap_destroy(wld->h2_icon);
   }
-  if (wld->hourly_icons != NULL) {
-    gbitmap_destroy(wld->hourly_icons);
-  }
+  	  free(wld->h1_resized_data);
+  	  free(wld->h2_resized_data);
+
   layer_destroy(weather_layer);
 
   fonts_unload_custom_font(large_font);

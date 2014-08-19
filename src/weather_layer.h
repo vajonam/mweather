@@ -10,7 +10,8 @@ typedef struct {
 	TextLayer *primary_temp_layer;
 
 	GBitmap *primary_icons;
-	GBitmap *hourly_icons;
+	uint8_t *h1_resized_data;
+	uint8_t *h2_resized_data;
 
 	int primary_icon_size;
 	int hourly_icon_size;
