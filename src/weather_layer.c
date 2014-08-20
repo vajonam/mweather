@@ -50,8 +50,7 @@ static AppTimer *weather_animation_timer;
 static bool animation_timer_enabled = true;
 static int animation_step = 0;
 
-static GBitmap *h1_resized;
-static GBitmap *h2_resized;
+
 static GBitmap *new_icon;
 
 static char time_h1[] = "00XX";
@@ -92,6 +91,10 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 		break;
 	}
 
+	if (new_icon !=NULL ) {
+		new_icon = NULL;
+		APP_LOG(APP_LOG_LEVEL_DEBUG, "Destroying new_icon");
+	}
 	new_icon =  gbitmap_create_with_resource(WEATHER_ICONS[icon]);;
 
 
@@ -103,24 +106,24 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 		if (wld->primary_icon != NULL)
 			gbitmap_destroy(wld->primary_icon);
 		wld->primary_icon = new_icon;
+		bitmap_layer_set_bitmap(layer, new_icon);
 		break;
 	case AREA_HOURLY1:
 		if (wld->h1_icon != NULL)
 			gbitmap_destroy(wld->h1_icon);
-		h1_resized = scaleBitmap(new_icon, 66, 66, wld->h1_resized_data);
-		wld->h1_icon = h1_resized;
-		new_icon = h2_resized;
+		wld->h1_icon = scaleBitmap(new_icon, 66, 66, wld->h1_resized_data);
+		bitmap_layer_set_bitmap(layer, wld->h1_icon);
 		break;
 	case AREA_HOURLY2:
 		if (wld->h2_icon != NULL)
 			gbitmap_destroy(wld->h2_icon);
-		h2_resized = scaleBitmap(new_icon, 66, 66, wld->h2_resized_data);
-		wld->h2_icon = h2_resized;
-		new_icon = h2_resized;
+		wld->h2_icon = scaleBitmap(new_icon, 66, 66, wld->h2_resized_data);
+
+		bitmap_layer_set_bitmap(layer, wld->h2_icon );
 		break;
 	}
 
-	bitmap_layer_set_bitmap(layer, new_icon);
+	layer_mark_dirty(weather_layer);
 
 }
 
