@@ -89,7 +89,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     if (weather->battery) {
       battery_enable_display();
     } else {
-      battery_disable_display();
+      // battery_disable_display();
     }
 
     if (weather->debug) {
