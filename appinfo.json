@@ -185,6 +185,16 @@
 		        "type": "png",
 		        "name": "ICON_NOT_AVAILABLE",
 		        "file": "images/weather_24.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "SUNRISE",
+		        "file": "images/sunrise.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "SUNSET",
+		        "file": "images/sunset.png"
 		      }
         ]
     },

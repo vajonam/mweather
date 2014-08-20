@@ -95,25 +95,6 @@ void adjust_time_layer() {
 		horizontal_adjust = min_size.w - hour_size.w;
 	}
 	layer_set_frame(time_layer,  GRect(horizontal_adjust/2 , 0, 144, 98));
-
-
-
-
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "TIME LAYER CALCULATION %d",horizontal_adjust );
-
-//	if (!clock_is_24h_style()) {
-//		layer_set_frame(time_layer, GRect(-10, 0, 144, 98));
-//		if (strcmp(hour_text, "11") == 0)
-//			layer_set_frame(time_layer, GRect( , 0, 144, 98));
-//		if (strcmp(hour_text, "12") == 0)
-//			layer_set_frame(time_layer, GRect(-4, 0, 144, 98));
-//		if (strcmp(hour_text, "10") == 0)
-//			layer_set_frame(time_layer, GRect(-4, 0, 144, 98));
-//		if (strcmp(hour_text, "1") == 0)
-//			layer_set_frame(time_layer, GRect(-12, 0, 144, 98));
-//	}
-
-	layer_mark_dirty(time_layer);
 }
 
 void min_layer_update() {

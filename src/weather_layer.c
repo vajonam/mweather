@@ -369,6 +369,12 @@ void weather_layer_update(WeatherData *weather_data) {
 	}
 }
 
+void weather_layer_hide(bool hide){
+
+   layer_set_hidden(weather_layer,hide);
+
+}
+
 void weather_layer_destroy() {
 	if (weather_animation_timer && animation_timer_enabled) {
 		app_timer_cancel(weather_animation_timer);

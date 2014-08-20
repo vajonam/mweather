@@ -2,6 +2,7 @@
 #include "network.h"
 #include "battery_layer.h"
 #include "weather_layer.h"
+#include "eweather_layer.h"
 #include "debug_layer.h"
 #include "main.h"
 #include "persist.h"
@@ -139,6 +140,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   }
 
   weather_layer_update(weather);
+  eweather_layer_update(weather);
 
   // Succes! reset the retry count...
   retry_count = 0;
