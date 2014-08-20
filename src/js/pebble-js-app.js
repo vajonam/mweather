@@ -214,9 +214,12 @@ var fetchYahooWeather = function(latitude, longitude) {
   options.url = "https://query.yahooapis.com/v1/public/yql?format=json&q="+encodeURIComponent(multi)+"&nocache="+new Date().getTime();
 
   options.parse = function(response) {
-      var sunrise, sunset, pubdate, locale;
+      var sunrise, sunset, pubdate, locale, humidity, wind_speed, wind_dir;
       sunrise = response.query.results.results[0].channel.astronomy.sunrise;
       sunset  = response.query.results.results[0].channel.astronomy.sunset;
+      humidity  = response.query.results.results[0].channel.atmosphere.humidity;
+      wind_speed  = response.query.results.results[0].channel.wind.speed;
+      wind_dir  = response.query.results.results[0].channel.wind.direction;
       pubdate = new Date(Date.parse(response.query.results.results[0].channel.item.pubDate));
       locale  = response.query.results.results[1].Result.neighborhood;
       if (locale === null) {
@@ -241,7 +244,11 @@ var fetchYahooWeather = function(latitude, longitude) {
         sunset:      Date.parse(new Date().toDateString()+" "+sunset) / 1000,
         locale:      locale,
         pubdate:     pubdate.getHours()+':'+('0'+pubdate.getMinutes()).slice(-2),
-        tzoffset:    new Date().getTimezoneOffset() * 60
+        tzoffset:    new Date().getTimezoneOffset() * 60,
+	humidity:    parseInt(humidity),
+	wind_speed:  parseInt(wind_speed),
+        wind_dir:    parseInt(wind_dir)
+	
       };
   };
 

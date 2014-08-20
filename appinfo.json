@@ -24,7 +24,10 @@
         "sunrise": 2,
         "sunset": 3,
         "temperature": 0,
-        "tzoffset": 12
+        "tzoffset": 12,
+        "wind_speed":25,
+        "wind_dir":26,
+        "humidity":27
     },
     "capabilities": [
         "location",

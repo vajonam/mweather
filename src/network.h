@@ -25,6 +25,10 @@
 #define KEY_FEELS_LIKE 22
 #define KEY_H1_OFFSET  23
 #define KEY_H2_OFFSET 24
+#define KEY_WIND_SPEED 25
+#define KEY_WIND_DIR 26
+#define KEY_HUMIDITY 27
+
 
 
 #define SERVICE_OPEN_WEATHER "open"
@@ -53,6 +57,10 @@ typedef struct {
   bool debug;
   bool battery;
   bool feels_like;
+
+  int wind_speed;
+  int wind_dir;
+  int humidity;
 
   int h1_temp;
   int h1_cond;
