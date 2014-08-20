@@ -101,8 +101,8 @@ void battery_timer_callback()
 
 void battery_layer_update(Layer *me, GContext *ctx) 
 {
-    int8_t spacer = 15; // pixels
-	int8_t start_y = spacer * 3; //only two colon like dots
+    int8_t spacer = 18; // pixels
+	int8_t start_y = 45; //only two colon like dots
 
 	graphics_context_set_fill_color(ctx, GColorWhite);
 	graphics_context_set_stroke_color(ctx, GColorWhite);
