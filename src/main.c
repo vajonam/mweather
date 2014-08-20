@@ -31,7 +31,7 @@ static AppTimer *eweather_timer;
 
 
 #define TAP_TIME 3000
-#define EWEATHER_TIME 5000
+#define EWEATHER_TIME 7000
 static bool is_tapped_waiting;
 
 static void timer_callback() {

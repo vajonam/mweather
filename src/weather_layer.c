@@ -35,6 +35,7 @@ static uint8_t WEATHER_ICONS[] = {
 };
 
 
+
 // Buffer the day / night time switch around sunrise & sunset
 const int CIVIL_TWILIGHT_BUFFER = 900; // 15 minutes
 const int WEATHER_ANIMATION_REFRESH = 1000; // 1 second animation 

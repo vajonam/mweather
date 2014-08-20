@@ -1,11 +1,21 @@
 typedef struct {
 	TextLayer *main_layer_background;
+
 	GBitmap *sunrise_icon;
-	GBitmap *sunset_icon;
 	BitmapLayer *sunrise_icon_layer;
+	TextLayer *sunrise_time_layer;
+
+	GBitmap *sunset_icon;
 	BitmapLayer *sunset_icon_layer;
 	TextLayer *sunset_time_layer;
-	TextLayer *sunrise_time_layer;
+
+	GBitmap *wind_icon;
+	BitmapLayer *wind_icon_layer;
+	TextLayer *wind_speeddir_layer;
+
+	GBitmap *humidity_icon;
+	BitmapLayer *humidity_icon_layer;
+	TextLayer *humidity_layer;
 
 } EWeatherLayerData;
 
