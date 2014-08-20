@@ -50,9 +50,6 @@ static AppTimer *weather_animation_timer;
 static bool animation_timer_enabled = true;
 static int animation_step = 0;
 
-
-static GBitmap *new_icon;
-
 static char time_h1[] = "00XX";
 static char time_h2[] = "00XX";
 
@@ -91,11 +88,7 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 		break;
 	}
 
-	if (new_icon !=NULL ) {
-		new_icon = NULL;
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "Destroying new_icon");
-	}
-	new_icon =  gbitmap_create_with_resource(WEATHER_ICONS[icon]);;
+	GBitmap *new_icon =  gbitmap_create_with_resource(WEATHER_ICONS[icon]);;
 
 
 	// Display the new bitmap
@@ -405,9 +398,7 @@ void weather_layer_destroy() {
 	if (wld->h2_icon != NULL) {
 		gbitmap_destroy(wld->h2_icon);
 	}
-	if (new_icon != NULL) {
-		gbitmap_destroy(new_icon);
-	}
+
 	free(wld->h1_resized_data);
 	free(wld->h2_resized_data);
 
