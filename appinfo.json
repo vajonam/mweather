@@ -31,7 +31,7 @@
         "configurable"
     ],
     "companyName": "Manojav Sridhar",
-    "longName": "Manojav Weather",
+    "longName": "MWeather",
     "projectType": "native",
     "resources": {
         "media": [
@@ -188,7 +188,7 @@
 		      }
         ]
     },
-    "shortName": "Manojav Weather",
+    "shortName": "MWeather",
     "uuid": "4c948634-129a-40b5-80b6-50c01d4b0c6e",
     "versionCode": 6,
     "versionLabel": "1.2",
