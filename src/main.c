@@ -54,7 +54,6 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 
   /*
    * Useful for showing all icons using Yahoo, subscribe to SECOND_UNIT tick service
-   */
 
   if ((units_changed & SECOND_UNIT ) && (tick_time->tm_sec % 10 == 0)) {
   weather_data->temperature = (tick_time->tm_sec + rand()%60) * (rand()%3 ? 1 : -1);
@@ -70,6 +69,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
   weather_data->h2_temp = (tick_time->tm_sec + rand()%60) * (rand()%3 ? 1 : -1);
   weather_layer_update(weather_data);
   }
+ */
 
 
 
