@@ -88,7 +88,7 @@ APP_LOG(APP_LOG_LEVEL_DEBUG, "creaing");
 		text_layer_set_font(ewd->wind_speeddir_layer, small_font);
 	layer_add_child(eweather_layer,text_layer_get_layer(ewd->wind_speeddir_layer));
 
-	ewd->humidity_layer = text_layer_create(GRect(102,40,48,36));
+	ewd->humidity_layer = text_layer_create(GRect(102,40,38,36));
 	text_layer_set_background_color(ewd->humidity_layer,GColorClear);
 	text_layer_set_text_alignment(ewd->humidity_layer, GTextAlignmentRight);
 		text_layer_set_font(ewd->humidity_layer, small_font);

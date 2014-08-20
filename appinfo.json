@@ -53,7 +53,7 @@
                 "type": "font"
             },
             {
-                "characterRegex": "[0-9\u00b0 -:APM ]",
+                "characterRegex": "[0-9\u00b0 -:APMNWES ]",
                 "file": "fonts/futura.ttf",
                 "name": "FUTURA_17",
                 "trackingAdjust": -2,
@@ -198,6 +198,16 @@
 		        "type": "png",
 		        "name": "SUNSET",
 		        "file": "images/sunset.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "WINDSPEED",
+		        "file": "images/windspeed.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "HUMIDITY",
+		        "file": "images/humidity.png"
 		      }
         ]
     },
