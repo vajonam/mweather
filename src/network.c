@@ -2,6 +2,7 @@
 #include "network.h"
 #include "battery_layer.h"
 #include "weather_layer.h"
+#include "eweather_layer.h"
 #include "debug_layer.h"
 #include "main.h"
 #include "persist.h"
@@ -26,6 +27,9 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   Tuple *pub_date_tuple    = dict_find(received, KEY_PUB_DATE);
   Tuple *locale_tuple      = dict_find(received, KEY_LOCALE);
   Tuple *tzoffset_tuple    = dict_find(received, KEY_TZOFFSET);
+  Tuple *wind_speed_tuple    = dict_find(received, KEY_WIND_SPEED);
+  Tuple *wind_dir_tuple    = dict_find(received, KEY_WIND_DIR);
+  Tuple *humidity_tuple    = dict_find(received, KEY_HUMIDITY);
 
   // Configuration Settings
   Tuple *service_tuple     = dict_find(received, KEY_SERVICE);
@@ -58,6 +62,9 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     weather->error       = WEATHER_E_OK;
     weather->tzoffset    = tzoffset_tuple->value->int32;
     weather->updated     = time(NULL);
+    weather->wind_speed  = wind_speed_tuple->value->int32;
+    weather->wind_dir  = wind_dir_tuple->value->int32;
+    weather->humidity  = humidity_tuple->value->int32;
 
     strncpy(weather->pub_date, pub_date_tuple->value->cstring, 6);
     strncpy(weather->locale, locale_tuple->value->cstring, 255);
@@ -67,8 +74,9 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
       debug_update_weather(weather);
     }
     
-    APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather temp:%i cond:%i pd:%s tzos:%i loc:%s", 
-      weather->temperature, weather->condition, weather->pub_date, weather->tzoffset, weather->locale);
+    APP_LOG(APP_LOG_LEVEL_DEBUG, "Weather temp:%i cond:%i pd:%s tzos:%i loc:%s ws:%d, wd:%d hum:%d",
+      weather->temperature, weather->condition, weather->pub_date, weather->tzoffset, weather->locale, weather->wind_speed,
+      weather->wind_dir, weather->humidity);
   }
   // Configuration Update
   else if (service_tuple) {
@@ -89,7 +97,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
     if (weather->battery) {
       battery_enable_display();
     } else {
-      battery_disable_display();
+      // battery_disable_display();
     }
 
     if (weather->debug) {
@@ -139,6 +147,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
   }
 
   weather_layer_update(weather);
+  eweather_layer_update(weather);
 
   // Succes! reset the retry count...
   retry_count = 0;

@@ -82,17 +82,19 @@ void hour_layer_update() {
 
 void adjust_time_layer() {
 
-	if (!clock_is_24h_style()) {
-		layer_set_frame(time_layer, GRect(-10, 0, 144, 98));
-		if (strcmp(hour_text, "11") == 0)
-			layer_set_frame(time_layer, GRect(-10, 0, 144, 98));
-		if (strcmp(hour_text, "12") == 0)
-			layer_set_frame(time_layer, GRect(-4, 0, 144, 98));
-		if (strcmp(hour_text, "1") == 0)
-			layer_set_frame(time_layer, GRect(-12, 0, 144, 98));
-	}
 
-	layer_mark_dirty(time_layer);
+
+	GSize min_size = text_layer_get_content_size(min_layer);
+	GSize hour_size = text_layer_get_content_size(hour_layer);
+
+	int horizontal_adjust = 0;
+
+	if (min_size.w > hour_size.w) {
+		 horizontal_adjust = hour_size.w - min_size.w;
+	} else {
+		horizontal_adjust = min_size.w - hour_size.w;
+	}
+	layer_set_frame(time_layer,  GRect(horizontal_adjust/2 , 0, 144, 98));
 }
 
 void min_layer_update() {
