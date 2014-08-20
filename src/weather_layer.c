@@ -405,6 +405,9 @@ void weather_layer_destroy() {
 	if (wld->h2_icon != NULL) {
 		gbitmap_destroy(wld->h2_icon);
 	}
+	if (new_icon != NULL) {
+		gbitmap_destroy(new_icon);
+	}
 	free(wld->h1_resized_data);
 	free(wld->h2_resized_data);
 
