@@ -6,6 +6,35 @@
 
 static Layer *weather_layer;
 
+static uint8_t WEATHER_ICONS[] = {
+  RESOURCE_ID_I_CLEAR_DAY,
+  RESOURCE_ID_I_FAIR_D,
+  RESOURCE_ID_I_PC_D,
+  RESOURCE_ID_I_MC_DAY,
+  RESOURCE_ID_I_CLDY_D,
+  RESOURCE_ID_I_CLEAR_N,
+  RESOURCE_ID_I_FAIR_N,
+  RESOURCE_ID_I_PC_N,
+  RESOURCE_ID_I_WIND,
+  RESOURCE_ID_I_FOG,
+  RESOURCE_ID_I_DRIZZLE,
+  RESOURCE_ID_I_RAIN,
+  RESOURCE_ID_I_RAIN_SLEET,
+  RESOURCE_ID_I_SLEET,
+  RESOURCE_ID_I_SNOW_SLEET,
+  RESOURCE_ID_I_H_SNOW,
+  RESOURCE_ID_I_SNOW,
+  RESOURCE_ID_I_R_SNOW,
+  RESOURCE_ID_I_R_SUN,
+  RESOURCE_ID_I_THUNDER_SUN,
+  RESOURCE_ID_I_THUNDER,
+  RESOURCE_ID_I_COLD,
+  RESOURCE_ID_I_HOT,
+  RESOURCE_ID_ICON_NOT_AVAILABLE,
+  RESOURCE_ID_ICON_PHONE_ERROR
+};
+
+
 // Buffer the day / night time switch around sunrise & sunset
 const int CIVIL_TWILIGHT_BUFFER = 900; // 15 minutes
 const int WEATHER_ANIMATION_REFRESH = 1000; // 1 second animation 
@@ -20,6 +49,10 @@ static GFont large_font, small_font;
 static AppTimer *weather_animation_timer;
 static bool animation_timer_enabled = true;
 static int animation_step = 0;
+
+static GBitmap *h1_resized;
+static GBitmap *h2_resized;
+static GBitmap *new_icon;
 
 static char time_h1[] = "00XX";
 static char time_h2[] = "00XX";
@@ -42,12 +75,10 @@ static void weather_animate_update(Layer *me, GContext *ctx) {
 static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 	WeatherLayerData *wld = layer_get_data(weather_layer);
 
-	static int size = 0;
+
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "Update called with icon: %d for: %d",icon, area);
+
 	static BitmapLayer *layer = NULL;
-	static GBitmap *icons = NULL;
-	static GBitmap *new_icon= NULL  ;
-	size = wld->primary_icon_size;
-	icons = wld->primary_icons;
 
 	switch (area) {
 	case AREA_PRIMARY:
@@ -61,10 +92,11 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 		break;
 	}
 
-	new_icon = gbitmap_create_as_sub_bitmap(icons,
-			GRect(icon % 5 * size, ((int) (icon / 5)) * size, size, size));
+	new_icon =  gbitmap_create_with_resource(WEATHER_ICONS[icon]);;
+
 
 	// Display the new bitmap
+
 
 	switch (area) {
 	case AREA_PRIMARY:
@@ -73,27 +105,18 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 		wld->primary_icon = new_icon;
 		break;
 	case AREA_HOURLY1:
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "tryning to resize started");
 		if (wld->h1_icon != NULL)
 			gbitmap_destroy(wld->h1_icon);
-		wld->h1_resized_data = malloc(
-				(new_icon->bounds.size.h * new_icon->row_size_bytes)
-						* sizeof(uint8_t));
-		new_icon = scaleBitmap(new_icon, 65, 65, wld->h1_resized_data);
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "tryning to resize finish");
-		wld->h1_icon = new_icon;
-
+		h1_resized = scaleBitmap(new_icon, 66, 66, wld->h1_resized_data);
+		wld->h1_icon = h1_resized;
+		new_icon = h2_resized;
 		break;
 	case AREA_HOURLY2:
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "2 tryning to resize started");
 		if (wld->h2_icon != NULL)
 			gbitmap_destroy(wld->h2_icon);
-		wld->h2_resized_data = NULL;
-		wld->h2_resized_data = malloc((new_icon->bounds.size.h * new_icon->row_size_bytes) * sizeof(uint8_t));
-		// new_icon = scaleBitmap(new_icon, 65, 65, wld->h2_resized_data);
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "2 tryning to resize started");
-		wld->h2_icon = new_icon;
-
+		h2_resized = scaleBitmap(new_icon, 66, 66, wld->h2_resized_data);
+		wld->h2_icon = h2_resized;
+		new_icon = h2_resized;
 		break;
 	}
 
@@ -203,7 +226,9 @@ void weather_layer_create(GRect frame, Window *window) {
 	layer_set_update_proc(wld->loading_layer, weather_animate_update);
 	layer_add_child(weather_layer, wld->loading_layer);
 
-	wld->primary_icons = gbitmap_create_with_resource(RESOURCE_ID_ICON_45X45);
+	wld->h1_resized_data = malloc((600) * sizeof(uint8_t));
+	wld->h2_resized_data = malloc((600) * sizeof(uint8_t));
+
 
 	wld->primary_icon = NULL;
 	wld->h1_icon = NULL;
