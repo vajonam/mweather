@@ -48,7 +48,7 @@
             </div>
         </div>
 	
-        <div data-role="fieldcontain">
+        <div data-role="fieldcontain" id="1stF">
             <label for="h1_offset">1st Hourly forecast </label>
             <select name="h1_offset" id="h1_offset" data-role="selector" data-mini="true">
                 <option value="0">1 hour</option>
@@ -78,7 +78,7 @@
             </select>
         </div>
 
-        <div data-role="fieldcontain">
+        <div data-role="fieldcontain" id="2ndF">
             <label for="h2_offset">2nd Hourly forecast</label>
             <select name="h2_offset" id="h2_offset" data-role="selector" data-mini="true">
                 <option value="0">1 hour</option>
@@ -182,13 +182,19 @@
             var val = $(this).val();
             if (val === 'on') {
                 $("#apikey").show();
-
+		$("#h1_offset").show();
+		$("#h2_offset").show();
+		$("#1stF").show();
+		$("#2ndF").show();
 	        if (!initialLoad) {
                     $("#popupCloseRight").popup("open");
                 }
             } else {
                 $("#apikey").hide();
-	
+		$("#1stF").hide();
+	        $("#2ndF").hide();
+		$("#h1_offset").hide();
+		$("#h2_offset").hide();
 		
             }
         });
