@@ -50,9 +50,6 @@ static AppTimer *weather_animation_timer;
 static bool animation_timer_enabled = true;
 static int animation_step = 0;
 
-
-
-
 static char time_h1[] = "00XX";
 static char time_h2[] = "00XX";
 
@@ -78,6 +75,8 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG, "Update called with icon: %d for: %d",icon, area);
 
 	static BitmapLayer *layer = NULL;
+	int percent = (int) wld->hourly_icon_size*100/wld->primary_icon_size;
+
 
 	switch (area) {
 	case AREA_PRIMARY:
@@ -108,14 +107,14 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 	case AREA_HOURLY1:
 		if (wld->h1_icon != NULL)
 			gbitmap_destroy(wld->h1_icon);
-		wld->h1_icon = scaleBitmap(new_icon, 66, 66, wld->h1_resized_data);
+		wld->h1_icon = scaleBitmap(new_icon, percent, percent, wld->h1_resized_data);
 		bitmap_layer_set_bitmap(layer, wld->h1_icon);
 		gbitmap_destroy(new_icon);
 		break;
 	case AREA_HOURLY2:
 		if (wld->h2_icon != NULL)
 			gbitmap_destroy(wld->h2_icon);
-		wld->h2_icon = scaleBitmap(new_icon, 66, 66, wld->h2_resized_data);
+		wld->h2_icon = scaleBitmap(new_icon, percent, percent, wld->h2_resized_data);
 		bitmap_layer_set_bitmap(layer, wld->h2_icon );
 		gbitmap_destroy(new_icon);
 		break;
@@ -226,8 +225,8 @@ void weather_layer_create(GRect frame, Window *window) {
 	layer_set_update_proc(wld->loading_layer, weather_animate_update);
 	layer_add_child(weather_layer, wld->loading_layer);
 
-	wld->h1_resized_data = malloc((600) * sizeof(uint8_t));
-	wld->h2_resized_data = malloc((600) * sizeof(uint8_t));
+	wld->h1_resized_data = malloc((RESIZE_DATA_SIZE) * sizeof(uint8_t));
+	wld->h2_resized_data = malloc((RESIZE_DATA_SIZE) * sizeof(uint8_t));
 
 
 	wld->primary_icon = NULL;
