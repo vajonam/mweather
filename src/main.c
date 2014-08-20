@@ -30,7 +30,7 @@ static AppTimer *tap_timer;
 static AppTimer *eweather_timer;
 
 
-#define TAP_TIME 2000
+#define TAP_TIME 3000
 #define EWEATHER_TIME 5000
 static bool is_tapped_waiting;
 
@@ -58,10 +58,10 @@ static void handle_tap(AccelAxisType axis,  int32_t direction) {
   }
 }
 
-static void double_tap() {
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "GOT a doubletap");
-	weather_layer_hide(false);
-	eweather_timer = app_timer_register(EWEATHER_TIME, timer_callback, NULL);
+void double_tap() {
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "Showing extended weather");
+	eweather_layer_hide(false);
+	eweather_timer = app_timer_register(EWEATHER_TIME, dismiss_ewather, NULL);
 
 }
 
