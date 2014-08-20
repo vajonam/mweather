@@ -188,6 +188,7 @@ static void deinit(void)
   time_layer_destroy();
   date_layer_destroy();
   weather_layer_destroy();
+  eweather_layer_destroy();
   debug_layer_destroy();
   battery_layer_destroy();
 

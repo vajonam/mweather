@@ -92,4 +92,21 @@ void eweather_layer_hide(bool hide){
 
 }
 
+void eweather_layer_destroy() {
+
+	EWeatherLayerData *ewd = layer_get_data(eweather_layer);
+
+	text_layer_destroy(ewd->main_layer_background);
+	gbitmap_destroy(ewd->sunrise_icon);
+	gbitmap_destroy(ewd->sunset_icon);
+	bitmap_layer_destroy(ewd->sunrise_icon_layer);
+	bitmap_layer_destroy(ewd->sunset_icon_layer);
+	text_layer_destroy(ewd->sunrise_time_layer);
+	text_layer_destroy(ewd->sunset_time_layer);
+
+	fonts_unload_custom_font(small_font);
+	layer_destroy(eweather_layer);
+
+}
+
 
