@@ -193,7 +193,6 @@ static void deinit(void)
   battery_layer_destroy();
 
   free(weather_data);
-
   close_network();
 }
 

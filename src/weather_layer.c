@@ -332,15 +332,8 @@ void weather_layer_update(WeatherData *weather_data) {
 
 			time_t h1t = weather_data->h1_time - weather_data->tzoffset;
 			time_t h2t = weather_data->h2_time - weather_data->tzoffset;
-			strftime(time_h1, sizeof(time_h1), "%I%p", localtime(&h1t));
-			strftime(time_h2, sizeof(time_h2), "%I%p", localtime(&h2t));
-
-			if (time_h1[0] == '0') {
-				memmove(time_h1, &time_h1[1], sizeof(time_h1) - 1);
-			}
-			if (time_h2[0] == '0') {
-				memmove(time_h2, &time_h2[1], sizeof(time_h2) - 1);
-			}
+			strftime(time_h1, sizeof(time_h1), "%l%p", localtime(&h1t));
+			strftime(time_h2, sizeof(time_h2), "%l%p", localtime(&h2t));
 
 			text_layer_set_text(wld->h1_time_layer, time_h1);
 			text_layer_set_text(wld->h2_time_layer, time_h2);

@@ -12,7 +12,7 @@ static char *direction[] = { "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
 
 static char sunrise_text[] = "00:00XX";
 static char sunset_text[] = "00:00XX";
-static char windspeed_text[] = "0000 XXX";
+static char windspeed_text[] = "000XX";
 static char humidity_text[] = "000X";
 static char temp_high_text[] = "000X";
 static char temp_low_text[] = "000X";
@@ -29,8 +29,12 @@ void eweather_layer_create(GRect frame, Window *window) {
 	layer_add_child(eweather_layer,
 			text_layer_get_layer(ewd->main_layer_background));
 
-	small_font = fonts_load_custom_font(
-			resource_get_handle(RESOURCE_ID_FUTURA_17));
+	small_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
+
+	//fonts_load_custom_font(
+	//		resource_get_handle(RESOURCE_ID_FUTURA_C_18));
+
+	//
 
 
 	ewd->sunrise_icon = gbitmap_create_with_resource(RESOURCE_ID_SUNRISE);
@@ -66,7 +70,7 @@ void eweather_layer_create(GRect frame, Window *window) {
 	bitmap_layer_set_bitmap(ewd->wind_icon_layer, ewd->wind_icon);
 
 
-	ewd->wind_speeddir_layer = text_layer_create(GRect(23, 46,  49, 36));
+	ewd->wind_speeddir_layer = text_layer_create(GRect(25, 46,  54, 36));
 	text_layer_set_background_color(ewd->wind_speeddir_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->wind_speeddir_layer,
 			GTextAlignmentLeft);
@@ -74,13 +78,15 @@ void eweather_layer_create(GRect frame, Window *window) {
 	layer_add_child(eweather_layer,
 			text_layer_get_layer(ewd->wind_speeddir_layer));
 
+
+
 	ewd->humidity_icon = gbitmap_create_with_resource(RESOURCE_ID_HUMIDITY);
-	ewd->humidity_icon_layer = bitmap_layer_create(GRect(70, 3, 20, 20));
+	ewd->humidity_icon_layer = bitmap_layer_create(GRect(75+5, 3, 20, 20));
 	layer_add_child(eweather_layer,
 			bitmap_layer_get_layer(ewd->humidity_icon_layer));
 	bitmap_layer_set_bitmap(ewd->humidity_icon_layer, ewd->humidity_icon);
 
-	ewd->humidity_layer = text_layer_create(GRect(92, 3,  42, 36));
+	ewd->humidity_layer = text_layer_create(GRect(97+5, 3,  37+5, 36));
 	text_layer_set_background_color(ewd->humidity_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->humidity_layer, GTextAlignmentLeft);
 	text_layer_set_font(ewd->humidity_layer, small_font);
@@ -91,12 +97,12 @@ void eweather_layer_create(GRect frame, Window *window) {
 
 
 	ewd->temp_high_icon = gbitmap_create_with_resource(RESOURCE_ID_HIGH);
-	ewd->temp_high_icon_layer = bitmap_layer_create(GRect(70, 24, 20, 20));
+	ewd->temp_high_icon_layer = bitmap_layer_create(GRect(75+5, 24, 20, 20));
 	layer_add_child(eweather_layer,
 			bitmap_layer_get_layer(ewd->temp_high_icon_layer));
 	bitmap_layer_set_bitmap(ewd->temp_high_icon_layer, ewd->temp_high_icon);
 
-	ewd->temp_high_layer = text_layer_create(GRect(92, 24,  42, 36));
+	ewd->temp_high_layer = text_layer_create(GRect(97+5, 24,  37+5, 36));
 	text_layer_set_background_color(ewd->temp_high_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->temp_high_layer, GTextAlignmentLeft);
 	text_layer_set_font(ewd->temp_high_layer, small_font);
@@ -104,12 +110,12 @@ void eweather_layer_create(GRect frame, Window *window) {
 
 
 	ewd->temp_low_icon = gbitmap_create_with_resource(RESOURCE_ID_LOW);
-	ewd->temp_low_icon_layer = bitmap_layer_create(GRect(70, 46, 20, 20));
+	ewd->temp_low_icon_layer = bitmap_layer_create(GRect(75+5, 46, 20, 20));
 	layer_add_child(eweather_layer,
 			bitmap_layer_get_layer(ewd->temp_low_icon_layer));
 	bitmap_layer_set_bitmap(ewd->temp_low_icon_layer, ewd->temp_low_icon);
 
-	ewd->temp_low_layer = text_layer_create(GRect(92, 46,  42, 36));
+	ewd->temp_low_layer = text_layer_create(GRect(97+5, 46,  37+5, 36));
 	text_layer_set_background_color(ewd->temp_low_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->temp_low_layer, GTextAlignmentLeft);
 	text_layer_set_font(ewd->temp_low_layer, small_font);
@@ -135,7 +141,7 @@ void eweather_layer_update(WeatherData *weather_data) {
 	struct tm *sunriseTime = localtime(&sunrise_t);
 
 	strftime(sunrise_text, sizeof(sunrise_text),
-			clock_is_24h_style() ? "%R" : "%l:%M", sunriseTime);
+			clock_is_24h_style() ? "%R" : "%l:%M%p", sunriseTime);
 	text_layer_set_text(ewd->sunrise_time_layer, sunrise_text);
 
 	time_t sunset_t = weather_data->sunset - weather_data->tzoffset;
@@ -143,7 +149,7 @@ void eweather_layer_update(WeatherData *weather_data) {
 	struct tm *sunsetTime = localtime(&sunset_t);
 
 	strftime(sunset_text, sizeof(sunset_text),
-			clock_is_24h_style() ? "%R" : "%l:%M", sunsetTime);
+			clock_is_24h_style() ? "%R" : "%l:%M%p", sunsetTime);
 	text_layer_set_text(ewd->sunset_time_layer, sunset_text);
 
 	snprintf(windspeed_text, sizeof(windspeed_text), "%i %s",
@@ -197,7 +203,7 @@ void eweather_layer_destroy() {
 	text_layer_destroy(ewd->temp_low_layer);
 
 
-	fonts_unload_custom_font(small_font);
+	// fonts_unload_custom_font(small_font);
 	layer_destroy(eweather_layer);
 
 }

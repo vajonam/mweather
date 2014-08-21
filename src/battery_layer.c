@@ -45,8 +45,7 @@ static void handle_battery(BatteryChargeState charge_state)
     }
   }
 
-  if (charge % 5 == 0)
-	  	  layer_mark_dirty(battery_layer);
+  layer_mark_dirty(battery_layer);
 }
 
 
