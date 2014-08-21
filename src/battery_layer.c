@@ -14,6 +14,7 @@ static int8_t dots = 4;
 
 static void handle_battery(BatteryChargeState charge_state) 
 {
+  uint8_t charge = charge_state.charge_percent;
   if (charge_state.is_charging || charge_state.is_plugged) {
 
     if (!is_animating) {
@@ -30,7 +31,7 @@ static void handle_battery(BatteryChargeState charge_state)
       app_timer_cancel(battery_animation_timer);
     }
     
-    uint8_t charge = charge_state.charge_percent;
+
     if (charge >= 85) {
       dots = MAX_DOTS;
     } else if (charge >= 75 && charge <85) {
@@ -44,7 +45,7 @@ static void handle_battery(BatteryChargeState charge_state)
     }
   }
 
-  if (charge_state.charge_percent % 5 == 0)
+  if (charge % 5 == 0)
 	  	  layer_mark_dirty(battery_layer);
 }
 
