@@ -191,6 +191,15 @@ void eweather_layer_destroy() {
 	bitmap_layer_destroy(ewd->humidity_icon_layer);
 	text_layer_destroy(ewd->humidity_layer);
 
+	gbitmap_destroy(ewd->temp_high_icon);
+	bitmap_layer_destroy(ewd->temp_high_icon_layer);
+	text_layer_destroy(ewd->temp_high_layer);
+
+	gbitmap_destroy(ewd->temp_low_icon);
+	bitmap_layer_destroy(ewd->temp_low_icon_layer);
+	text_layer_destroy(ewd->temp_low_layer);
+
+
 	fonts_unload_custom_font(small_font);
 	layer_destroy(eweather_layer);
 
