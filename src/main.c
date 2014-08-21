@@ -172,7 +172,7 @@ static void init(void)
   handle_tick(localtime(&now), MINUTE_UNIT | DAY_UNIT | HOUR_UNIT );
 
   // And then every minute
-  tick_timer_service_subscribe(SECOND_UNIT, handle_tick);
+  tick_timer_service_subscribe(MINUTE_UNIT, handle_tick);
   accel_tap_service_subscribe(&handle_tap);
 }
 
