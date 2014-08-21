@@ -5,7 +5,7 @@ var CONFIGURATION_URL     = 'http://vajonam.github.io/weather-my-way/config/';
 
 var Global = {
   externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
-  wuApiKey:          '7124538c72e76a05', // register for a free api key!
+  wuApiKey:          '', // register for a free api key!
   hourlyIndex1:      1, // 2 Hours from now 
   hourlyIndex2:      5, // 6 hours from now
   updateInProgress:  false,
