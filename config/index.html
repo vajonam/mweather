@@ -122,14 +122,6 @@
         </div>
 
         <div data-role="fieldcontain" >
-            <label for="flipbattery">Display Battery:</label>
-            <select name="flipbattery" id="flipbattery" data-role="slider" data-mini="true">
-                <option value="off">Off</option>
-                <option value="on">On</option>
-            </select>
-        </div>
-
-        <div data-role="fieldcontain" >
             <label for="flipfeelslike">Use Feels Like for Temps:</label>
             <select name="flipfeelslike" id="flipfeelslike" data-role="slider" data-mini="true">
                 <option value="off">Off</option>
@@ -159,7 +151,7 @@
             'service': $("#radioyahoo").is(':checked') ? 'yahoo' : 'open',
             'scale':   $("#radioF").is(':checked')     ? 'F' : 'C',
             'feelslike': $("select[name=flipfeelslike]").prop('selectedIndex') ? 'on' : 'off',
-            'battery': $("select[name=flipbattery]").prop('selectedIndex') ? 'on' : 'off',
+            'battery': 'on',
             'debug':   $("select[name=flipdebug]").prop('selectedIndex')   ? 'true' : 'false',
             'h1_offset':   $("select[name=h1_offset]").prop('selectedIndex')  ,
             'h2_offset':   $("select[name=h2_offset]").prop('selectedIndex')  ,
