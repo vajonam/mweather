@@ -106,7 +106,7 @@ void eweather_layer_create(GRect frame, Window *window) {
 	layer_add_child(eweather_layer, text_layer_get_layer(ewd->temp_high_layer));
 
 
-	ewd->temp_low_icon = gbitmap_create_with_resource(RESOURCE_ID_HIGH);
+	ewd->temp_low_icon = gbitmap_create_with_resource(RESOURCE_ID_LOW);
 	ewd->temp_low_icon_layer = bitmap_layer_create(GRect(70, 46, 20, 20));
 	layer_add_child(eweather_layer,
 			bitmap_layer_get_layer(ewd->temp_low_icon_layer));
