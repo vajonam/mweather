@@ -17,6 +17,13 @@ typedef struct {
 	BitmapLayer *humidity_icon_layer;
 	TextLayer *humidity_layer;
 
+	GBitmap *temp_high_icon;
+	BitmapLayer *temp_high_icon_layer;
+	TextLayer *temp_high_layer;
+
+	GBitmap *temp_low_icon;
+	BitmapLayer *temp_low_icon_layer;
+	TextLayer *temp_low_layer;
 } EWeatherLayerData;
 
 void eweather_layer_create(GRect frame, Window *window);

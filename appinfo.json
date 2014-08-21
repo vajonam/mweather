@@ -27,7 +27,9 @@
         "tzoffset": 12,
         "wind_speed":25,
         "wind_dir":26,
-        "humidity":27
+        "humidity":27,
+		"temp_high":28,
+        "temp_low":29
     },
     "capabilities": [
         "location",
@@ -208,6 +210,16 @@
 		        "type": "png",
 		        "name": "HUMIDITY",
 		        "file": "images/humidity.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "HIGH",
+		        "file": "images/high.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "LOW",
+		        "file": "images/low.png"
 		      }
         ]
     },

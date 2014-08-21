@@ -30,6 +30,8 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 	Tuple *wind_speed_tuple = dict_find(received, KEY_WIND_SPEED);
 	Tuple *wind_dir_tuple = dict_find(received, KEY_WIND_DIR);
 	Tuple *humidity_tuple = dict_find(received, KEY_HUMIDITY);
+	Tuple *temp_high_tuple = dict_find(received, KEY_TEMP_HIGH);
+	Tuple *temp_low_tuple = dict_find(received, KEY_TEMP_LOW);
 
 	// Configuration Settings
 	Tuple *service_tuple = dict_find(received, KEY_SERVICE);
@@ -56,7 +58,8 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 	// Weather update
 	if (temperature_tuple && condition_tuple && sunrise_tuple && sunset_tuple
 			&& tzoffset_tuple && wind_dir_tuple && wind_speed_tuple
-			&& humidity_tuple && locale_tuple && pub_date_tuple) {
+			&& humidity_tuple && locale_tuple && pub_date_tuple && temp_high_tuple
+			&& temp_low_tuple) {
 
 		weather->temperature = temperature_tuple->value->int32;
 		weather->condition = condition_tuple->value->int32;
@@ -69,6 +72,9 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 		weather->wind_dir = wind_dir_tuple->value->int32;
 		weather->humidity = humidity_tuple->value->int32;
 
+		weather->temp_high= temp_high_tuple->value->int32;
+		weather->temp_low= temp_low_tuple->value->int32;
+
 		strncpy(weather->pub_date, pub_date_tuple->value->cstring, 6);
 		strncpy(weather->locale, locale_tuple->value->cstring, 255);
 
@@ -79,10 +85,14 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 
 		APP_LOG(
 				APP_LOG_LEVEL_DEBUG,
-				"Weather temp:%i cond:%i pd:%s tzos:%i loc:%s ws:%d, wd:%d hum:%d",
+				"Weather temp:%i cond:%i pd:%s tzos:%i loc:%s",
 				weather->temperature, weather->condition, weather->pub_date,
-				weather->tzoffset, weather->locale, weather->wind_speed,
-				weather->wind_dir, weather->humidity);
+				weather->tzoffset, weather->locale );
+		APP_LOG(APP_LOG_LEVEL_DEBUG,
+						"Weather ws:%d, wd:%d hum:%d high%d low%d",
+		weather->wind_speed,
+						weather->wind_dir, weather->humidity, weather->temp_high, weather->temp_low);
+
 	}
 	// Configuration Update
 	else if (service_tuple) {

@@ -14,6 +14,8 @@ static char sunrise_text[] = "00:00XX";
 static char sunset_text[] = "00:00XX";
 static char windspeed_text[] = "0000 XXX";
 static char humidity_text[] = "000X";
+static char temp_high_text[] = "000X";
+static char temp_low_text[] = "000X";
 
 void eweather_layer_create(GRect frame, Window *window) {
 
@@ -76,14 +78,12 @@ void eweather_layer_create(GRect frame, Window *window) {
 			text_layer_get_layer(ewd->wind_speeddir_layer));
 
 	ewd->humidity_icon = gbitmap_create_with_resource(RESOURCE_ID_HUMIDITY);
-	ewd->humidity_icon_layer = bitmap_layer_create(GRect(60, 3, 20, 20));
+	ewd->humidity_icon_layer = bitmap_layer_create(GRect(70, 3, 20, 20));
 	layer_add_child(eweather_layer,
 			bitmap_layer_get_layer(ewd->humidity_icon_layer));
 	bitmap_layer_set_bitmap(ewd->humidity_icon_layer, ewd->humidity_icon);
 
-
-
-	ewd->humidity_layer = text_layer_create(GRect(82, 3,  52, 36));
+	ewd->humidity_layer = text_layer_create(GRect(92, 3,  42, 36));
 	text_layer_set_background_color(ewd->humidity_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->humidity_layer, GTextAlignmentLeft);
 	text_layer_set_font(ewd->humidity_layer, small_font);
@@ -91,6 +91,41 @@ void eweather_layer_create(GRect frame, Window *window) {
 
 	layer_add_child(window_get_root_layer(window), eweather_layer);
 	eweather_layer_hide(true);
+
+
+	ewd->temp_high_icon = gbitmap_create_with_resource(RESOURCE_ID_HIGH);
+	ewd->temp_high_icon_layer = bitmap_layer_create(GRect(70, 24, 20, 20));
+	layer_add_child(eweather_layer,
+			bitmap_layer_get_layer(ewd->temp_high_icon_layer));
+	bitmap_layer_set_bitmap(ewd->temp_high_icon_layer, ewd->temp_high_icon);
+
+	ewd->temp_high_layer = text_layer_create(GRect(92, 24,  42, 36));
+	text_layer_set_background_color(ewd->temp_high_layer, GColorClear);
+	text_layer_set_text_alignment(ewd->temp_high_layer, GTextAlignmentLeft);
+	text_layer_set_font(ewd->temp_high_layer, small_font);
+	layer_add_child(eweather_layer, text_layer_get_layer(ewd->temp_high_layer));
+
+
+	ewd->temp_low_icon = gbitmap_create_with_resource(RESOURCE_ID_HIGH);
+	ewd->temp_low_icon_layer = bitmap_layer_create(GRect(70, 46, 20, 20));
+	layer_add_child(eweather_layer,
+			bitmap_layer_get_layer(ewd->temp_low_icon_layer));
+	bitmap_layer_set_bitmap(ewd->temp_low_icon_layer, ewd->temp_low_icon);
+
+	ewd->temp_low_layer = text_layer_create(GRect(92, 46,  42, 36));
+	text_layer_set_background_color(ewd->temp_low_layer, GColorClear);
+	text_layer_set_text_alignment(ewd->temp_low_layer, GTextAlignmentLeft);
+	text_layer_set_font(ewd->temp_low_layer, small_font);
+	layer_add_child(eweather_layer, text_layer_get_layer(ewd->temp_low_layer));
+
+
+	layer_add_child(window_get_root_layer(window), eweather_layer);
+	eweather_layer_hide(true);
+
+
+
+
+
 
 }
 
@@ -124,6 +159,13 @@ void eweather_layer_update(WeatherData *weather_data) {
 			weather_data->humidity);
 	text_layer_set_text(ewd->humidity_layer, humidity_text);
 
+	snprintf(temp_high_text, sizeof(temp_high_text), "%i°",
+			weather_data->temp_high);
+	text_layer_set_text(ewd->temp_high_layer, temp_high_text);
+
+	snprintf(temp_low_text, sizeof(temp_low_text), "%i°",
+			weather_data->temp_low);
+	text_layer_set_text(ewd->temp_low_layer, temp_low_text);
 }
 
 void eweather_layer_hide(bool hide) {

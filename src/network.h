@@ -28,6 +28,8 @@
 #define KEY_WIND_SPEED 25
 #define KEY_WIND_DIR 26
 #define KEY_HUMIDITY 27
+#define KEY_TEMP_HIGH 28
+#define KEY_TEMP_LOW  29
 
 
 
@@ -61,6 +63,8 @@ typedef struct {
   int wind_speed;
   int wind_dir;
   int humidity;
+  int temp_high;
+  int temp_low;
 
   int h1_temp;
   int h1_cond;
