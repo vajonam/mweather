@@ -42,7 +42,7 @@ void eweather_layer_create(GRect frame, Window *window) {
 			bitmap_layer_get_layer(ewd->sunrise_icon_layer));
 	bitmap_layer_set_bitmap(ewd->sunrise_icon_layer, ewd->sunrise_icon);
 
-	ewd->sunrise_time_layer = text_layer_create(GRect(20, 3, 52, 36));
+	ewd->sunrise_time_layer = text_layer_create(GRect(22, 3, 54, 36));
 	text_layer_set_background_color(ewd->sunrise_time_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->sunrise_time_layer, GTextAlignmentLeft);
 	text_layer_set_font(ewd->sunrise_time_layer, small_font);
@@ -55,7 +55,7 @@ void eweather_layer_create(GRect frame, Window *window) {
 			bitmap_layer_get_layer(ewd->sunset_icon_layer));
 	bitmap_layer_set_bitmap(ewd->sunset_icon_layer, ewd->sunset_icon);
 
-	ewd->sunset_time_layer = text_layer_create(GRect(20, 24, 52, 36));
+	ewd->sunset_time_layer = text_layer_create(GRect(22, 24, 54, 36));
 	text_layer_set_background_color(ewd->sunset_time_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->sunset_time_layer, GTextAlignmentLeft);
 	text_layer_set_font(ewd->sunset_time_layer, small_font);
@@ -148,8 +148,6 @@ void eweather_layer_update(WeatherData *weather_data) {
 	strftime(sunset_text, sizeof(sunset_text),
 			clock_is_24h_style() ? "%R" : "%l:%M", sunsetTime);
 	text_layer_set_text(ewd->sunset_time_layer, sunset_text);
-
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "Setting wind speed %s", windspeed_text);
 
 	snprintf(windspeed_text, sizeof(windspeed_text), "%i %s",
 			weather_data->wind_speed, direction[weather_data->wind_dir % 16]);
