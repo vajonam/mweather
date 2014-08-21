@@ -82,19 +82,10 @@ void hour_layer_update() {
 
 void adjust_time_layer() {
 
-
-
 	GSize min_size = text_layer_get_content_size(min_layer);
 	GSize hour_size = text_layer_get_content_size(hour_layer);
-
-	int horizontal_adjust = 0;
-
-	if (min_size.w > hour_size.w) {
-		 horizontal_adjust = hour_size.w - min_size.w;
-	} else {
-		horizontal_adjust = min_size.w - hour_size.w;
-	}
-	layer_set_frame(time_layer,  GRect(horizontal_adjust/2 , 0, 144, 98));
+	layer_set_frame(time_layer,
+			GRect(((hour_size.w - min_size.w) / 2), 0, 144, 98));
 }
 
 void min_layer_update() {
