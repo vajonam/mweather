@@ -7,7 +7,7 @@ static TextLayer *min_layer;
 static TextLayer *hour_layer;
 static TextLayer *date_layer;
 
-static char date_text[] = "XXX 00 XXX";
+static char date_text[] = "XXX XXX 00";
 
 static char min_text[] = "00";
 static char hour_text[] = "00";
