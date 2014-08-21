@@ -5,7 +5,7 @@ var CONFIGURATION_URL     = 'http://vajonam.github.io/weather-my-way/config/';
 
 var Global = {
   externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
-  wuApiKey:          '7124538c72e76a05', // register for a free api key!
+  wuApiKey:          '', // register for a free api key!
   hourlyIndex1:      1, // 2 Hours from now 
   hourlyIndex2:      5, // 6 hours from now
   updateInProgress:  false,
@@ -214,11 +214,19 @@ var fetchYahooWeather = function(latitude, longitude) {
   options.url = "https://query.yahooapis.com/v1/public/yql?format=json&q="+encodeURIComponent(multi)+"&nocache="+new Date().getTime();
 
   options.parse = function(response) {
-      var sunrise, sunset, pubdate, locale;
+      var sunrise, sunset, pubdate, locale, humidity, wind_speed, wind_dir,temp_high,temp_low;
+
       sunrise = response.query.results.results[0].channel.astronomy.sunrise;
       sunset  = response.query.results.results[0].channel.astronomy.sunset;
+      humidity  = response.query.results.results[0].channel.atmosphere.humidity;
+      wind_speed  = response.query.results.results[0].channel.wind.speed;
+      wind_dir  = response.query.results.results[0].channel.wind.direction;
+      temp_high  = response.query.results.results[0].channel.item.forecast[0].high;
+      temp_low  = response.query.results.results[0].channel.item.forecast[0].low;
       pubdate = new Date(Date.parse(response.query.results.results[0].channel.item.pubDate));
       locale  = response.query.results.results[1].Result.neighborhood;
+
+	
       if (locale === null) {
         locale = response.query.results.results[1].Result.city;
       }
@@ -241,7 +249,14 @@ var fetchYahooWeather = function(latitude, longitude) {
         sunset:      Date.parse(new Date().toDateString()+" "+sunset) / 1000,
         locale:      locale,
         pubdate:     pubdate.getHours()+':'+('0'+pubdate.getMinutes()).slice(-2),
-        tzoffset:    new Date().getTimezoneOffset() * 60
+        tzoffset:    new Date().getTimezoneOffset() * 60,
+	humidity:    parseInt(humidity),
+	wind_speed:  parseInt(wind_speed),
+        wind_dir:    parseInt(wind_dir),
+	temp_high:   parseInt(temp_high),
+	temp_low:   parseInt(temp_low)
+
+	
       };
   };
 
@@ -251,24 +266,24 @@ var fetchYahooWeather = function(latitude, longitude) {
 var fetchOpenWeather = function(latitude, longitude) {
 
   var options = {};
-  options.url = "http://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longitude + "&cnt=1";
+  var units = "imperial";
+  if (Global.config.weatherScale === 'C') { 
+	  units = "metric";
+  } 
+  options.url = "http://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longitude + "&cnt=1&units=" + units;
 
   options.parse = function(response) {
-      var temperature, sunrise, sunset, condition, pubdate;
+      var temperature, sunrise, sunset, condition, pubdate, wind_speed, wind_dir, humidity, temp_high, temp_low;
 
-      var tempResult = response.main.temp;
-      if (Global.config.weatherScale === 'C') {
-        // Convert temperature to Celsius
-        temperature = Math.round(tempResult - 273.15);
-      } 
-      else {
-        // Otherwise, convert temperature to Fahrenheit 
-        temperature = Math.round(((tempResult - 273.15) * 1.8) + 32);
-      }
-
+      temperature = response.main.temp;
+      temp_low = response.main.temp_min;
+      temp_high = response.main.temp_max;
       condition = response.weather[0].id;
       sunrise   = response.sys.sunrise;
       sunset    = response.sys.sunset;
+      wind_speed = response.wind.speed;
+      wind_dir = response.wind.deg;
+      humidity = response.main.humidity;
       pubdate   = new Date(response.dt*1000); 
 
       return {
@@ -278,7 +293,13 @@ var fetchOpenWeather = function(latitude, longitude) {
         sunset:      sunset,
         locale:      response.name,
         pubdate:     pubdate.getHours()+':'+('0'+pubdate.getMinutes()).slice(-2),
-        tzoffset:    new Date().getTimezoneOffset() * 60
+        tzoffset:    new Date().getTimezoneOffset() * 60,
+	humidity:    parseInt(humidity),
+	wind_speed:  parseInt(wind_speed),
+        wind_dir:    parseInt(wind_dir),
+	temp_high:   parseInt(temp_high),
+	temp_low:   parseInt(temp_low)
+
       };
   };
   fetchWeather(options);

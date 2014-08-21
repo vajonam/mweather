@@ -24,7 +24,12 @@
         "sunrise": 2,
         "sunset": 3,
         "temperature": 0,
-        "tzoffset": 12
+        "tzoffset": 12,
+        "wind_speed":25,
+        "wind_dir":26,
+        "humidity":27,
+		"temp_high":28,
+        "temp_low":29
     },
     "capabilities": [
         "location",
@@ -34,7 +39,7 @@
     "longName": "MWeather",
     "projectType": "native",
     "resources": {
-        "media": [
+        "media": [ 
             {
                 "characterRegex": "[0-9\u00b0 -]",
                 "file": "fonts/futura.ttf",
@@ -50,7 +55,7 @@
                 "type": "font"
             },
             {
-                "characterRegex": "[0-9\u00b0 -]",
+                "characterRegex": "[0-9\u00b0 -:APMNWES ]",
                 "file": "fonts/futura.ttf",
                 "name": "FUTURA_17",
                 "trackingAdjust": -2,
@@ -185,6 +190,36 @@
 		        "type": "png",
 		        "name": "ICON_NOT_AVAILABLE",
 		        "file": "images/weather_24.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "SUNRISE",
+		        "file": "images/sunrise.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "SUNSET",
+		        "file": "images/sunset.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "WINDSPEED",
+		        "file": "images/windspeed.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "HUMIDITY",
+		        "file": "images/humidity.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "HIGH",
+		        "file": "images/high.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "LOW",
+		        "file": "images/low.png"
 		      }
         ]
     },

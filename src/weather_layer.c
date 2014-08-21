@@ -35,6 +35,7 @@ static uint8_t WEATHER_ICONS[] = {
 };
 
 
+
 // Buffer the day / night time switch around sunrise & sunset
 const int CIVIL_TWILIGHT_BUFFER = 900; // 15 minutes
 const int WEATHER_ANIMATION_REFRESH = 1000; // 1 second animation 
@@ -49,9 +50,6 @@ static GFont large_font, small_font;
 static AppTimer *weather_animation_timer;
 static bool animation_timer_enabled = true;
 static int animation_step = 0;
-
-
-static GBitmap *new_icon;
 
 static char time_h1[] = "00XX";
 static char time_h2[] = "00XX";
@@ -78,6 +76,8 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 	APP_LOG(APP_LOG_LEVEL_DEBUG, "Update called with icon: %d for: %d",icon, area);
 
 	static BitmapLayer *layer = NULL;
+	int percent = (int) wld->hourly_icon_size*100/wld->primary_icon_size;
+
 
 	switch (area) {
 	case AREA_PRIMARY:
@@ -91,11 +91,7 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 		break;
 	}
 
-	if (new_icon !=NULL ) {
-		new_icon = NULL;
-		APP_LOG(APP_LOG_LEVEL_DEBUG, "Destroying new_icon");
-	}
-	new_icon =  gbitmap_create_with_resource(WEATHER_ICONS[icon]);;
+	 GBitmap *new_icon =  gbitmap_create_with_resource(WEATHER_ICONS[icon]);;
 
 
 	// Display the new bitmap
@@ -107,23 +103,24 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 			gbitmap_destroy(wld->primary_icon);
 		wld->primary_icon = new_icon;
 		bitmap_layer_set_bitmap(layer, new_icon);
+
 		break;
 	case AREA_HOURLY1:
 		if (wld->h1_icon != NULL)
 			gbitmap_destroy(wld->h1_icon);
-		wld->h1_icon = scaleBitmap(new_icon, 66, 66, wld->h1_resized_data);
+		wld->h1_icon = scaleBitmap(new_icon, percent, percent, wld->h1_resized_data);
 		bitmap_layer_set_bitmap(layer, wld->h1_icon);
+		gbitmap_destroy(new_icon);
 		break;
 	case AREA_HOURLY2:
 		if (wld->h2_icon != NULL)
 			gbitmap_destroy(wld->h2_icon);
-		wld->h2_icon = scaleBitmap(new_icon, 66, 66, wld->h2_resized_data);
-
+		wld->h2_icon = scaleBitmap(new_icon, percent, percent, wld->h2_resized_data);
 		bitmap_layer_set_bitmap(layer, wld->h2_icon );
+		gbitmap_destroy(new_icon);
 		break;
 	}
 
-	layer_mark_dirty(weather_layer);
 
 }
 
@@ -229,8 +226,8 @@ void weather_layer_create(GRect frame, Window *window) {
 	layer_set_update_proc(wld->loading_layer, weather_animate_update);
 	layer_add_child(weather_layer, wld->loading_layer);
 
-	wld->h1_resized_data = malloc((600) * sizeof(uint8_t));
-	wld->h2_resized_data = malloc((600) * sizeof(uint8_t));
+	wld->h1_resized_data = malloc((RESIZE_DATA_SIZE) * sizeof(uint8_t));
+	wld->h2_resized_data = malloc((RESIZE_DATA_SIZE) * sizeof(uint8_t));
 
 
 	wld->primary_icon = NULL;
@@ -335,15 +332,8 @@ void weather_layer_update(WeatherData *weather_data) {
 
 			time_t h1t = weather_data->h1_time - weather_data->tzoffset;
 			time_t h2t = weather_data->h2_time - weather_data->tzoffset;
-			strftime(time_h1, sizeof(time_h1), "%I%p", localtime(&h1t));
-			strftime(time_h2, sizeof(time_h2), "%I%p", localtime(&h2t));
-
-			if (time_h1[0] == '0') {
-				memmove(time_h1, &time_h1[1], sizeof(time_h1) - 1);
-			}
-			if (time_h2[0] == '0') {
-				memmove(time_h2, &time_h2[1], sizeof(time_h2) - 1);
-			}
+			strftime(time_h1, sizeof(time_h1), "%l%p", localtime(&h1t));
+			strftime(time_h2, sizeof(time_h2), "%l%p", localtime(&h2t));
 
 			text_layer_set_text(wld->h1_time_layer, time_h1);
 			text_layer_set_text(wld->h2_time_layer, time_h2);
@@ -371,6 +361,12 @@ void weather_layer_update(WeatherData *weather_data) {
 			text_layer_set_text(wld->h2_temp_layer, wld->h2_temp_str);
 		}
 	}
+}
+
+void weather_layer_hide(bool hide){
+
+   layer_set_hidden(weather_layer,hide);
+
 }
 
 void weather_layer_destroy() {
@@ -405,9 +401,7 @@ void weather_layer_destroy() {
 	if (wld->h2_icon != NULL) {
 		gbitmap_destroy(wld->h2_icon);
 	}
-	if (new_icon != NULL) {
-		gbitmap_destroy(new_icon);
-	}
+
 	free(wld->h1_resized_data);
 	free(wld->h2_resized_data);
 
