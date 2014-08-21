@@ -19,12 +19,10 @@ static char temp_low_text[] = "000X";
 
 void eweather_layer_create(GRect frame, Window *window) {
 
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "creaing");
 
 	eweather_layer = layer_create_with_data(frame, sizeof(EWeatherLayerData));
 	EWeatherLayerData *ewd = layer_get_data(eweather_layer);
 
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "creating bg");
 
 	ewd->main_layer_background = text_layer_create(GRect(0, 0, 144, 168));
 	text_layer_set_background_color(ewd->main_layer_background, GColorWhite);
@@ -34,7 +32,6 @@ void eweather_layer_create(GRect frame, Window *window) {
 	small_font = fonts_load_custom_font(
 			resource_get_handle(RESOURCE_ID_FUTURA_17));
 
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "setting  icon");
 
 	ewd->sunrise_icon = gbitmap_create_with_resource(RESOURCE_ID_SUNRISE);
 	ewd->sunrise_icon_layer = bitmap_layer_create(GRect(1, 3, 20, 20));
