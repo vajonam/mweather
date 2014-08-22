@@ -9,12 +9,12 @@
 #include "datetime_layer.h"
 #include "config.h"
 
-#define HOUR_FRAME      (GRect(0, 3, 64, 84))
-#define MIN_FRAME       (GRect(80, 3, 144, 84))
-#define DATE_FRAME      (GRect(1, 65, 144, 168))
-#define WEATHER_FRAME   (GRect(0, 98, 144, 70))
+#define HOUR_FRAME      (GRect(0, -5, 64, 64))
+#define MIN_FRAME       (GRect(80, -5, 144, 64))
+#define DATE_FRAME      (GRect(1, 50, 144, 168))
+#define WEATHER_FRAME   (GRect(0, 78, 144, 120))
 #define DEBUG_FRAME     (GRect(0, 0, 144, 15))
-#define BATTERY_FRAME   (GRect(66,22, 78, 40))
+#define BATTERY_FRAME   (GRect(66,10, 78, 40))
 
 /* Keep a pointer to the current weather data as a global variable */
 static WeatherData *weather_data;
@@ -60,6 +60,7 @@ static void handle_tap(AccelAxisType axis,  int32_t direction) {
 
 void double_tap() {
 	APP_LOG(APP_LOG_LEVEL_DEBUG, "Showing extended weather");
+	weather_layer_hide(true);
 	eweather_layer_hide(false);
 	eweather_timer = app_timer_register(EWEATHER_TIME, dismiss_ewather, NULL);
 
@@ -68,6 +69,7 @@ void double_tap() {
 void dismiss_ewather() {
 
 	eweather_layer_hide(true);
+	weather_layer_hide(false);
 }
 
 // Add below to handle_init

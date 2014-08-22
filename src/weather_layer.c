@@ -236,7 +236,6 @@ void weather_layer_create(GRect frame, Window *window) {
 	text_layer_set_text_color(wld->h1_pop_layer, GColorBlack);
 	text_layer_set_background_color(wld->h1_pop_layer, GColorClear);
 		text_layer_set_text_alignment(wld->h1_pop_layer, GTextAlignmentLeft);
-	text_layer_set_font(wld->h1_pop_layer, small_font);
 	layer_add_child(weather_layer, text_layer_get_layer(wld->h1_pop_layer));
 
 
@@ -244,7 +243,6 @@ void weather_layer_create(GRect frame, Window *window) {
 	text_layer_set_text_color(wld->h2_pop_layer, GColorBlack);
 	text_layer_set_background_color(wld->h2_pop_layer, GColorClear);
 	text_layer_set_text_alignment(wld->h2_pop_layer, GTextAlignmentLeft);
-	text_layer_set_font(wld->h2_pop_layer, small_font);
 	layer_add_child(weather_layer, text_layer_get_layer(wld->h2_pop_layer));
 
 
