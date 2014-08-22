@@ -3,8 +3,7 @@
 
 #ifndef W_LAYER_H
 #define W_LAYER_H
-#define RESIZE_DATA_SIZE 240
-#define HOURLY_ICON_SCALE 66
+
 
 
 typedef struct {

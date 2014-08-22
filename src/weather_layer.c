@@ -226,8 +226,7 @@ void weather_layer_create(GRect frame, Window *window) {
 			bitmap_layer_get_layer(wld->primary_icon_layer));
 
 
-
-	wld->h1_pop_icon_layer = bitmap_layer_create(GRect(62, 45+17, 11, 20));
+    wld->h1_pop_icon_layer = bitmap_layer_create(GRect(62, 45+17, 11, 20));
 	wld->h2_pop_icon_layer = bitmap_layer_create(GRect(105, 45+17, 11, 20));
 
 	layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h1_pop_icon_layer));
@@ -237,7 +236,7 @@ void weather_layer_create(GRect frame, Window *window) {
 	text_layer_set_text_color(wld->h1_pop_layer, GColorBlack);
 	text_layer_set_background_color(wld->h1_pop_layer, GColorClear);
 		text_layer_set_text_alignment(wld->h1_pop_layer, GTextAlignmentLeft);
-	//text_layer_set_font(wld->h1_pop_layer, small_font);
+	text_layer_set_font(wld->h1_pop_layer, small_font);
 	layer_add_child(weather_layer, text_layer_get_layer(wld->h1_pop_layer));
 
 
@@ -245,20 +244,13 @@ void weather_layer_create(GRect frame, Window *window) {
 	text_layer_set_text_color(wld->h2_pop_layer, GColorBlack);
 	text_layer_set_background_color(wld->h2_pop_layer, GColorClear);
 	text_layer_set_text_alignment(wld->h2_pop_layer, GTextAlignmentLeft);
-	//text_layer_set_font(wld->h2_pop_layer, small_font);
+	text_layer_set_font(wld->h2_pop_layer, small_font);
 	layer_add_child(weather_layer, text_layer_get_layer(wld->h2_pop_layer));
 
 
 	wld->loading_layer = layer_create(GRect(43, 27, 50, 20));
 	layer_set_update_proc(wld->loading_layer, weather_animate_update);
 	layer_add_child(weather_layer, wld->loading_layer);
-
-	// wld->h1_resized_data = malloc((RESIZE_DATA_SIZE) * sizeof(uint8_t));
-	// wld->h2_resized_data = malloc((RESIZE_DATA_SIZE) * sizeof(uint8_t));
-
-
-
-
 
 	wld->primary_icon = NULL;
 	wld->h1_icon = NULL;
@@ -427,6 +419,9 @@ void weather_layer_destroy() {
 	text_layer_destroy(wld->h2_temp_layer);
 	layer_destroy(wld->loading_layer);
 
+	text_layer_destroy(wld->h1_pop_layer);
+	text_layer_destroy(wld->h2_pop_layer);
+
 	gbitmap_destroy(wld->pop_icon);
 	bitmap_layer_destroy(wld->h1_pop_icon_layer);
 	bitmap_layer_destroy(wld->h2_pop_icon_layer);
@@ -445,9 +440,6 @@ void weather_layer_destroy() {
 	if (wld->h2_icon != NULL) {
 		gbitmap_destroy(wld->h2_icon);
 	}
-
-	// free(wld->h1_resized_data);
-	// free(wld->h2_resized_data);
 
 	layer_destroy(weather_layer);
 

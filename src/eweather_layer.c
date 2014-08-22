@@ -31,10 +31,6 @@ void eweather_layer_create(GRect frame, Window *window) {
 
 	small_font = fonts_get_system_font(FONT_KEY_GOTHIC_18_BOLD);
 
-	//fonts_load_custom_font(
-	//		resource_get_handle(RESOURCE_ID_FUTURA_C_18));
-
-	//
 
 
 	ewd->sunrise_icon = gbitmap_create_with_resource(RESOURCE_ID_SUNRISE);
@@ -183,27 +179,24 @@ void eweather_layer_destroy() {
 	gbitmap_destroy(ewd->sunrise_icon);
 	gbitmap_destroy(ewd->sunset_icon);
 	gbitmap_destroy(ewd->wind_icon);
+	gbitmap_destroy(ewd->humidity_icon);
+	gbitmap_destroy(ewd->temp_high_icon);
+	gbitmap_destroy(ewd->temp_low_icon);
+
 	bitmap_layer_destroy(ewd->sunrise_icon_layer);
 	bitmap_layer_destroy(ewd->wind_icon_layer);
 	bitmap_layer_destroy(ewd->sunset_icon_layer);
+	bitmap_layer_destroy(ewd->humidity_icon_layer);
+	bitmap_layer_destroy(ewd->temp_high_icon_layer);
+	bitmap_layer_destroy(ewd->temp_low_icon_layer);
+
 	text_layer_destroy(ewd->sunrise_time_layer);
 	text_layer_destroy(ewd->sunset_time_layer);
-	text_layer_destroy(ewd->wind_speeddir_layer);
-
-	gbitmap_destroy(ewd->humidity_icon);
-	bitmap_layer_destroy(ewd->humidity_icon_layer);
 	text_layer_destroy(ewd->humidity_layer);
-
-	gbitmap_destroy(ewd->temp_high_icon);
-	bitmap_layer_destroy(ewd->temp_high_icon_layer);
+	text_layer_destroy(ewd->wind_speeddir_layer);
 	text_layer_destroy(ewd->temp_high_layer);
-
-	gbitmap_destroy(ewd->temp_low_icon);
-	bitmap_layer_destroy(ewd->temp_low_icon_layer);
 	text_layer_destroy(ewd->temp_low_layer);
 
-
-	// fonts_unload_custom_font(small_font);
 	layer_destroy(eweather_layer);
 
 }
