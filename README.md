@@ -8,9 +8,10 @@ This is my attempt at learning about the Pebble SDK by adjusting an app for my o
 
 # Give it a shot and let me know what you think: [download pbw here](https://github.com/jaredbiehler/weather-my-way/releases/download/1.1.1/weather-my-way-v1.1.1.pbw)
 
-![pebble screen1](https://raw.githubusercontent.com/vajonam/mweather/stable/screenshots/pebble-screenshot1.png)&nbsp;
-![pebble screen2](https://raw.githubusercontent.com/vajonam/mweather/stable/screenshots/pebble-screenshot2.png)&nbsp;
-![pebble screen3](https://raw.githubusercontent.com/vajonam/mweather/stable/screenshots/pebble-screenshot3.png)
+![pebble screen1](https://raw.githubusercontent.com/vajonam/mweather/stable/screenshots/pebble-screenshot_1.png)&nbsp;
+![pebble screen2](https://raw.githubusercontent.com/vajonam/mweather/stable/screenshots/pebble-screenshot_2.png)&nbsp;
+![pebble screen3](https://raw.githubusercontent.com/vajonam/mweather/stable/screenshots/pebble-screenshot_3.png)
+![pebble screen4](https://raw.githubusercontent.com/vajonam/mweather/stable/screenshots/pebble-screenshot_4.png)
 
 ## Requirements
 
