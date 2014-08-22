@@ -25,7 +25,8 @@ void min_layer_create(GRect frame, Window *window) {
 	time_layer = layer_create(GRect(0, 0, 144, 98));
 	layer_add_child(window_get_root_layer(window), time_layer);
 
-	font_time = fonts_load_custom_font(
+	if (  font_time == NULL )
+		font_time = fonts_load_custom_font(
 			resource_get_handle(RESOURCE_ID_FUTURA_CONDENSED_53));
 	min_layer = text_layer_create(frame);
 	text_layer_set_text_color(min_layer, GColorWhite);
@@ -37,7 +38,8 @@ void min_layer_create(GRect frame, Window *window) {
 }
 
 void hour_layer_create(GRect frame, Window *window) {
-	font_time = fonts_load_custom_font(
+	if (  font_time == NULL )
+		fonts_load_custom_font(
 			resource_get_handle(RESOURCE_ID_FUTURA_CONDENSED_53));
 
 	hour_layer = text_layer_create(frame);
