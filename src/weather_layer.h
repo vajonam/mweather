@@ -36,7 +36,11 @@ typedef struct {
 	BitmapLayer *h2_pop_icon_layer;
 	BitmapLayer *h1_pop_icon_layer;
 
+
+	TextLayer *updated_layer;
+	char updated_str[8];
 	char primary_temp_str[6];
+
 	char h1_temp_str[6];
 	char h2_temp_str[6];
 

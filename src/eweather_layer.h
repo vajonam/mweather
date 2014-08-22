@@ -24,6 +24,10 @@ typedef struct {
 	GBitmap *temp_low_icon;
 	BitmapLayer *temp_low_icon_layer;
 	TextLayer *temp_low_layer;
+
+	TextLayer *locale_layer;
+	char locale_str[100];
+
 } EWeatherLayerData;
 
 void eweather_layer_create(GRect frame, Window *window);

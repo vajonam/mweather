@@ -44,7 +44,6 @@ static void handle_battery(BatteryChargeState charge_state)
       dots = 1;
     }
   }
-
   layer_mark_dirty(battery_layer);
 }
 
@@ -108,7 +107,6 @@ void battery_layer_update(Layer *me, GContext *ctx)
 
 	graphics_context_set_fill_color(ctx, GColorWhite);
 	graphics_context_set_stroke_color(ctx, GColorWhite);
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "drawing battery %d", dots);
 	switch (dots) {
 
 	case 1:

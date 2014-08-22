@@ -117,6 +117,14 @@ void eweather_layer_create(GRect frame, Window *window) {
 	text_layer_set_font(ewd->temp_low_layer, small_font);
 	layer_add_child(eweather_layer, text_layer_get_layer(ewd->temp_low_layer));
 
+	ewd->locale_layer = text_layer_create(GRect(2, 68, 144 , 20));
+	text_layer_set_text_color(ewd->locale_layer, GColorBlack);
+	text_layer_set_background_color(ewd->locale_layer, GColorClear);
+	text_layer_set_text_alignment(ewd->locale_layer, GTextAlignmentCenter);
+	text_layer_set_font(ewd->locale_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+	layer_add_child(eweather_layer, text_layer_get_layer(ewd->locale_layer));
+
+
 
 	layer_add_child(window_get_root_layer(window), eweather_layer);
 	eweather_layer_hide(true);
@@ -163,6 +171,11 @@ void eweather_layer_update(WeatherData *weather_data) {
 	snprintf(temp_low_text, sizeof(temp_low_text), "%i°",
 			weather_data->temp_low);
 	text_layer_set_text(ewd->temp_low_layer, temp_low_text);
+
+	snprintf(ewd->locale_str, sizeof(ewd->locale_str), "%s @ %s",
+						weather_data->locale, weather_data->pub_date );
+
+	text_layer_set_text(ewd->locale_layer, ewd->locale_str);
 }
 
 void eweather_layer_hide(bool hide) {
@@ -196,6 +209,7 @@ void eweather_layer_destroy() {
 	text_layer_destroy(ewd->wind_speeddir_layer);
 	text_layer_destroy(ewd->temp_high_layer);
 	text_layer_destroy(ewd->temp_low_layer);
+	text_layer_destroy(ewd->locale_layer);
 
 	layer_destroy(eweather_layer);
 

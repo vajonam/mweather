@@ -251,6 +251,14 @@ void weather_layer_create(GRect frame, Window *window) {
 	layer_set_update_proc(wld->loading_layer, weather_animate_update);
 	layer_add_child(weather_layer, wld->loading_layer);
 
+	wld->updated_layer = text_layer_create(GRect(2, 70, 58 , 20));
+	text_layer_set_text_color(wld->updated_layer, GColorBlack);
+	text_layer_set_background_color(wld->updated_layer, GColorClear);
+	text_layer_set_text_alignment(wld->updated_layer, GTextAlignmentCenter);
+	text_layer_set_font(wld->updated_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
+	layer_add_child(weather_layer, text_layer_get_layer(wld->updated_layer));
+
+
 	wld->pop_icon = gbitmap_create_with_resource(RESOURCE_ID_POP);
 	bitmap_layer_set_bitmap(wld->h1_pop_icon_layer,wld->pop_icon);
 	bitmap_layer_set_bitmap(wld->h2_pop_icon_layer,wld->pop_icon);
@@ -390,6 +398,17 @@ void weather_layer_update(WeatherData *weather_data) {
 			snprintf(wld->h2_pop_str, sizeof(wld->h2_pop_str), "%i%%",
 					weather_data->h2_pop);
 
+
+
+			time_t updated_t = weather_data->updated ;//- weather_data->tzoffset;
+
+			struct tm *updatedTime = localtime(&updated_t);
+
+			strftime(wld->updated_str, sizeof(wld->updated_str),
+					clock_is_24h_style() ? "%R" : "%l:%M%p", updatedTime);
+
+			text_layer_set_text(wld->updated_layer,wld->updated_str);
+
 			text_layer_set_text(wld->h1_temp_layer, wld->h1_temp_str);
 			text_layer_set_text(wld->h2_temp_layer, wld->h2_temp_str);
 
@@ -414,19 +433,20 @@ void weather_layer_destroy() {
 
 	WeatherLayerData *wld = layer_get_data(weather_layer);
 
-	text_layer_destroy(wld->primary_temp_layer);
-	text_layer_destroy(wld->temp_layer_background);
 	bitmap_layer_destroy(wld->primary_icon_layer);
 	bitmap_layer_destroy(wld->h1_icon_layer);
 	bitmap_layer_destroy(wld->h2_icon_layer);
+
+	text_layer_destroy(wld->primary_temp_layer);
+	text_layer_destroy(wld->temp_layer_background);
 	text_layer_destroy(wld->h1_time_layer);
 	text_layer_destroy(wld->h2_time_layer);
 	text_layer_destroy(wld->h1_temp_layer);
 	text_layer_destroy(wld->h2_temp_layer);
-	layer_destroy(wld->loading_layer);
 
 	text_layer_destroy(wld->h1_pop_layer);
 	text_layer_destroy(wld->h2_pop_layer);
+	text_layer_destroy(wld->updated_layer);
 
 	bitmap_layer_destroy(wld->h1_pop_icon_layer);
 	bitmap_layer_destroy(wld->h2_pop_icon_layer);
@@ -448,7 +468,8 @@ void weather_layer_destroy() {
 	}
 
 
-	layer_destroy(weather_layer);
+	layer_destroy(wld->loading_layer);
+    layer_destroy(weather_layer);
 
 	fonts_unload_custom_font(large_font);
 	fonts_unload_custom_font(small_font);
