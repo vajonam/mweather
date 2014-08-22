@@ -19,7 +19,7 @@ static char humidity_text[] = "000X";
 static char temp_high_text[] = "000X";
 static char temp_low_text[] = "000X";
 
-void eweather_layer_create(GRect frame, Window *window) {
+void eweather_layer_create(Layer *weather_layer) {
 
 
 	eweather_layer = layer_create_with_data(EWEATHER_FRAME, sizeof(EWeatherLayerData));
@@ -124,7 +124,7 @@ void eweather_layer_create(GRect frame, Window *window) {
 	layer_add_child(eweather_layer, text_layer_get_layer(ewd->locale_layer));
 
 
-	layer_add_child(get_weather_layer(), eweather_layer);
+	layer_add_child(weather_layer, eweather_layer);
 
 
 

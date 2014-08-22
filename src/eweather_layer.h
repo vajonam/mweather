@@ -31,7 +31,7 @@ typedef struct {
 } EWeatherLayerData;
 
 
-void eweather_layer_create(GRect frame, Window *window);
+void eweather_layer_create(Layer *weather_layer);
 
 void eweather_layer_update(WeatherData *weather_data);
 void eweather_layer_destroy();

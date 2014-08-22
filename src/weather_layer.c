@@ -1,6 +1,7 @@
 #include <pebble.h>
 #include "network.h"
 #include "weather_layer.h"
+#include "eweather_layer.h"
 #include "debug_layer.h"
 #include "gbitmap_tools.h"
 
@@ -122,8 +123,6 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 		break;
 	}
 
-	bitmap_layer_set_bitmap(wld->h1_pop_icon_layer,wld->pop_icon);
-	bitmap_layer_set_bitmap(wld->h2_pop_icon_layer,wld->pop_icon);
 
 
 }
@@ -272,6 +271,8 @@ void weather_layer_create(GRect frame, Window *window) {
 	wld->h2_icon = NULL;
 
 	layer_add_child(window_get_root_layer(window), weather_layer);
+
+	eweather_layer_create(weather_layer);
 }
 
 void weather_layer_clear_temperature() {
@@ -286,6 +287,9 @@ void weather_layer_set_temperature(int16_t t, bool is_stale) {
 			is_stale ? " " : "°");
 
 	text_layer_set_text(wld->primary_temp_layer, wld->primary_temp_str);
+
+	text_layer_set_text(wld->updated_layer,wld->updated_str);
+
 }
 
 static bool is_night_time(int sunrise, int sunset, int utc) {
@@ -293,10 +297,6 @@ static bool is_night_time(int sunrise, int sunset, int utc) {
 			+ CIVIL_TWILIGHT_BUFFER);
 }
 
-Layer* get_weather_layer(){
-
-	return weather_layer;
-}
 // Update the bottom half of the screen: icon and temperature
 void weather_layer_update(WeatherData *weather_data) {
 	// We have no weather data yet... don't update until we do
@@ -371,6 +371,7 @@ void weather_layer_update(WeatherData *weather_data) {
 							night_time), AREA_PRIMARY);
 		}
 
+
 		if (weather_data->hourly_updated != 0 && weather_data->hourly_enabled) {
 
 			time_t h1t = weather_data->h1_time - weather_data->tzoffset;
@@ -414,13 +415,16 @@ void weather_layer_update(WeatherData *weather_data) {
 			strftime(wld->updated_str, sizeof(wld->updated_str),
 					clock_is_24h_style() ? "%R" : "%l:%M%p", updatedTime);
 
-			text_layer_set_text(wld->updated_layer,wld->updated_str);
+
 
 			text_layer_set_text(wld->h1_temp_layer, wld->h1_temp_str);
 			text_layer_set_text(wld->h2_temp_layer, wld->h2_temp_str);
 
 			text_layer_set_text(wld->h1_pop_layer, wld->h1_pop_str);
 			text_layer_set_text(wld->h2_pop_layer, wld->h2_pop_str);
+
+			bitmap_layer_set_bitmap(wld->h1_pop_icon_layer,wld->pop_icon);
+			bitmap_layer_set_bitmap(wld->h2_pop_icon_layer,wld->pop_icon);
 
 		}
 	}
@@ -506,6 +510,7 @@ void weather_layer_destroy() {
 		gbitmap_destroy(wld->pop_icon);
 	}
 
+	eweather_layer_destroy();
 
 	layer_destroy(wld->loading_layer);
     layer_destroy(weather_layer);

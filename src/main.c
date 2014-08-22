@@ -30,7 +30,7 @@ static AppTimer *tap_timer;
 static AppTimer *eweather_timer;
 
 
-#define TAP_TIME 10*1000
+#define TAP_TIME 6*1000
 #define EWEATHER_TIME 10*1000
 static bool is_tapped_waiting;
 
@@ -157,7 +157,6 @@ static void init(void)
   hour_layer_create(HOUR_FRAME, window);
   date_layer_create(DATE_FRAME, window);
   weather_layer_create(WEATHER_FRAME, window);
-  eweather_layer_create(WEATHER_FRAME, window);
   debug_layer_create(DEBUG_FRAME, window);
   battery_layer_create(BATTERY_FRAME, window);
 
@@ -190,7 +189,7 @@ static void deinit(void)
   time_layer_destroy();
   date_layer_destroy();
   weather_layer_destroy();
-  eweather_layer_destroy();
+
   debug_layer_destroy();
   battery_layer_destroy();
 
