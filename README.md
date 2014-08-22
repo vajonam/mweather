@@ -32,21 +32,17 @@ a=[apikey]      // Weather Underground API Key
 ![config screen](https://raw.githubusercontent.com/vajonam/mweather/stable/screenshots/weather-my-way-config.png)
 
 ## Progress
- - Hourly weather! 
- - Configurable weather provider (YAHOO!, Open Weather map)
-  - More granularity in weather condition expression (via YAHOO!)
- - Configurable minimal battery display
- - Configurable weather scale (°F / °C)
- - Configurable debug mode ((L)ast updated, (P)ublish Date, Neighborhood)
- - JQuery Mobile configuration screen [here](http://jaredbiehler.github.io/weather-my-way/config/)
- - Config settings are persisted 
- - No longer subscribed to second ticks, minute & day for better battery performance
- - Tested on iOS 7.1 & Android 4.3
- - Improved network link monitoring (limited retries on both Pebble and JS sides)
- - many rewrites, separation of concerns
 
+- hourly forecasts are now configureable
+- updated time and forecast publication date
+- additonal info, like Probablity of Precipitation
+- added config option to show feels like (humidex,windchill)
+- extended weather info on double share (2 tap/shakes in 10 seconds)
+- animated transitions
+- included resizing api gbitmap_tools
 
 ### Based on work by:
+ - "Weather My Way" by jaredbiehler - https://github.com/jaredbiehler/weather-my-way
  - "Futura Weather 2" by Niknam - https://github.com/Niknam/futura-weather-sdk2.0
  - "WeatherWatch" by Katharine - https://github.com/Katharine/WeatherWatch
  - "Roboto Weather" by Martin Rosinski - http://www.mypebblefaces.com/apps/3601/3408/
