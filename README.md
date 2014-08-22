@@ -36,7 +36,8 @@ h2=[0-23]       // offser for 2nd hourly forecast
 - updated time and forecast publication date
 - additonal info, like Probablity of Precipitation
 - added config option to show feels like (humidex,windchill)
-- extended weather info on double share (2 tap/shakes in 10 seconds)
+- extended weather info on double share (2 tap/shakes in 6 seconds)
+  most reliable way is wrist-flick, wait a second and another one.
 - animated transitions
 - included resizing api gbitmap_tools
 
