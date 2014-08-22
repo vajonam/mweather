@@ -122,9 +122,7 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 		break;
 	}
 
-	wld->pop_icon = gbitmap_create_with_resource(RESOURCE_ID_POP);
-	bitmap_layer_set_bitmap(wld->h1_pop_icon_layer,wld->pop_icon);
-	bitmap_layer_set_bitmap(wld->h2_pop_icon_layer,wld->pop_icon);
+
 }
 
 static void weather_layer_set_error() {
@@ -245,10 +243,18 @@ void weather_layer_create(GRect frame, Window *window) {
 	text_layer_set_text_alignment(wld->h2_pop_layer, GTextAlignmentLeft);
 	layer_add_child(weather_layer, text_layer_get_layer(wld->h2_pop_layer));
 
+//	wld->h1_resized_data = malloc( 240 * sizeof(uint8_t));
+//	wld->h2_resized_data = malloc( 240 * sizeof(uint8_t));
+
 
 	wld->loading_layer = layer_create(GRect(43, 27, 50, 20));
 	layer_set_update_proc(wld->loading_layer, weather_animate_update);
 	layer_add_child(weather_layer, wld->loading_layer);
+
+	wld->pop_icon = gbitmap_create_with_resource(RESOURCE_ID_POP);
+	bitmap_layer_set_bitmap(wld->h1_pop_icon_layer,wld->pop_icon);
+	bitmap_layer_set_bitmap(wld->h2_pop_icon_layer,wld->pop_icon);
+
 
 	wld->primary_icon = NULL;
 	wld->h1_icon = NULL;
@@ -420,7 +426,6 @@ void weather_layer_destroy() {
 	text_layer_destroy(wld->h1_pop_layer);
 	text_layer_destroy(wld->h2_pop_layer);
 
-	gbitmap_destroy(wld->pop_icon);
 	bitmap_layer_destroy(wld->h1_pop_icon_layer);
 	bitmap_layer_destroy(wld->h2_pop_icon_layer);
 
@@ -429,15 +434,20 @@ void weather_layer_destroy() {
 	if (wld->primary_icon != NULL) {
 		gbitmap_destroy(wld->primary_icon);
 	}
-	if (wld->primary_icons != NULL) {
-		gbitmap_destroy(wld->primary_icons);
-	}
+
 	if (wld->h1_icon != NULL) {
 		gbitmap_destroy(wld->h1_icon);
 	}
 	if (wld->h2_icon != NULL) {
 		gbitmap_destroy(wld->h2_icon);
 	}
+	if (wld->pop_icon != NULL) {
+		gbitmap_destroy(wld->pop_icon);
+	}
+
+//	free(wld->h1_resized_data);
+//	free(wld->h2_resized_data);
+
 
 	layer_destroy(weather_layer);
 

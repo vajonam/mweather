@@ -11,7 +11,6 @@ typedef struct {
 	TextLayer *temp_layer_background;
 	TextLayer *primary_temp_layer;
 
-	GBitmap *primary_icons;
 //	uint8_t *h1_resized_data;
 //	uint8_t *h2_resized_data;
 
