@@ -13,8 +13,8 @@ typedef struct {
 	TextLayer *primary_temp_layer;
 
 	GBitmap *primary_icons;
-	uint8_t *h1_resized_data;
-	uint8_t *h2_resized_data;
+//	uint8_t *h1_resized_data;
+//	uint8_t *h2_resized_data;
 
 	int primary_icon_size;
 	int hourly_icon_size;
@@ -34,9 +34,17 @@ typedef struct {
 	TextLayer *h2_temp_layer;
 	TextLayer *h2_pop_layer;
 
+	GBitmap *pop_icon;
+	BitmapLayer *h2_pop_icon_layer;
+	BitmapLayer *h1_pop_icon_layer;
+
 	char primary_temp_str[6];
 	char h1_temp_str[6];
 	char h2_temp_str[6];
+
+	char h1_pop_str[6];
+	char h2_pop_str[6];
+
 } WeatherLayerData;
 
 typedef enum {

@@ -24,7 +24,7 @@ void eweather_layer_create(GRect frame, Window *window) {
 	EWeatherLayerData *ewd = layer_get_data(eweather_layer);
 
 
-	ewd->main_layer_background = text_layer_create(GRect(0, 0, 144, 168));
+	ewd->main_layer_background = text_layer_create(GRect(0, 0, 144, 90));
 	text_layer_set_background_color(ewd->main_layer_background, GColorWhite);
 	layer_add_child(eweather_layer,
 			text_layer_get_layer(ewd->main_layer_background));

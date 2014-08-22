@@ -54,6 +54,7 @@ static int animation_step = 0;
 static char time_h1[] = "00XX";
 static char time_h2[] = "00XX";
 
+
 static void weather_animate_update(Layer *me, GContext *ctx) {
 	int dots = 3;
 	int spacer = 15;
@@ -108,20 +109,22 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 	case AREA_HOURLY1:
 		if (wld->h1_icon != NULL)
 			gbitmap_destroy(wld->h1_icon);
-		wld->h1_icon = scaleBitmap(new_icon, percent, percent, wld->h1_resized_data);
+		wld->h1_icon = scaleBitmap(new_icon, percent, percent);
 		bitmap_layer_set_bitmap(layer, wld->h1_icon);
 		gbitmap_destroy(new_icon);
 		break;
 	case AREA_HOURLY2:
 		if (wld->h2_icon != NULL)
 			gbitmap_destroy(wld->h2_icon);
-		wld->h2_icon = scaleBitmap(new_icon, percent, percent, wld->h2_resized_data);
+		wld->h2_icon = scaleBitmap(new_icon, percent, percent);
 		bitmap_layer_set_bitmap(layer, wld->h2_icon );
 		gbitmap_destroy(new_icon);
 		break;
 	}
 
-
+	wld->pop_icon = gbitmap_create_with_resource(RESOURCE_ID_POP);
+	bitmap_layer_set_bitmap(wld->h1_pop_icon_layer,wld->pop_icon);
+	bitmap_layer_set_bitmap(wld->h2_pop_icon_layer,wld->pop_icon);
 }
 
 static void weather_layer_set_error() {
@@ -172,25 +175,25 @@ void weather_layer_create(GRect frame, Window *window) {
 	wld->hourly_icon_size = 30;
 
 	// Add background layer
-	wld->temp_layer_background = text_layer_create(GRect(0, 0, 144, 80));
+	wld->temp_layer_background = text_layer_create(GRect(0, 0, 144, 90));
 	text_layer_set_background_color(wld->temp_layer_background, GColorWhite);
 	layer_add_child(weather_layer,
 			text_layer_get_layer(wld->temp_layer_background));
 
 	// Primary temperature layer
 	wld->primary_temp_layer = text_layer_create(GRect(2, 38, 70, 35));
-	text_layer_set_background_color(wld->primary_temp_layer, GColorClear);
+	text_layer_set_background_color(wld->primary_temp_layer, GColorWhite);
 	text_layer_set_text_alignment(wld->primary_temp_layer, GTextAlignmentCenter);
 	text_layer_set_font(wld->primary_temp_layer, large_font);
 	layer_add_child(weather_layer,
 			text_layer_get_layer(wld->primary_temp_layer));
 
-	wld->h1_time_layer = text_layer_create(GRect(68, 5, 30, 20));
+	wld->h1_time_layer = text_layer_create(GRect(68, 0, 30, 20));
 	text_layer_set_text_color(wld->h1_time_layer, GColorBlack);
 	text_layer_set_text_alignment(wld->h1_time_layer, GTextAlignmentCenter);
 	layer_add_child(weather_layer, text_layer_get_layer(wld->h1_time_layer));
 
-	wld->h1_temp_layer = text_layer_create(GRect(67, 47, 38, 20));
+	wld->h1_temp_layer = text_layer_create(GRect(67, 45, 38, 20));
 	text_layer_set_text_color(wld->h1_temp_layer, GColorBlack);
 	text_layer_set_text_alignment(wld->h1_temp_layer, GTextAlignmentCenter);
 	text_layer_set_font(wld->h1_temp_layer, small_font);
@@ -198,15 +201,15 @@ void weather_layer_create(GRect frame, Window *window) {
 
 	// Hour1 bitmap layer
 	wld->h1_icon_layer = bitmap_layer_create(
-			GRect(68, 20, wld->hourly_icon_size, wld->hourly_icon_size));
+			GRect(68, 20-2, wld->hourly_icon_size, wld->hourly_icon_size));
 	layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h1_icon_layer));
 
-	wld->h2_time_layer = text_layer_create(GRect(108, 5, 30, 20));
+	wld->h2_time_layer = text_layer_create(GRect(108, 0, 30, 20));
 	text_layer_set_text_color(wld->h1_time_layer, GColorBlack);
 	text_layer_set_text_alignment(wld->h2_time_layer, GTextAlignmentCenter);
 	layer_add_child(weather_layer, text_layer_get_layer(wld->h2_time_layer));
 
-	wld->h2_temp_layer = text_layer_create(GRect(106, 47, 38, 20));
+	wld->h2_temp_layer = text_layer_create(GRect(106, 45, 38, 20));
 	text_layer_set_text_color(wld->h2_temp_layer, GColorBlack);
 	text_layer_set_text_alignment(wld->h2_temp_layer, GTextAlignmentCenter);
 	text_layer_set_font(wld->h2_temp_layer, small_font);
@@ -214,7 +217,7 @@ void weather_layer_create(GRect frame, Window *window) {
 
 	// Hour2 bitmap layer
 	wld->h2_icon_layer = bitmap_layer_create(
-			GRect(107, 20, wld->hourly_icon_size, wld->hourly_icon_size));
+			GRect(107, 20-2, wld->hourly_icon_size, wld->hourly_icon_size));
 	layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h2_icon_layer));
 
 	// Primary bitmap layer
@@ -222,12 +225,39 @@ void weather_layer_create(GRect frame, Window *window) {
 	layer_add_child(weather_layer,
 			bitmap_layer_get_layer(wld->primary_icon_layer));
 
+
+
+	wld->h1_pop_icon_layer = bitmap_layer_create(GRect(62, 45+17, 11, 20));
+	wld->h2_pop_icon_layer = bitmap_layer_create(GRect(105, 45+17, 11, 20));
+
+	layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h1_pop_icon_layer));
+	layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h2_pop_icon_layer));
+
+	wld->h1_pop_layer = text_layer_create(GRect(76, 45+20, 38, 20));
+	text_layer_set_text_color(wld->h1_pop_layer, GColorBlack);
+	text_layer_set_background_color(wld->h1_pop_layer, GColorClear);
+		text_layer_set_text_alignment(wld->h1_pop_layer, GTextAlignmentLeft);
+	//text_layer_set_font(wld->h1_pop_layer, small_font);
+	layer_add_child(weather_layer, text_layer_get_layer(wld->h1_pop_layer));
+
+
+	wld->h2_pop_layer = text_layer_create(GRect(119, 45+20, 38, 20));
+	text_layer_set_text_color(wld->h2_pop_layer, GColorBlack);
+	text_layer_set_background_color(wld->h2_pop_layer, GColorClear);
+	text_layer_set_text_alignment(wld->h2_pop_layer, GTextAlignmentLeft);
+	//text_layer_set_font(wld->h2_pop_layer, small_font);
+	layer_add_child(weather_layer, text_layer_get_layer(wld->h2_pop_layer));
+
+
 	wld->loading_layer = layer_create(GRect(43, 27, 50, 20));
 	layer_set_update_proc(wld->loading_layer, weather_animate_update);
 	layer_add_child(weather_layer, wld->loading_layer);
 
-	wld->h1_resized_data = malloc((RESIZE_DATA_SIZE) * sizeof(uint8_t));
-	wld->h2_resized_data = malloc((RESIZE_DATA_SIZE) * sizeof(uint8_t));
+	// wld->h1_resized_data = malloc((RESIZE_DATA_SIZE) * sizeof(uint8_t));
+	// wld->h2_resized_data = malloc((RESIZE_DATA_SIZE) * sizeof(uint8_t));
+
+
+
 
 
 	wld->primary_icon = NULL;
@@ -357,8 +387,17 @@ void weather_layer_update(WeatherData *weather_data) {
 			snprintf(wld->h2_temp_str, sizeof(wld->h2_temp_str), "%i%s",
 					weather_data->h2_temp, "°");
 
+			snprintf(wld->h1_pop_str, sizeof(wld->h1_pop_str), "%i%%",
+					weather_data->h1_pop);
+			snprintf(wld->h2_pop_str, sizeof(wld->h2_pop_str), "%i%%",
+					weather_data->h2_pop);
+
 			text_layer_set_text(wld->h1_temp_layer, wld->h1_temp_str);
 			text_layer_set_text(wld->h2_temp_layer, wld->h2_temp_str);
+
+			text_layer_set_text(wld->h1_pop_layer, wld->h1_pop_str);
+			text_layer_set_text(wld->h2_pop_layer, wld->h2_pop_str);
+
 		}
 	}
 }
@@ -388,6 +427,11 @@ void weather_layer_destroy() {
 	text_layer_destroy(wld->h2_temp_layer);
 	layer_destroy(wld->loading_layer);
 
+	gbitmap_destroy(wld->pop_icon);
+	bitmap_layer_destroy(wld->h1_pop_icon_layer);
+	bitmap_layer_destroy(wld->h2_pop_icon_layer);
+
+
 	// Destroy the previous bitmap if we have one
 	if (wld->primary_icon != NULL) {
 		gbitmap_destroy(wld->primary_icon);
@@ -402,8 +446,8 @@ void weather_layer_destroy() {
 		gbitmap_destroy(wld->h2_icon);
 	}
 
-	free(wld->h1_resized_data);
-	free(wld->h2_resized_data);
+	// free(wld->h1_resized_data);
+	// free(wld->h2_resized_data);
 
 	layer_destroy(weather_layer);
 
