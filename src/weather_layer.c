@@ -155,6 +155,7 @@ void weather_animate(void *context) {
 	} else if (weather_data->error != WEATHER_E_OK) {
 		animation_step = 0;
 		layer_set_hidden(wld->loading_layer, true);
+
 		weather_layer_set_error();
 	}
 }
@@ -227,6 +228,9 @@ void weather_layer_create(GRect frame, Window *window) {
     wld->h1_pop_icon_layer = bitmap_layer_create(GRect(62, 45+17, 11, 20));
 	wld->h2_pop_icon_layer = bitmap_layer_create(GRect(105, 45+17, 11, 20));
 
+	layer_set_hidden((Layer *)wld->h1_pop_icon_layer, true);
+	layer_set_hidden((Layer *)wld->h2_pop_icon_layer, true);
+
 	layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h1_pop_icon_layer));
 	layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h2_pop_icon_layer));
 
@@ -292,6 +296,8 @@ void weather_layer_update(WeatherData *weather_data) {
 		// this is only needed to stop the error message when cancelling an already cancelled timer...
 		animation_timer_enabled = false;
 		layer_set_hidden(wld->loading_layer, true);
+		layer_set_hidden((Layer *)wld->h1_pop_icon_layer, false);
+		layer_set_hidden((Layer *)wld->h2_pop_icon_layer, false);
 	}
 
 	time_t current_time = time(NULL);
