@@ -63,7 +63,7 @@
             },
             {
                 "file": "fonts/futura_condensed_bold-webfont.ttf",
-                "name": "FUTURA_CONDENSED_53",
+                "name": "FUTURA_CONDENSED_50",
                 "type": "font"
             },
 		      {
@@ -220,6 +220,11 @@
 		        "type": "png",
 		        "name": "LOW",
 		        "file": "images/low.png"
+		      },
+		      {
+		        "type": "png",
+		        "name": "POP",
+		        "file": "images/pop.png"
 		      }
         ]
     },
