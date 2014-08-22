@@ -4,8 +4,6 @@ MWeather (Pebble SDK 2.0)
 
 This is my attempt at learning about the Pebble SDK by adjusting an app for my own needs. The original Weather My Way and Futura watchface was the cleanest and best looking design I had seen, I needed configureability in the hourly forecasts, as well other information a golfer would need to see if can golf the next morning or that afternoon. So I added another screen is contains the entended weather information
 
-## Give it a shot and let me know what you think: [download pbw here](https://github.com/jaredbiehler/weather-my-way/releases/download/1.1.1/weather-my-way-v1.1.1.pbw)
-
 ![pebble screen1](https://raw.githubusercontent.com/vajonam/mweather/stable/screenshots/pebble-screenshot_1.png)&nbsp;
 ![pebble screen2](https://raw.githubusercontent.com/vajonam/mweather/stable/screenshots/pebble-screenshot_2.png)&nbsp;
 ![pebble screen3](https://raw.githubusercontent.com/vajonam/mweather/stable/screenshots/pebble-screenshot_3.png)
