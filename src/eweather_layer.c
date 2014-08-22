@@ -4,6 +4,8 @@
 #include "eweather_layer.h"
 #include "gbitmap_tools.h"
 
+#define EWEATHER_FRAME   (GRect(144, 0, 288, 120))
+
 static Layer *eweather_layer;
 static GFont *small_font;
 
@@ -20,7 +22,7 @@ static char temp_low_text[] = "000X";
 void eweather_layer_create(GRect frame, Window *window) {
 
 
-	eweather_layer = layer_create_with_data(frame, sizeof(EWeatherLayerData));
+	eweather_layer = layer_create_with_data(EWEATHER_FRAME, sizeof(EWeatherLayerData));
 	EWeatherLayerData *ewd = layer_get_data(eweather_layer);
 
 
@@ -88,9 +90,6 @@ void eweather_layer_create(GRect frame, Window *window) {
 	text_layer_set_font(ewd->humidity_layer, small_font);
 	layer_add_child(eweather_layer, text_layer_get_layer(ewd->humidity_layer));
 
-	layer_add_child(window_get_root_layer(window), eweather_layer);
-	eweather_layer_hide(true);
-
 
 	ewd->temp_high_icon = gbitmap_create_with_resource(RESOURCE_ID_HIGH);
 	ewd->temp_high_icon_layer = bitmap_layer_create(GRect(75+5, 24, 20, 20));
@@ -125,12 +124,7 @@ void eweather_layer_create(GRect frame, Window *window) {
 	layer_add_child(eweather_layer, text_layer_get_layer(ewd->locale_layer));
 
 
-
-	layer_add_child(window_get_root_layer(window), eweather_layer);
-	eweather_layer_hide(true);
-
-
-
+	layer_add_child(get_weather_layer(), eweather_layer);
 
 
 
@@ -178,11 +172,6 @@ void eweather_layer_update(WeatherData *weather_data) {
 	text_layer_set_text(ewd->locale_layer, ewd->locale_str);
 }
 
-void eweather_layer_hide(bool hide) {
-
-	layer_set_hidden(eweather_layer, hide);
-
-}
 
 void eweather_layer_destroy() {
 
