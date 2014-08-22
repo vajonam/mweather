@@ -37,8 +37,6 @@ void min_layer_create(GRect frame, Window *window) {
 }
 
 void hour_layer_create(GRect frame, Window *window) {
-	font_time = fonts_load_custom_font(
-			resource_get_handle(RESOURCE_ID_FUTURA_CONDENSED_50));
 
 	hour_layer = text_layer_create(frame);
 	text_layer_set_text_color(hour_layer, GColorWhite);

@@ -243,10 +243,6 @@ void weather_layer_create(GRect frame, Window *window) {
 	text_layer_set_text_alignment(wld->h2_pop_layer, GTextAlignmentLeft);
 	layer_add_child(weather_layer, text_layer_get_layer(wld->h2_pop_layer));
 
-//	wld->h1_resized_data = malloc( 240 * sizeof(uint8_t));
-//	wld->h2_resized_data = malloc( 240 * sizeof(uint8_t));
-
-
 	wld->loading_layer = layer_create(GRect(43, 27, 50, 20));
 	layer_set_update_proc(wld->loading_layer, weather_animate_update);
 	layer_add_child(weather_layer, wld->loading_layer);
@@ -444,9 +440,6 @@ void weather_layer_destroy() {
 	if (wld->pop_icon != NULL) {
 		gbitmap_destroy(wld->pop_icon);
 	}
-
-//	free(wld->h1_resized_data);
-//	free(wld->h2_resized_data);
 
 
 	layer_destroy(weather_layer);
