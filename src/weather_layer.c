@@ -122,6 +122,9 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 		break;
 	}
 
+	bitmap_layer_set_bitmap(wld->h1_pop_icon_layer,wld->pop_icon);
+	bitmap_layer_set_bitmap(wld->h2_pop_icon_layer,wld->pop_icon);
+
 
 }
 
@@ -225,7 +228,7 @@ void weather_layer_create(GRect frame, Window *window) {
 			bitmap_layer_get_layer(wld->primary_icon_layer));
 
 
-    wld->h1_pop_icon_layer = bitmap_layer_create(GRect(62, 45+17, 11, 20));
+    wld->h1_pop_icon_layer = bitmap_layer_create(GRect(66, 45+17, 11, 20));
 	wld->h2_pop_icon_layer = bitmap_layer_create(GRect(105, 45+17, 11, 20));
 
 	layer_set_hidden((Layer *)wld->h1_pop_icon_layer, true);
@@ -234,24 +237,26 @@ void weather_layer_create(GRect frame, Window *window) {
 	layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h1_pop_icon_layer));
 	layer_add_child(weather_layer, bitmap_layer_get_layer(wld->h2_pop_icon_layer));
 
-	wld->h1_pop_layer = text_layer_create(GRect(76, 45+20, 38, 20));
+	wld->h1_pop_layer = text_layer_create(GRect(79, 45+20, 38, 20));
 	text_layer_set_text_color(wld->h1_pop_layer, GColorBlack);
 	text_layer_set_background_color(wld->h1_pop_layer, GColorClear);
 		text_layer_set_text_alignment(wld->h1_pop_layer, GTextAlignmentLeft);
+		text_layer_set_font(wld->h1_pop_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
 	layer_add_child(weather_layer, text_layer_get_layer(wld->h1_pop_layer));
 
 
-	wld->h2_pop_layer = text_layer_create(GRect(119, 45+20, 38, 20));
+	wld->h2_pop_layer = text_layer_create(GRect(120, 45+20, 38, 20));
 	text_layer_set_text_color(wld->h2_pop_layer, GColorBlack);
 	text_layer_set_background_color(wld->h2_pop_layer, GColorClear);
 	text_layer_set_text_alignment(wld->h2_pop_layer, GTextAlignmentLeft);
+	text_layer_set_font(wld->h2_pop_layer, fonts_get_system_font(FONT_KEY_GOTHIC_14));
 	layer_add_child(weather_layer, text_layer_get_layer(wld->h2_pop_layer));
 
 	wld->loading_layer = layer_create(GRect(43, 27, 50, 20));
 	layer_set_update_proc(wld->loading_layer, weather_animate_update);
 	layer_add_child(weather_layer, wld->loading_layer);
 
-	wld->updated_layer = text_layer_create(GRect(2, 70, 58 , 20));
+	wld->updated_layer = text_layer_create(GRect(2, 70, 59 , 20));
 	text_layer_set_text_color(wld->updated_layer, GColorBlack);
 	text_layer_set_background_color(wld->updated_layer, GColorClear);
 	text_layer_set_text_alignment(wld->updated_layer, GTextAlignmentCenter);
@@ -260,8 +265,6 @@ void weather_layer_create(GRect frame, Window *window) {
 
 
 	wld->pop_icon = gbitmap_create_with_resource(RESOURCE_ID_POP);
-	bitmap_layer_set_bitmap(wld->h1_pop_icon_layer,wld->pop_icon);
-	bitmap_layer_set_bitmap(wld->h2_pop_icon_layer,wld->pop_icon);
 
 
 	wld->primary_icon = NULL;
@@ -290,6 +293,10 @@ static bool is_night_time(int sunrise, int sunset, int utc) {
 			+ CIVIL_TWILIGHT_BUFFER);
 }
 
+Layer* get_weather_layer(){
+
+	return weather_layer;
+}
 // Update the bottom half of the screen: icon and temperature
 void weather_layer_update(WeatherData *weather_data) {
 	// We have no weather data yet... don't update until we do
@@ -419,9 +426,41 @@ void weather_layer_update(WeatherData *weather_data) {
 	}
 }
 
-void weather_layer_hide(bool hide){
 
-   layer_set_hidden(weather_layer,hide);
+void on_animation_stopped(Animation *anim, bool finished, void *context)
+{
+    //Free the memoery used by the Animation
+    property_animation_destroy((PropertyAnimation*) anim);
+}
+
+void animate_layer(Layer *layer, GRect *start, GRect *finish, int duration, int delay)
+{
+    //Declare animation
+    PropertyAnimation *anim = property_animation_create_layer_frame(layer, start, finish);
+
+    //Set characteristics
+    animation_set_duration((Animation*) anim, duration);
+    animation_set_delay((Animation*) anim, delay);
+
+    //Set stopped handler to free memory
+    AnimationHandlers handlers = {
+        //The reference to the stopped handler is the only one in the array
+        .stopped = (AnimationStoppedHandler) on_animation_stopped
+    };
+    animation_set_handlers((Animation*) anim, handlers, NULL);
+
+    //Start animation!
+    animation_schedule((Animation*) anim);
+}
+
+void show_extended_weather(bool hide){
+
+	GRect start = WEATHER_FRAME_START;
+	GRect end  = WEATHER_FRAME_END;
+	if (hide)
+		animate_layer(weather_layer, &start, &end, ANIM_DURATION, 0);
+	else
+		animate_layer(weather_layer, &end, &start, ANIM_DURATION, 0);
 
 }
 
@@ -794,3 +833,7 @@ uint8_t wunder_weather_icon_for_condition(int c, bool night_time) {
 		return W_ICON_NOT_AVAILABLE;
 	}
 }
+
+
+
+

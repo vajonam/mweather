@@ -12,7 +12,7 @@
 #define HOUR_FRAME      (GRect(0, -5, 64, 64))
 #define MIN_FRAME       (GRect(80, -5, 144, 64))
 #define DATE_FRAME      (GRect(1, 50, 144, 168))
-#define WEATHER_FRAME   (GRect(0, 78, 144, 120))
+#define WEATHER_FRAME   (GRect(0, 78, 288, 120))
 #define DEBUG_FRAME     (GRect(0, 0, 144, 15))
 #define BATTERY_FRAME   (GRect(66,10, 78, 40))
 
@@ -30,9 +30,10 @@ static AppTimer *tap_timer;
 static AppTimer *eweather_timer;
 
 
-#define TAP_TIME 3000
+#define TAP_TIME 10*1000
 #define EWEATHER_TIME 10*1000
 static bool is_tapped_waiting;
+
 
 static void timer_callback() {
   is_tapped_waiting = false;
@@ -41,35 +42,30 @@ static void timer_callback() {
   // vibes_short_pulse();
 }
 
+
 // Tap Handlervoid accel_tap_handler(AccelAxisType axis, int32_t direction)
 static void handle_tap(AccelAxisType axis,  int32_t direction) {
-  if (1) {
     if (!is_tapped_waiting) {
       is_tapped_waiting = true;
       tap_timer = app_timer_register(TAP_TIME, timer_callback, NULL);
     }
-
     else {
       double_tap();
-
       app_timer_cancel(tap_timer);
       is_tapped_waiting = false;
-    }
   }
 }
 
 void double_tap() {
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "Showing extended weather");
-	weather_layer_hide(true);
-	eweather_layer_hide(false);
+
+	show_extended_weather(true);
 	eweather_timer = app_timer_register(EWEATHER_TIME, dismiss_ewather, NULL);
 
 }
 
 void dismiss_ewather() {
 
-	eweather_layer_hide(true);
-	weather_layer_hide(false);
+	show_extended_weather(false);
 }
 
 // Add below to handle_init
@@ -119,9 +115,9 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 */
 
 
-  // Refresh the weather info every 15 mins, targeting 2 mins before the hour (Yahoo updates around then)
+  // Refresh the weather info every 15 mins, targeting 18 mins after the hour (Yahoo updates around then)
   if ((units_changed & MINUTE_UNIT) && 
-      (tick_time->tm_min % 15 == 13) &&
+      (tick_time->tm_min % 15 == 3) &&
       !initial_request) {
     request_weather(weather_data);
   }
@@ -140,6 +136,10 @@ void initial_jsready_callback()
 
   request_weather(weather_data); 
 }
+
+
+
+
 
 static void init(void) 
 {

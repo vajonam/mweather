@@ -12,6 +12,8 @@ static bool is_animating = false;
 static bool is_enabled   = false;
 static int8_t dots = 4;
 
+
+
 static void handle_battery(BatteryChargeState charge_state) 
 {
   uint8_t charge = charge_state.charge_percent;

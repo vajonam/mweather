@@ -93,7 +93,11 @@ void weather_layer_clear_temperature();
 uint8_t open_weather_icon_for_condition(int condition, bool night_time);
 uint8_t yahoo_weather_icon_for_condition(int condition, bool night_time);
 uint8_t wunder_weather_icon_for_condition(int c, bool night_time);
-void weather_layer_hide(bool hide);
+void show_extended_weather(bool hide);
+Layer* get_weather_layer();
 
+#define WEATHER_FRAME_START   (GRect(0, 78, 288, 120))
+#define WEATHER_FRAME_END     (GRect(-144, 78, 288, 120))
+#define ANIM_DURATION 750
 
 #endif
