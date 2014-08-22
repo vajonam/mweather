@@ -1,7 +1,7 @@
 var SERVICE_OPEN_WEATHER  = "open";
 var SERVICE_YAHOO_WEATHER = "yahoo";
 var EXTERNAL_DEBUG_URL    = '';
-var CONFIGURATION_URL     = 'http://vajonam.github.io/weather-my-way/config/';
+var CONFIGURATION_URL     = 'http://vajonam.github.io/mweather/config/';
 
 var Global = {
   externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
