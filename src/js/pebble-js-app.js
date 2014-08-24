@@ -213,7 +213,7 @@ var fetchYahooWeather = function(latitude, longitude) {
   multi       = "SELECT * FROM yql.query.multi WHERE queries='"+query+" "+neighbor+"'";
   options.url = "https://query.yahooapis.com/v1/public/yql?format=json&q="+encodeURIComponent(multi)+"&nocache="+new Date().getTime();
 
-  options.parse = function(response) {
+    options.parse = function(response) {
       var sunrise, sunset, pubdate, locale, humidity, wind_speed, wind_dir,temp_high,temp_low;
 
       sunrise = response.query.results.results[0].channel.astronomy.sunrise;
@@ -226,7 +226,7 @@ var fetchYahooWeather = function(latitude, longitude) {
       pubdate = new Date(Date.parse(response.query.results.results[0].channel.item.pubDate));
       locale  = response.query.results.results[1].Result.neighborhood;
 
-	
+		
       if (locale === null) {
         locale = response.query.results.results[1].Result.city;
       }
@@ -240,21 +240,20 @@ var fetchYahooWeather = function(latitude, longitude) {
           temperature = parseInt(response.query.results.results[0].channel.wind.chill);
       } else 
           temperature = parseInt(response.query.results.results[0].channel.item.condition.temp);
-      
-        
+	
       return {
         condition:   parseInt(response.query.results.results[0].channel.item.condition.code),
         temperature: temperature,
         sunrise:     Date.parse(new Date().toDateString()+" "+sunrise) / 1000,
         sunset:      Date.parse(new Date().toDateString()+" "+sunset) / 1000,
         locale:      locale,
-        pubdate:     pubdate.getHours()+':'+('0'+pubdate.getMinutes()).slice(-2),
+        pubdate:     pubdate / 1000,
         tzoffset:    new Date().getTimezoneOffset() * 60,
-	humidity:    parseInt(humidity),
-	wind_speed:  parseInt(wind_speed),
-        wind_dir:    parseInt(wind_dir),
-	temp_high:   parseInt(temp_high),
-	temp_low:   parseInt(temp_low)
+		humidity:    parseInt(humidity),
+		wind_speed:  parseInt(wind_speed),
+	        wind_dir:    parseInt(wind_dir),
+		temp_high:   parseInt(temp_high),
+		temp_low:   parseInt(temp_low)
 
 	
       };
@@ -292,7 +291,7 @@ var fetchOpenWeather = function(latitude, longitude) {
         sunrise:     sunrise,
         sunset:      sunset,
         locale:      response.name,
-        pubdate:     pubdate.getHours()+':'+('0'+pubdate.getMinutes()).slice(-2),
+        pubdate:     pubdate / 1000,
         tzoffset:    new Date().getTimezoneOffset() * 60,
 	humidity:    parseInt(humidity),
 	wind_speed:  parseInt(wind_speed),

@@ -26,7 +26,7 @@ typedef struct {
 	TextLayer *temp_low_layer;
 
 	TextLayer *locale_layer;
-	char locale_str[100];
+	char locale_pubDate_str[100];
 
 } EWeatherLayerData;
 

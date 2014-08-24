@@ -166,10 +166,19 @@ void eweather_layer_update(WeatherData *weather_data) {
 			weather_data->temp_low);
 	text_layer_set_text(ewd->temp_low_layer, temp_low_text);
 
-	snprintf(ewd->locale_str, sizeof(ewd->locale_str), "%s @ %s",
-						weather_data->locale, weather_data->pub_date );
+	time_t pubdate_t = weather_data->pub_date - weather_data->tzoffset;
 
-	text_layer_set_text(ewd->locale_layer, ewd->locale_str);
+	struct tm *pubdateTime = localtime(&pubdate_t);
+	char pubdate_str[] = "00:00XX";
+
+	strftime(pubdate_str, sizeof(pubdate_str),
+			clock_is_24h_style() ? "%R" : "%l:%M%p", pubdateTime);
+
+	snprintf(ewd->locale_pubDate_str, sizeof(ewd->locale_pubDate_str), "%s @ %s",
+						weather_data->locale, pubdate_str );
+
+
+	text_layer_set_text(ewd->locale_layer, ewd->locale_pubDate_str);
 }
 
 

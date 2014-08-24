@@ -75,7 +75,8 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 		weather->temp_high= temp_high_tuple->value->int32;
 		weather->temp_low= temp_low_tuple->value->int32;
 
-		strncpy(weather->pub_date, pub_date_tuple->value->cstring, 6);
+		weather->pub_date = pub_date_tuple->value->int32;
+
 		strncpy(weather->locale, locale_tuple->value->cstring, 255);
 
 		if (weather->debug) {
@@ -85,7 +86,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 
 		APP_LOG(
 				APP_LOG_LEVEL_DEBUG,
-				"Weather temp:%i cond:%i pd:%s tzos:%i loc:%s",
+				"Weather temp:%i cond:%i pd:%i tzos:%i loc:%s",
 				weather->temperature, weather->condition, weather->pub_date,
 				weather->tzoffset, weather->locale );
 		APP_LOG(APP_LOG_LEVEL_DEBUG,

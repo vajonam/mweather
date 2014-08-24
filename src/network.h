@@ -50,7 +50,7 @@ typedef struct {
   int condition;
   int sunrise;
   int sunset;
-  char pub_date[6];
+  int pub_date;
   int tzoffset;
   char locale[255];
   
