@@ -62,7 +62,7 @@ void debug_update_weather(WeatherData *weather_data)
     struct tm *updated_time = localtime(&last_updated);
     strftime(last_update_text, sizeof(last_update_text), "%R", updated_time);
     snprintf(debug_msg, sizeof(debug_msg), 
-      "L%s, P%s, %s", last_update_text, weather_data->pub_date, weather_data->locale);
+      "L%s, P%i, %s", last_update_text, weather_data->pub_date, weather_data->locale);
 
     // reset localtime, critical as localtime modifies a shared object!
     time_t currentTime = time(NULL);
