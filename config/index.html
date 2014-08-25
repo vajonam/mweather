@@ -108,6 +108,14 @@
             </select>
         </div>
 
+        <div data-role="fieldcontain" id="forecastAuto" >
+            <label for="flipfeelslike">Use automatic forecasts:</label>
+            <select name="flipautoforecast" id="flipautoforecast" data-role="slider" data-mini="true">
+                <option value="off">Off</option>
+                <option value="on">On</option>
+            </select>
+        </div>
+
 
         <div data-role="fieldcontain">
             <fieldset data-role="controlgroup" data-type="horizontal" data-mini="true">
@@ -155,6 +163,7 @@
             'debug':   $("select[name=flipdebug]").prop('selectedIndex')   ? 'true' : 'false',
             'h1_offset':   $("select[name=h1_offset]").prop('selectedIndex')  ,
             'h2_offset':   $("select[name=h2_offset]").prop('selectedIndex')  ,
+            'autoforecast': $("select[name=flipautoforecast]").prop('selectedIndex') ? 'on' : 'off',
             'wuApiKey':$("select[name=fliphourly]").prop('selectedIndex')  ? $("#text-apikey").val() : null
         };
     }
@@ -178,6 +187,7 @@
 		$("#h2_offset").show();
 		$("#1stF").show();
 		$("#2ndF").show();
+		$("#forecastAuto").show();
 	        if (!initialLoad) {
                     $("#popupCloseRight").popup("open");
                 }
@@ -186,6 +196,7 @@
 		$("#1stF").hide();
 	        $("#2ndF").hide();
 		$("#h1_offset").hide();
+		$("#forecastAuto").hide();
 		$("#h2_offset").hide();
 		
             }
