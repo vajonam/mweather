@@ -245,8 +245,8 @@
             flipFeelslike.prop('selectedIndex', 1);
         }
         var flipAutoForecast = $("select[name=flipautoforecast]");
-        var af = getURLParameter('af');
-        if (af === 'off') {
+	var af = getURLParameter('af');
+	if (af === 'off') {
             flipAutoForecast.prop('selectedIndex', 0);
         } else {
             flipAutoForecast.prop('selectedIndex', 1);
@@ -273,6 +273,7 @@
         $("select[name=flipfeelslike]").slider("refresh");
 	$("select[name=flipdebug]").slider("refresh");
 	$("select[name=flipbattery]").slider("refresh");
+	$("select[name=flipautoforecast]").slider("refresh");
 	
         $("#b-cancel").click(function() {
             console.log("Cancel");
