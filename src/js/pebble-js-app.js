@@ -2,13 +2,18 @@ var SERVICE_OPEN_WEATHER  = "open";
 var SERVICE_YAHOO_WEATHER = "yahoo";
 var EXTERNAL_DEBUG_URL    = '';
 var CONFIGURATION_URL     = 'http://vajonam.github.io/mweather/config/';
+var CIVIL_TWILIGHT_BUFFER = 15*60*1000;
+	
 
 var Global = {
   externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
   wuApiKey:          '', // register for a free api key!
   hourlyIndex1:      1, // 2 Hours from now 
   hourlyIndex2:      5, // 6 hours from now
+  autoHourlyIndex1:      1, // 2 Hours from now 
+  autoHourlyIndex2:      5, // 6 hours from now
   updateInProgress:  false,
+  weatherUpdateComplete:  false,
   updateWaitTimeout: 1 * 60 * 1000, // one minute in ms
   lastUpdateAttempt: new Date(),
   maxRetry:          3,
@@ -18,9 +23,16 @@ var Global = {
     batteryEnabled: true,
     weatherService: SERVICE_YAHOO_WEATHER,
     weatherScale:   'F',
-    feelsLikeEnabled:   true
+    feelsLikeEnabled:   true,
+    useAutoForecast:   true
   },
 };
+
+var Weather = {
+	sunrise: 0,
+	sunset: 0,
+};
+
 
 // Allow console messages to be turned on / off 
 (function(){
@@ -56,6 +68,7 @@ Pebble.addEventListener("appmessage", function(data) {
       Global.config.debugEnabled   = data.payload.debug   === 1;
       Global.config.batteryEnabled = data.payload.battery === 1;
       Global.config.feelsLikeEnabled   = data.payload.feelslike === 1;
+      Global.config.useAutoForecast   = data.payload.autoforecast === 1;
       Global.config.weatherScale   = data.payload.scale   === 'C' ? 'C' : 'F';
       Global.hourlyIndex1          = data.payload.h1_offset;
       Global.hourlyIndex2          = data.payload.h2_offset;
@@ -78,6 +91,7 @@ Pebble.addEventListener("showConfiguration", function (e) {
       'u': Global.config.weatherScale,
       'h1': Global.hourlyIndex1,
       'h2': Global.hourlyIndex2,
+      'af': Global.config.useAutoForecast ? 'on' : 'off',
       'b': Global.config.batteryEnabled ? 'on' : 'off',
       'a': Global.wuApiKey
     }
@@ -113,6 +127,7 @@ Pebble.addEventListener("webviewclosed", function(e) {
         Global.hourlyIndex1 = settings.h1_offset;
         Global.hourlyIndex2 = settings.h2_offset;
         Global.config.feelsLikeEnabled   = settings.feelslike === 'on';
+        Global.config.useAutoForecast = settings.autoforecast === 'on';
         Global.wuApiKey              = settings.wuApiKey;
 
         if (Global.wuApiKey !== null) {
@@ -128,7 +143,8 @@ Pebble.addEventListener("webviewclosed", function(e) {
           h2_offset:   Global.hourlyIndex2,
           debug:   Global.config.debugEnabled   ? 1 : 0,
           battery: Global.config.batteryEnabled ? 1 : 0,
-          feelslike: Global.config.feelsLikeEnabled ? 1 : 0
+          feelslike: Global.config.feelsLikeEnabled ? 1 : 0,
+          autoforecast: Global.config.useAutoForecast ? 1 : 0
         };
 
         Pebble.sendAppMessage(config, ack, function(ev){
@@ -183,6 +199,9 @@ var locationSuccess = function (pos) {
     } else {
       fetchYahooWeather(coordinates.latitude, coordinates.longitude);
     }
+
+  
+  	
     if (Global.wuApiKey !== null) {
       fetchWunderWeather(coordinates.latitude, coordinates.longitude);
     } else {
@@ -226,7 +245,10 @@ var fetchYahooWeather = function(latitude, longitude) {
       pubdate = new Date(Date.parse(response.query.results.results[0].channel.item.pubDate));
       locale  = response.query.results.results[1].Result.neighborhood;
 
-		
+		Weather.sunrise = Date.parse(new Date().toDateString()+" "+sunrise);
+		Weather.sunset = Date.parse(new Date().toDateString()+" "+sunset);
+
+	
       if (locale === null) {
         locale = response.query.results.results[1].Result.city;
       }
@@ -241,6 +263,7 @@ var fetchYahooWeather = function(latitude, longitude) {
       } else 
           temperature = parseInt(response.query.results.results[0].channel.item.condition.temp);
 	
+	  Global.weatherUpdateComplete = true;
       return {
         condition:   parseInt(response.query.results.results[0].channel.item.condition.code),
         temperature: temperature,
@@ -285,6 +308,11 @@ var fetchOpenWeather = function(latitude, longitude) {
       humidity = response.main.humidity;
       pubdate   = new Date(response.dt*1000); 
 
+	  Weather.sunrise = sunrise.getTime();
+	  Weather.sunset = sunset.getTime();
+	
+		Global.weatherUpdateComplete = true;
+		
       return {
         condition:   condition,
         temperature: temperature, 
@@ -293,11 +321,11 @@ var fetchOpenWeather = function(latitude, longitude) {
         locale:      response.name,
         pubdate:     pubdate / 1000,
         tzoffset:    new Date().getTimezoneOffset() * 60,
-	humidity:    parseInt(humidity),
-	wind_speed:  parseInt(wind_speed),
-        wind_dir:    parseInt(wind_dir),
-	temp_high:   parseInt(temp_high),
-	temp_low:   parseInt(temp_low)
+		humidity:    parseInt(humidity),
+		wind_speed:  parseInt(wind_speed),
+	    wind_dir:    parseInt(wind_dir),
+		temp_high:   parseInt(temp_high),
+		temp_low:   parseInt(temp_low)
 
       };
   };
@@ -307,16 +335,52 @@ var fetchOpenWeather = function(latitude, longitude) {
 var fetchWunderWeather = function(latitude, longitude) {
 
   var options = {};
+
+  
+   
   options.url = 'http://api.wunderground.com/api/'+Global.wuApiKey+'/hourly/q/'+latitude+','+longitude+'.json';
-
   options.parse = function(response) {
-        
-      var h1 = response.hourly_forecast[Global.hourlyIndex1],
-          h2 = response.hourly_forecast[Global.hourlyIndex2];  
+   
+	
+       var h1 = response.hourly_forecast[Global.hourlyIndex1],
+	  h2 = response.hourly_forecast[Global.hourlyIndex2];  
 
+
+      if ((Weather.sunrise != 0 && Weather.sunset != 0 ) && Global.config.useAutoForecast) {
+
+       	  var sunriseDate = new Date(Weather.sunrise);
+	      var sunsetDate = new Date(Weather.sunset);
+	      var timeNow = new Date();
+	      
+	      var sunrisehours =  sunriseDate.getHours()
+	      var sunsethours =  sunsetDate.getHours()
+	      var currenthours = timeNow.getHours();
+
+		if ( currenthours < sunrisehours  || currenthours >= sunsethours+2 ) {
+	      
+				console.log("SUNRISE "+ sunrisehours);
+		 		console.log("SUNSET  "+ sunsethours);
+				console.log("TIMENOW  "+ currenthours);	
+				
+				if (currenthours > sunrisehours) { // if its past sunruse, show sunriise for the next day
+				Global.autoHourlyIndex1 = 23-currenthours+sunrisehours;
+				Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2;
+				console.log("H1 "+ Global.autoHourlyIndex1 + " H2 " + Global.autoHourlyIndex2);
+				} else if (currenthours == sunrisehours){ //if its exactly sunruse, show normal hourly forecasts
+					Global.autoHourlyIndex1 = Globa.hourlyIndex1;
+					Global.autoHourlyIndex1 = Globa.hourlyIndex2;
+				console.log("H1 "+ Global.autoHourlyIndex1 + " H2 " + Global.autoHourlyIndex2);
+ 				} else { // if its before sunrise show the forecast fo the sunrise hour and 2nd index + that, insteaed of curret + local
+ 					Global.autoHourlyIndex1 = sunrisehours-currenthours;
+ 					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2;
+ 				}
+
+			   	  h1 = response.hourly_forecast[Global.autoHourlyIndex1];
+				  h2 = response.hourly_forecast[Global.autoHourlyIndex2];  
     
-    console.log("h1:" + JSON.stringify(h1));
-    console.log("h2:" + JSON.stringify(h2));
+		} 
+	} 
+  
         var h1_temp;
         var h2_temp;
       if (Global.config.feelsLikeEnabled) {
@@ -328,7 +392,6 @@ var fetchWunderWeather = function(latitude, longitude) {
            h2_temp = Global.config.weatherScale === 'C' ? parseInt(h2.temp.metric) : parseInt(h2.temp.english);
           
         }
-    
           
       return {
         h1_temp: h1_temp,
@@ -343,6 +406,8 @@ var fetchWunderWeather = function(latitude, longitude) {
   };
   fetchWeather(options);
 };
+
+
 
 
 var fetchWeather = function(options) {
@@ -429,3 +494,6 @@ var serialize = function(obj) {
     }
   return str.join("&");
 }
+
+
+

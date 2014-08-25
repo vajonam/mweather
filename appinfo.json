@@ -29,7 +29,8 @@
         "wind_dir":26,
         "humidity":27,
 		"temp_high":28,
-        "temp_low":29
+        "temp_low":29,
+		"autoforecast":30
     },
     "capabilities": [
         "location",

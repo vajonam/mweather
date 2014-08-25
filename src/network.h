@@ -30,6 +30,7 @@
 #define KEY_HUMIDITY 27
 #define KEY_TEMP_HIGH 28
 #define KEY_TEMP_LOW  29
+#define KEY_AUTO_FORECAST 30
 
 
 
@@ -59,6 +60,8 @@ typedef struct {
   bool debug;
   bool battery;
   bool feels_like;
+  bool auto_forecast;
+
 
   int wind_speed;
   int wind_dir;

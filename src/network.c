@@ -40,6 +40,7 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 	Tuple *battery_tuple = dict_find(received, KEY_BATTERY);
 	Tuple *feelslike_tuple = dict_find(received, KEY_FEELS_LIKE);
 
+	Tuple *autoforecast_offset_tuple = dict_find(received, KEY_AUTO_FORECAST);
 	Tuple *h1_offset_tuple = dict_find(received, KEY_H1_OFFSET);
 	Tuple *h2_offset_tuple = dict_find(received, KEY_H2_OFFSET);
 
@@ -109,13 +110,14 @@ static void appmsg_in_received(DictionaryIterator *received, void *context) {
 		weather->debug = (bool) debug_tuple->value->int32;
 		weather->battery = (bool) battery_tuple->value->int32;
 		weather->feels_like = (bool) feelslike_tuple->value->int32;
+		weather->auto_forecast = (bool) autoforecast_offset_tuple->value->int32;
 		weather->h1_offset = (uint32_t) h1_offset_tuple->value->int32;
 		weather->h2_offset = (uint32_t) h2_offset_tuple->value->int32;
 
 		APP_LOG(APP_LOG_LEVEL_DEBUG,
-				"Configuration serv:%s scale:%s debug:%i batt:%i feeslike:%i",
+				"Configuration serv:%s scale:%s debug:%i batt:%i feeslike:%i feeslike:%i",
 				weather->service, weather->scale, weather->debug,
-				weather->battery, weather->feels_like);
+				weather->battery, weather->feels_like, weather->auto_forecast);
 
 		if (weather->battery) {
 			battery_enable_display();
@@ -297,6 +299,7 @@ void request_weather(WeatherData *weather_data) {
 	dict_write_uint8(iter, KEY_FEELS_LIKE, (uint8_t) weather_data->feels_like);
 	dict_write_uint32(iter, KEY_H1_OFFSET, (uint32_t) weather_data->h1_offset);
 	dict_write_uint32(iter, KEY_H2_OFFSET, (uint32_t) weather_data->h2_offset);
+	dict_write_uint32(iter, KEY_AUTO_FORECAST, (uint32_t) weather_data->auto_forecast);
 
 	dict_write_end(iter);
 

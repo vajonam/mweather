@@ -113,27 +113,27 @@ void battery_layer_update(Layer *me, GContext *ctx)
 
 	case 1:
 		graphics_draw_circle(ctx, GPoint(6, start_y - (1 * spacer)), 5);
-		graphics_draw_circle(ctx, GPoint(6, start_y - (1 * spacer)), 4);
+		//graphics_draw_circle(ctx, GPoint(6, start_y - (1 * spacer)), 4);
 		graphics_draw_circle(ctx, GPoint(6, start_y - (2 * spacer)), 5);
-		graphics_draw_circle(ctx, GPoint(6, start_y - (2 * spacer)), 4);
+		///graphics_draw_circle(ctx, GPoint(6, start_y - (2 * spacer)), 4);
 		break;
 	case 2:
 		graphics_draw_circle(ctx, GPoint(6, start_y - (1 * spacer)), 5);
-		graphics_draw_circle(ctx, GPoint(6, start_y - (1 * spacer)), 4);
+		//graphics_draw_circle(ctx, GPoint(6, start_y - (1 * spacer)), 4);
 		graphics_fill_circle(ctx, GPoint(6, start_y - (1 * spacer)), 2);
 		graphics_draw_circle(ctx, GPoint(6, start_y - (2 * spacer)), 5);
-		graphics_draw_circle(ctx, GPoint(6, start_y - (2 * spacer)), 4);
+		//graphics_draw_circle(ctx, GPoint(6, start_y - (2 * spacer)), 4);
     break;
 	case 3:
 		graphics_fill_circle(ctx, GPoint(6, start_y - (1 * spacer)), 5);
 		graphics_draw_circle(ctx, GPoint(6, start_y - (2 * spacer)), 5);
-		graphics_draw_circle(ctx, GPoint(6, start_y - (2 * spacer)), 4);
+		//graphics_draw_circle(ctx, GPoint(6, start_y - (2 * spacer)), 4);
 	break;
 	case 4:
 		graphics_fill_circle(ctx, GPoint(6, start_y - (1 * spacer)), 5);
 		graphics_fill_circle(ctx, GPoint(6, start_y - (2 * spacer)), 2);
 		graphics_draw_circle(ctx, GPoint(6, start_y - (2 * spacer)), 5);
-		graphics_draw_circle(ctx, GPoint(6, start_y - (2 * spacer)), 4);
+		//gaphics_draw_circle(ctx, GPoint(6, start_y - (2 * spacer)), 4);
 		break;
 	case 5:
 		graphics_fill_circle(ctx, GPoint(6, start_y - (1 * spacer)), 5);
