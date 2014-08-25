@@ -3,7 +3,7 @@ var SERVICE_YAHOO_WEATHER = "yahoo";
 var EXTERNAL_DEBUG_URL    = '';
 var CONFIGURATION_URL     = 'http://vajonam.github.io/mweather/config/';
 var CIVIL_TWILIGHT_BUFFER = 15*60*1000;
-	
+var HOURS_IN_A_DAY 		  = 23 ; // 24hr clock
 
 var Global = {
   externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
@@ -346,37 +346,34 @@ var fetchWunderWeather = function(latitude, longitude) {
 	  h2 = response.hourly_forecast[Global.hourlyIndex2];  
 
 
-      if ((Weather.sunrise != 0 && Weather.sunset != 0 ) && Global.config.useAutoForecast) {
+      if (Global.config.useAutoForecast && (Weather.sunrise != 0 && Weather.sunset != 0 )) {
 
        	  var sunriseDate = new Date(Weather.sunrise);
 	      var sunsetDate = new Date(Weather.sunset);
 	      var timeNow = new Date();
 	      
+	      // dont care about the date, because its confusing, lets just worry about hours.
 	      var sunrisehours =  sunriseDate.getHours()
 	      var sunsethours =  sunsetDate.getHours()
 	      var currenthours = timeNow.getHours();
 
-		if ( currenthours < sunrisehours  || currenthours >= sunsethours+2 ) {
 	      
-				console.log("SUNRISE "+ sunrisehours);
-		 		console.log("SUNSET  "+ sunsethours);
-				console.log("TIMENOW  "+ currenthours);	
+	      // if its between sunset and sunrise, then show the forecase only for sunrise and sunrise + h2_offset
+	      /// if its between surise and sunset, not auto forecast, biz as usual
+		if ( currenthours < sunrisehours  || currenthours >= sunsethours+2 ) { 
+	      
 				
-				if (currenthours > sunrisehours) { // if its past sunruse, show sunriise for the next day
-				Global.autoHourlyIndex1 = 23-currenthours+sunrisehours;
-				Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2;
-				console.log("H1 "+ Global.autoHourlyIndex1 + " H2 " + Global.autoHourlyIndex2);
-				} else if (currenthours == sunrisehours){ //if its exactly sunruse, show normal hourly forecasts
-					Global.autoHourlyIndex1 = Globa.hourlyIndex1;
-					Global.autoHourlyIndex1 = Globa.hourlyIndex2;
-				console.log("H1 "+ Global.autoHourlyIndex1 + " H2 " + Global.autoHourlyIndex2);
- 				} else { // if its before sunrise show the forecast fo the sunrise hour and 2nd index + that, insteaed of curret + local
+				if (currenthours > sunrisehours) { // if its past sunruse, show sunrise for the next day
+					Global.autoHourlyIndex1 = HOURS_IN_A_DAY-currenthours+sunrisehours;
+					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2;
+ 				} else { // if its before sunrise show the forecast for the sunrise hour and 2nd index + that hour
+ 						 // insteaed of absolute hours 
  					Global.autoHourlyIndex1 = sunrisehours-currenthours;
  					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2;
  				}
 
-			   	  h1 = response.hourly_forecast[Global.autoHourlyIndex1];
-				  h2 = response.hourly_forecast[Global.autoHourlyIndex2];  
+			  h1 = response.hourly_forecast[Global.autoHourlyIndex1];
+			  h2 = response.hourly_forecast[Global.autoHourlyIndex2];  
     
 		} 
 	} 
