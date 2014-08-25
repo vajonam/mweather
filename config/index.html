@@ -244,8 +244,15 @@
         } else {
             flipFeelslike.prop('selectedIndex', 1);
         }
-
-        var flipBattery = $("select[name=flipbattery]");
+        var flipAutoForecast = $("select[name=flipautoforecast]");
+        var af = getURLParameter('af');
+        if (af === 'off') {
+            flipAutoForecast.prop('selectedIndex', 0);
+        } else {
+            flipAutoForecast.prop('selectedIndex', 1);
+        }
+        
+	var flipBattery = $("select[name=flipbattery]");
         var battery = getURLParameter('b');
         if (battery === 'off') {
             flipBattery.prop('selectedIndex', 0);
