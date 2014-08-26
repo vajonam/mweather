@@ -384,14 +384,25 @@ void weather_layer_update(WeatherData *weather_data) {
 
 			localtime(&current_time);
 
-			night_time = is_night_time(weather_data->sunrise,
-					weather_data->sunset, weather_data->h1_time);
+			APP_LOG(APP_LOG_LEVEL_DEBUG, "sunrse %i, sunset %i, h1,h2 time %i %i ",weather_data->sunrise, weather_data->sunset, weather_data->h1_time,weather_data->h2_time);
+
+			// Auto Mode
+			if ((weather_data->h1_time-weather_data->sunrise)/3600 >= 23)
+				night_time = is_night_time(weather_data->sunrise+(23*60*60),weather_data->sunset+(24*60*60), weather_data->h1_time);
+			else
+				night_time = is_night_time(weather_data->sunrise,weather_data->sunset, weather_data->h1_time);
+
 			weather_layer_set_icon(
 					wunder_weather_icon_for_condition(weather_data->h1_cond,
 							night_time), AREA_HOURLY1);
 
-			night_time = is_night_time(weather_data->sunrise,
-					weather_data->sunset, weather_data->h2_time);
+			if ((weather_data->h2_time-weather_data->sunrise)/3600 >= 23) {
+				night_time = is_night_time(weather_data->sunrise+(24*60*60),weather_data->sunset+(24*60*60), weather_data->h2_time);
+				//	APP_LOG(APP_LOG_LEVEL_DEBUG, "sunrse %i, sunset %i, h2 time %i ",weather_data->sunrise+(24*60*60), weather_data->sunset+(24*60*60), weather_data->h2_time);
+				//APP_LOG(APP_LOG_LEVEL_DEBUG, "h2 night_time %i",night_time);
+			} else {
+				night_time = is_night_time(weather_data->sunrise,weather_data->sunset, weather_data->h2_time);
+			}
 			weather_layer_set_icon(
 					wunder_weather_icon_for_condition(weather_data->h2_cond,
 							night_time), AREA_HOURLY2);

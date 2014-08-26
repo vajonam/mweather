@@ -31,6 +31,9 @@ var Global = {
 var Weather = {
 	sunrise: 0,
 	sunset: 0,
+	lat: null,
+	long: null
+
 };
 
 
@@ -193,6 +196,9 @@ var updateWeather = function () {
 
 var locationSuccess = function (pos) {
     var coordinates = pos.coords;
+    Weather.lat = coordinates.latitude;
+    Weather.long = coordinates.longitude;
+    
     console.log("Got coordinates: " + JSON.stringify(coordinates));
     if (Global.config.weatherService === SERVICE_OPEN_WEATHER) {
       fetchOpenWeather(coordinates.latitude, coordinates.longitude);
@@ -200,17 +206,7 @@ var locationSuccess = function (pos) {
       fetchYahooWeather(coordinates.latitude, coordinates.longitude);
     }
 
-  
-  	
-    if (Global.wuApiKey !== null) {
-      fetchWunderWeather(coordinates.latitude, coordinates.longitude);
-    } else {
-      var data = {hourly_enabled: 0};
-      console.log("Hourly disabled, no WU ApiKey");
-      Pebble.sendAppMessage(data, ack, function(ev){
-          nack(data);
-      });
-    }
+
 }
 
 var locationError = function (err) {
@@ -232,57 +228,80 @@ var fetchYahooWeather = function(latitude, longitude) {
   multi       = "SELECT * FROM yql.query.multi WHERE queries='"+query+" "+neighbor+"'";
   options.url = "https://query.yahooapis.com/v1/public/yql?format=json&q="+encodeURIComponent(multi)+"&nocache="+new Date().getTime();
 
-    options.parse = function(response) {
-      var sunrise, sunset, pubdate, locale, humidity, wind_speed, wind_dir,temp_high,temp_low;
+  
+  getJson(options.url, fetchYahooWeatherCallBack);
+  
+};
 
-      sunrise = response.query.results.results[0].channel.astronomy.sunrise;
-      sunset  = response.query.results.results[0].channel.astronomy.sunset;
-      humidity  = response.query.results.results[0].channel.atmosphere.humidity;
-      wind_speed  = response.query.results.results[0].channel.wind.speed;
-      wind_dir  = response.query.results.results[0].channel.wind.direction;
-      temp_high  = response.query.results.results[0].channel.item.forecast[0].high;
-      temp_low  = response.query.results.results[0].channel.item.forecast[0].low;
-      pubdate = new Date(Date.parse(response.query.results.results[0].channel.item.pubDate));
-      locale  = response.query.results.results[1].Result.neighborhood;
 
-		Weather.sunrise = Date.parse(new Date().toDateString()+" "+sunrise);
-		Weather.sunset = Date.parse(new Date().toDateString()+" "+sunset);
+var fetchYahooWeatherCallBack  = function(err,response) {
+	
+    var sunrise, sunset, pubdate, locale, humidity, wind_speed, wind_dir,temp_high,temp_low;
+
+    sunrise = response.query.results.results[0].channel.astronomy.sunrise;
+    sunset  = response.query.results.results[0].channel.astronomy.sunset;
+    humidity  = response.query.results.results[0].channel.atmosphere.humidity;
+    wind_speed  = response.query.results.results[0].channel.wind.speed;
+    wind_dir  = response.query.results.results[0].channel.wind.direction;
+    temp_high  = response.query.results.results[0].channel.item.forecast[0].high;
+    temp_low  = response.query.results.results[0].channel.item.forecast[0].low;
+    pubdate = new Date(Date.parse(response.query.results.results[0].channel.item.pubDate));
+    locale  = response.query.results.results[1].Result.neighborhood;
+
+	Weather.sunrise = Date.parse(new Date().toDateString()+" "+sunrise);
+	Weather.sunset = Date.parse(new Date().toDateString()+" "+sunset);
 
 	
-      if (locale === null) {
-        locale = response.query.results.results[1].Result.city;
-      }
-      if (locale === null) {
-        locale = 'unknown';
-      }
-      var temperature; 
-    
-      if (Global.config.feelsLikeEnabled) {
-          console.log('Using Feels like instead of temp');
-          temperature = parseInt(response.query.results.results[0].channel.wind.chill);
-      } else 
-          temperature = parseInt(response.query.results.results[0].channel.item.condition.temp);
+    if (Global.wuApiKey !== null) {
+        fetchWunderWeather(Weather.lat, Weather.long);
+      } else {
+        var data = {hourly_enabled: 0};
+        console.log("Hourly disabled, no WU ApiKey");
+        Pebble.sendAppMessage(data, ack, function(ev){
+            nack(data);
+        });
+      }	
+		
+    if (locale === null) {
+      locale = response.query.results.results[1].Result.city;
+    }
+    if (locale === null) {
+      locale = 'unknown';
+    }
+    var temperature; 
+  
+    if (Global.config.feelsLikeEnabled) {
+        console.log('Using Feels like instead of temp');
+        temperature = parseInt(response.query.results.results[0].channel.wind.chill);
+    } else 
+        temperature = parseInt(response.query.results.results[0].channel.item.condition.temp);
 	
-	  Global.weatherUpdateComplete = true;
-      return {
-        condition:   parseInt(response.query.results.results[0].channel.item.condition.code),
-        temperature: temperature,
-        sunrise:     Date.parse(new Date().toDateString()+" "+sunrise) / 1000,
-        sunset:      Date.parse(new Date().toDateString()+" "+sunset) / 1000,
-        locale:      locale,
-        pubdate:     pubdate / 1000,
-        tzoffset:    new Date().getTimezoneOffset() * 60,
+		  
+    var weather =  {
+      condition:   parseInt(response.query.results.results[0].channel.item.condition.code),
+      temperature: temperature,
+      sunrise:     Date.parse(new Date().toDateString()+" "+sunrise) / 1000,
+      sunset:      Date.parse(new Date().toDateString()+" "+sunset) / 1000,
+      locale:      locale,
+      pubdate:     pubdate / 1000,
+      tzoffset:    new Date().getTimezoneOffset() * 60,
 		humidity:    parseInt(humidity),
 		wind_speed:  parseInt(wind_speed),
-	        wind_dir:    parseInt(wind_dir),
+	    wind_dir:    parseInt(wind_dir),
 		temp_high:   parseInt(temp_high),
 		temp_low:   parseInt(temp_low)
+    };
+     
+     Global.weatherUpdateComplete = true;
+	  
+     console.log('Weather Data: ' + JSON.stringify(weather));
 
-	
-      };
-  };
-
-  fetchWeather(options); 
+     Pebble.sendAppMessage(weather, ack, function(e){
+       nack(weather);
+     });
+     postDebugMessage(weather);
+    
+     
 };
 
 var fetchOpenWeather = function(latitude, longitude) {
@@ -294,42 +313,66 @@ var fetchOpenWeather = function(latitude, longitude) {
   } 
   options.url = "http://api.openweathermap.org/data/2.5/weather?lat=" + latitude + "&lon=" + longitude + "&cnt=1&units=" + units;
 
-  options.parse = function(response) {
-      var temperature, sunrise, sunset, condition, pubdate, wind_speed, wind_dir, humidity, temp_high, temp_low;
+  console.log("calling openweather :" + options.url)
+  
+  getJson(options.url, fetchOpenWeatherCallback);
+};
 
-      temperature = response.main.temp;
-      temp_low = response.main.temp_min;
-      temp_high = response.main.temp_max;
-      condition = response.weather[0].id;
-      sunrise   = response.sys.sunrise;
-      sunset    = response.sys.sunset;
-      wind_speed = response.wind.speed;
-      wind_dir = response.wind.deg;
-      humidity = response.main.humidity;
-      pubdate   = new Date(response.dt*1000); 
 
-	  Weather.sunrise = sunrise.getTime();
-	  Weather.sunset = sunset.getTime();
-	
-		Global.weatherUpdateComplete = true;
+var fetchOpenWeatherCallback = function(err, response) {
+    var temperature, sunrise, sunset, condition, pubdate, wind_speed, wind_dir, humidity, temp_high, temp_low;
+
+    temperature = response.main.temp;
+    temp_low = response.main.temp_min;
+    temp_high = response.main.temp_max;
+    condition = response.weather[0].id;
+    sunrise   = response.sys.sunrise;
+    sunset    = response.sys.sunset;
+    wind_speed = response.wind.speed;
+    wind_dir = response.wind.deg;
+    humidity = response.main.humidity;
+    pubdate   = new Date(response.dt*1000); 
+
+	 Weather.sunrise = sunrise*1000;
+	 Weather.sunset = sunset*1000;
+    
 		
-      return {
-        condition:   condition,
-        temperature: temperature, 
-        sunrise:     sunrise,
-        sunset:      sunset,
-        locale:      response.name,
-        pubdate:     pubdate / 1000,
-        tzoffset:    new Date().getTimezoneOffset() * 60,
+    if (Global.wuApiKey !== null) {
+        fetchWunderWeather(Weather.lat, Weather.long);
+      } else {
+        var data = {hourly_enabled: 0};
+        console.log("Hourly disabled, no WU ApiKey");
+        Pebble.sendAppMessage(data, ack, function(ev){
+            nack(data);
+        });
+      }	
+			
+	
+		
+    var weather =  {
+      condition:   condition,
+      temperature: temperature, 
+      sunrise:     sunrise,
+      sunset:      sunset,
+      locale:      response.name,
+      pubdate:     pubdate / 1000,
+      tzoffset:    new Date().getTimezoneOffset() * 60,
 		humidity:    parseInt(humidity),
 		wind_speed:  parseInt(wind_speed),
 	    wind_dir:    parseInt(wind_dir),
 		temp_high:   parseInt(temp_high),
 		temp_low:   parseInt(temp_low)
 
-      };
-  };
-  fetchWeather(options);
+    };
+    
+    Global.weatherUpdateComplete = true;
+	  
+    console.log('Weather Data: ' + JSON.stringify(weather));
+
+    Pebble.sendAppMessage(weather, ack, function(e){
+      nack(weather);
+    });
+    postDebugMessage(weather);
 };
 
 var fetchWunderWeather = function(latitude, longitude) {
@@ -345,8 +388,10 @@ var fetchWunderWeather = function(latitude, longitude) {
        var h1 = response.hourly_forecast[Global.hourlyIndex1],
 	  h2 = response.hourly_forecast[Global.hourlyIndex2];  
 
+	      console.log("WSunset Hours: " + Weather.sunrise );
+	      console.log("WSunrise Hours: " + Weather.sunset);
 
-      if (Global.config.useAutoForecast && (Weather.sunrise != 0 && Weather.sunset != 0 )) {
+	      if (Global.config.useAutoForecast && (Weather.sunrise != 0 && Weather.sunset != 0 )) {
 
        	  var sunriseDate = new Date(Weather.sunrise);
 	      var sunsetDate = new Date(Weather.sunset);
@@ -357,19 +402,23 @@ var fetchWunderWeather = function(latitude, longitude) {
 	      var sunsethours =  sunsetDate.getHours()
 	      var currenthours = timeNow.getHours();
 
+	      console.log("Sunset Hours: " + sunsethours);
+	      console.log("Sunrise Hours: " + sunrisehours);
+	      console.log("Current Hours: " + currenthours);
 	      
 	      // if its between sunset and sunrise, then show the forecase only for sunrise and sunrise + h2_offset
 	      /// if its between surise and sunset, not auto forecast, biz as usual
-		if ( currenthours < sunrisehours  || currenthours >= sunsethours+2 ) { 
+		if ( currenthours < sunrisehours  || currenthours >= sunsethours ) { 
 	      
+			   
 				
-				if (currenthours > sunrisehours) { // if its past sunruse, show sunrise for the next day
+				if (currenthours >= sunsethours) { // if its past sunruse, show sunrise for the next day
 					Global.autoHourlyIndex1 = HOURS_IN_A_DAY-currenthours+sunrisehours;
-					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2;
+					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2+1;
  				} else { // if its before sunrise show the forecast for the sunrise hour and 2nd index + that hour
  						 // insteaed of absolute hours 
  					Global.autoHourlyIndex1 = sunrisehours-currenthours;
- 					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2;
+ 					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2+1 ; // -1 for 0 based index
  				}
 
 			  h1 = response.hourly_forecast[Global.autoHourlyIndex1];
@@ -401,6 +450,7 @@ var fetchWunderWeather = function(latitude, longitude) {
         h2_pop:  parseInt(h2.pop)
       };
   };
+    
   fetchWeather(options);
 };
 
