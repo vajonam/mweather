@@ -3,6 +3,8 @@
 
 #ifndef W_LAYER_H
 #define W_LAYER_H
+#define DAY_IN_SEC (24*60*60)
+#define HR_IN_SEC (1*60*60)
 
 
 

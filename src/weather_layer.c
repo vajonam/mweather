@@ -38,7 +38,7 @@ static uint8_t WEATHER_ICONS[] = {
 
 
 // Buffer the day / night time switch around sunrise & sunset
-const int CIVIL_TWILIGHT_BUFFER = 900; // 15 minutes
+const int CIVIL_TWILIGHT_BUFFER = 1800; // 30 minutes
 const int WEATHER_ANIMATION_REFRESH = 1000; // 1 second animation 
 const int WEATHER_INITIAL_RETRY_TIMEOUT = 65; // Maybe our initial request failed? Try again!
 const int WEATHER_ANIMATION_TIMEOUT = 90; // 60 * WEATHER_ANIMATION_REFRESH = 60s
@@ -387,8 +387,8 @@ void weather_layer_update(WeatherData *weather_data) {
 			APP_LOG(APP_LOG_LEVEL_DEBUG, "sunrse %i, sunset %i, h1,h2 time %i %i ",weather_data->sunrise, weather_data->sunset, weather_data->h1_time,weather_data->h2_time);
 
 			// Auto Mode
-			if ((weather_data->h1_time-weather_data->sunrise)/3600 >= 23)
-				night_time = is_night_time(weather_data->sunrise+(23*60*60),weather_data->sunset+(24*60*60), weather_data->h1_time);
+			if ((weather_data->h1_time-weather_data->sunrise)/HR_IN_SEC >= 23)
+				night_time = is_night_time(weather_data->sunrise+DAY_IN_SEC,weather_data->sunset+DAY_IN_SEC, weather_data->h1_time);
 			else
 				night_time = is_night_time(weather_data->sunrise,weather_data->sunset, weather_data->h1_time);
 
@@ -396,7 +396,7 @@ void weather_layer_update(WeatherData *weather_data) {
 					wunder_weather_icon_for_condition(weather_data->h1_cond,
 							night_time), AREA_HOURLY1);
 
-			if ((weather_data->h2_time-weather_data->sunrise)/3600 >= 23) {
+			if ((weather_data->h2_time-weather_data->sunrise)/HR_IN_SEC >= 23) {
 				night_time = is_night_time(weather_data->sunrise+(24*60*60),weather_data->sunset+(24*60*60), weather_data->h2_time);
 				//	APP_LOG(APP_LOG_LEVEL_DEBUG, "sunrse %i, sunset %i, h2 time %i ",weather_data->sunrise+(24*60*60), weather_data->sunset+(24*60*60), weather_data->h2_time);
 				//APP_LOG(APP_LOG_LEVEL_DEBUG, "h2 night_time %i",night_time);

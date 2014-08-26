@@ -49,7 +49,7 @@
                 "type": "font"
             },
             {
-                "characterRegex": "[A-Za-z0-9 ]",
+                "characterRegex": "[MTWFSJAONDonuehriatykgv0-9 ]",
                 "file": "fonts/futura.ttf",
                 "name": "FUTURA_18",
                 "trackingAdjust": 3,
@@ -64,6 +64,7 @@
             },
             {
                 "file": "fonts/futura_condensed_bold-webfont.ttf",
+                "characterRegex": "[0-9\u00b0 -:APMNWES ]",
                 "name": "FUTURA_CONDENSED_50",
                 "type": "font"
             },
