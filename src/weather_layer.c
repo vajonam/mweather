@@ -397,7 +397,7 @@ void weather_layer_update(WeatherData *weather_data) {
 							night_time), AREA_HOURLY1);
 
 			if ((weather_data->h2_time-weather_data->sunrise)/HR_IN_SEC >= 23) {
-				night_time = is_night_time(weather_data->sunrise+(24*60*60),weather_data->sunset+(24*60*60), weather_data->h2_time);
+				night_time = is_night_time(weather_data->sunrise+(23*60*60),weather_data->sunset+(23*60*60), weather_data->h2_time);
 				//	APP_LOG(APP_LOG_LEVEL_DEBUG, "sunrse %i, sunset %i, h2 time %i ",weather_data->sunrise+(24*60*60), weather_data->sunset+(24*60*60), weather_data->h2_time);
 				//APP_LOG(APP_LOG_LEVEL_DEBUG, "h2 night_time %i",night_time);
 			} else {

@@ -412,13 +412,13 @@ var fetchWunderWeather = function(latitude, longitude) {
 	      
 			   
 				
-				if (currenthours >= sunsethours) { // if its past sunruse, show sunrise for the next day
-					Global.autoHourlyIndex1 = HOURS_IN_A_DAY-currenthours+sunrisehours;
-					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2+1;
+				if (currenthours >= sunsethours) { // if its past sunset, show sunrise for the next day
+					Global.autoHourlyIndex1 = HOURS_IN_A_DAY-currenthours+sunrisehours+1;
+					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2;
  				} else { // if its before sunrise show the forecast for the sunrise hour and 2nd index + that hour
  						 // insteaed of absolute hours 
  					Global.autoHourlyIndex1 = sunrisehours-currenthours;
- 					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2+1 ; // -1 for 0 based index
+ 					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2 ; // -1 for 0 based index
  				}
 
 			  h1 = response.hourly_forecast[Global.autoHourlyIndex1];
