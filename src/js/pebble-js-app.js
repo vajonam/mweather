@@ -397,10 +397,12 @@ var fetchWunderWeather = function(latitude, longitude) {
 	      var sunsetDate = new Date(Weather.sunset);
 	      var timeNow = new Date();
 	      
-	      // dont care about the date, because its confusing, lets just worry about hours.
+	      // dont care about the date, because its confusing, lets just worry about hours and minutes.
 	      var sunrisehours =  sunriseDate.getHours()
 	      var sunsethours =  sunsetDate.getHours()
 	      var currenthours = timeNow.getHours();
+	      var sunriseMinutes = sunriseDate.getMinutes();
+	      
 
 	      console.log("Sunset Hours: " + sunsethours);
 	      console.log("Sunrise Hours: " + sunrisehours);
@@ -413,7 +415,12 @@ var fetchWunderWeather = function(latitude, longitude) {
 			   
 				
 				if (currenthours >= sunsethours) { // if its past sunset, show sunrise for the next day
-					Global.autoHourlyIndex1 = HOURS_IN_A_DAY-currenthours+sunrisehours+1;
+					
+					if (sunriseMinutes > 30)
+						var adjust = 1;
+					else
+						var adjust = 0;
+					Global.autoHourlyIndex1 = HOURS_IN_A_DAY-currenthours+sunrisehours+adjust;
 					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2;
  				} else { // if its before sunrise show the forecast for the sunrise hour and 2nd index + that hour
  						 // insteaed of absolute hours 
