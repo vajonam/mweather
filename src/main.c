@@ -59,11 +59,11 @@ static void handle_tap(AccelAxisType axis,  int32_t direction) {
 void double_tap() {
 
 	show_extended_weather(true);
-	eweather_timer = app_timer_register(EWEATHER_TIME, dismiss_ewather, NULL);
+	eweather_timer = app_timer_register(EWEATHER_TIME, dismiss_eweather, NULL);
 
 }
 
-void dismiss_ewather() {
+void dismiss_eweather() {
 
 	show_extended_weather(false);
 }
@@ -100,7 +100,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
   if ((units_changed & SECOND_UNIT ) && (tick_time->tm_sec % 5 == 0)) {
   weather_data->temperature = (tick_time->tm_sec + rand()%60) * (rand()%3 ? 1 : -1);
   weather_data->condition = tick_time->tm_sec;
-  weather_data->updated = time(NULL);
+ weather_data->updated = time(NULL);
   weather_data->hourly_enabled = true;
   weather_data->hourly_updated = time(NULL);
   weather_data->h1_cond = tick_time->tm_sec % 30;
