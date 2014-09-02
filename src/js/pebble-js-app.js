@@ -424,7 +424,11 @@ var fetchWunderWeather = function(latitude, longitude) {
 					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2;
  				} else { // if its before sunrise show the forecast for the sunrise hour and 2nd index + that hour
  						 // insteaed of absolute hours 
- 					Global.autoHourlyIndex1 = sunrisehours-currenthours;
+ 					if (sunriseMinutes > 30)
+						var adjust = 1;
+					else
+						var adjust = 0;
+ 					Global.autoHourlyIndex1 = sunrisehours-currenthours+adjust;
  					Global.autoHourlyIndex2 = Global.autoHourlyIndex1 + Global.hourlyIndex2 ; // -1 for 0 based index
  				}
 
