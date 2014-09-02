@@ -11,6 +11,7 @@ static AppTimer *battery_animation_timer;
 static bool is_animating = false;
 static bool is_enabled   = false;
 static int8_t dots = 4;
+static bool is_dirty = false;
 
 
 
@@ -46,7 +47,7 @@ static void handle_battery(BatteryChargeState charge_state)
       dots = 1;
     }
   }
-  layer_mark_dirty(battery_layer);
+  is_dirty = true;
 }
 
 
@@ -104,7 +105,10 @@ void battery_timer_callback()
 void battery_layer_update(Layer *me, GContext *ctx) 
 {
 
-    int8_t spacer = 18; // pixels
+    if (!is_dirty)
+    		return;
+
+	int8_t spacer = 18; // pixels
 	int8_t start_y = 45; //only two colon like dots
 
 	graphics_context_set_fill_color(ctx, GColorWhite);
@@ -143,6 +147,7 @@ void battery_layer_update(Layer *me, GContext *ctx)
 
 	}
 
+	is_dirty = false;
 }
 
 void battery_layer_destroy() 
