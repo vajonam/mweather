@@ -3,5 +3,5 @@
 
 void initial_jsready_callback();
 void double_tap();
-void dismiss_ewather();
+void dismiss_eweather();
 #endif
