@@ -117,7 +117,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 
   // Refresh the weather info every 15 mins, targeting 18 mins after the hour (Yahoo updates around then)
   if ((units_changed & MINUTE_UNIT) && 
-      (tick_time->tm_min % 15 == 3) &&
+      (tick_time->tm_min % 30 == 0) &&
       !initial_request) {
     request_weather(weather_data);
   }

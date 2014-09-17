@@ -230,7 +230,7 @@ var fetchYahooWeather = function(latitude, longitude) {
 
   
   getJson(options.url, fetchYahooWeatherCallBack);
-  
+	console.log("YAHOO QUERY :" + options.url);
 };
 
 
@@ -245,12 +245,16 @@ var fetchYahooWeatherCallBack  = function(err,response) {
     wind_dir  = response.query.results.results[0].channel.wind.direction;
     temp_high  = response.query.results.results[0].channel.item.forecast[0].high;
     temp_low  = response.query.results.results[0].channel.item.forecast[0].low;
-    pubdate = new Date(Date.parse(response.query.results.results[0].channel.item.pubDate));
+	var pubdateStr = response.query.results.results[0].channel.item.pubDate;
+	// Nuke TIMEZONE we dont care, because we are in the same TZ as the weather
+    pubdate = new Date(pubdateStr.substring(0,pubdateStr.length-3));
     locale  = response.query.results.results[1].Result.neighborhood;
 
 	Weather.sunrise = Date.parse(new Date().toDateString()+" "+sunrise);
 	Weather.sunset = Date.parse(new Date().toDateString()+" "+sunset);
 
+	if (isNaN(pubdate)) 
+		pubdate = new Date();
 	
     if (Global.wuApiKey !== null) {
         fetchWunderWeather(Weather.lat, Weather.long);
