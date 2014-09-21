@@ -60,12 +60,13 @@ void double_tap() {
 
 	show_extended_weather(true);
 	eweather_timer = app_timer_register(EWEATHER_TIME, dismiss_eweather, NULL);
-
+ 	light_enable(true);
 }
 
 void dismiss_eweather() {
 
 	show_extended_weather(false);
+	light_enable(false);
 }
 
 // Add below to handle_init
