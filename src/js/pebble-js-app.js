@@ -246,7 +246,7 @@ var fetchYahooWeatherCallBack  = function(err,response) {
     temp_high  = response.query.results.results[0].channel.item.forecast[0].high;
     temp_low  = response.query.results.results[0].channel.item.forecast[0].low;
 	var pubdateStr = response.query.results.results[0].channel.item.pubDate;
-	// Nuke TIMEZONE we dont care, because we are in the same TZ as the weather
+	// Nuke TIMEZONE we don't care, because we are in the same TZ as the weather
     pubdate = new Date(pubdateStr.substring(0,pubdateStr.length-3));
     locale  = response.query.results.results[1].Result.neighborhood;
 

@@ -15,6 +15,22 @@ static int8_t dots = 4;
 
 
 
+void chagre_in_dots (uint8_t charge ) {
+
+	 if (charge >= 83) {
+	      dots = MAX_DOTS;
+	    } else if (charge >= 67 && charge <83) {
+	      dots = 4;
+	    } else if (charge >= 50 && charge < 67) {
+	      dots = 3;
+	    } else if (charge >= 33 && charge < 50) {
+	      dots = 2;
+	   } else {
+	      dots = 1;
+	   }
+
+}
+
 static void handle_battery(BatteryChargeState charge_state) 
 {
   uint8_t charge = charge_state.charge_percent;
@@ -35,19 +51,11 @@ static void handle_battery(BatteryChargeState charge_state)
     }
     
 
-    if (charge >= 85) {
-      dots = MAX_DOTS;
-    } else if (charge >= 75 && charge <85) {
-      dots = 4;
-    } else if (charge >= 50 && charge < 75) {
-      dots = 3;
-    } else if (charge >= 20 && charge < 50) {
-      dots = 2;
-   } else {
-      dots = 1;
-    }
+    chagre_in_dots(charge);
+
   }
 }
+
 
 
 
@@ -94,9 +102,10 @@ void battery_disable_display()
 
 void battery_timer_callback()
 {
+
   dots++;
   if (dots > MAX_DOTS) {
-    dots = 1;
+	  chagre_in_dots(battery_state_service_peek().charge_percent);
   }
   layer_mark_dirty(battery_layer);
   battery_animation_timer = app_timer_register(BATTERY_TIMEOUT, battery_timer_callback, NULL);
