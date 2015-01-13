@@ -16,8 +16,8 @@ static char sunrise_text[] = "00:00XX";
 static char sunset_text[] = "00:00XX";
 static char windspeed_text[] = "000XX";
 static char humidity_text[] = "000X";
-static char temp_high_text[] = "000X";
-static char temp_low_text[] = "000X";
+static char temp_high_text[] = "0000X";
+static char temp_low_text[] = "0000X";
 
 void eweather_layer_create(Layer *weather_layer) {
 
@@ -97,7 +97,7 @@ void eweather_layer_create(Layer *weather_layer) {
 			bitmap_layer_get_layer(ewd->temp_high_icon_layer));
 	bitmap_layer_set_bitmap(ewd->temp_high_icon_layer, ewd->temp_high_icon);
 
-	ewd->temp_high_layer = text_layer_create(GRect(97+5, 24,  37+5, 36));
+	ewd->temp_high_layer = text_layer_create(GRect(98, 24,  144-98, 36));
 	text_layer_set_background_color(ewd->temp_high_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->temp_high_layer, GTextAlignmentLeft);
 	text_layer_set_font(ewd->temp_high_layer, small_font);
@@ -110,10 +110,11 @@ void eweather_layer_create(Layer *weather_layer) {
 			bitmap_layer_get_layer(ewd->temp_low_icon_layer));
 	bitmap_layer_set_bitmap(ewd->temp_low_icon_layer, ewd->temp_low_icon);
 
-	ewd->temp_low_layer = text_layer_create(GRect(97+5, 46,  37+5, 36));
+	ewd->temp_low_layer = text_layer_create(GRect(98, 46,  144-98, 36));
 	text_layer_set_background_color(ewd->temp_low_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->temp_low_layer, GTextAlignmentLeft);
 	text_layer_set_font(ewd->temp_low_layer, small_font);
+	text_layer_set_text_color(ewd->temp_low_layer, GColorBlack);
 	layer_add_child(eweather_layer, text_layer_get_layer(ewd->temp_low_layer));
 
 	ewd->locale_layer = text_layer_create(GRect(2, 68, 144 , 20));
@@ -164,6 +165,10 @@ void eweather_layer_update(WeatherData *weather_data) {
 
 	snprintf(temp_low_text, sizeof(temp_low_text), "%i°",
 			weather_data->temp_low);
+	
+	APP_LOG(APP_LOG_LEVEL_DEBUG, "LOW TEMP %s", temp_low_text );
+	
+	
 	text_layer_set_text(ewd->temp_low_layer, temp_low_text);
 
 	time_t pubdate_t = weather_data->pub_date - weather_data->tzoffset;
