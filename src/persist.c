@@ -30,10 +30,10 @@ void load_persisted_values(WeatherData *weather_data)
   
   
   // Auto Forecast
-   weather_data->auto_forecast = persist_exists(KEY_FEELS_LIKE) ? persist_read_bool(KEY_FEELS_LIKE) : DEFAULT_USE_FEELSLIKE;
+   weather_data->auto_forecast = persist_exists(KEY_AUTO_FORECAST) ? persist_read_bool(KEY_AUTO_FORECAST) : DEFAULT_USE_AUTOFORECAST;
  
    // Feels like
-   weather_data->feels_like = persist_exists(KEY_AUTO_FORECAST) ? persist_read_bool(KEY_AUTO_FORECAST) : DEFAULT_USE_AUTOFORECAST;
+   weather_data->feels_like = persist_exists(KEY_USE_FEELSLIKE) ? persist_read_bool(KEY_USE_FEELSLIKE) : DEFAULT_USE_FEELSLIKE;
 
    // Hourly Offsets 1
    weather_data->h1_offset = persist_exists(KEY_H1_OFFSET) ? persist_read_int(KEY_H1_OFFSET) : DEFAULT_H1_OFFSET;
@@ -74,7 +74,7 @@ void store_persisted_values(WeatherData *weather_data)
   persist_write_bool(KEY_AUTO_FORECAST, weather_data->auto_forecast);
 
 
-  APP_LOG(APP_LOG_LEVEL_DEBUG, "PersistStore:  d:%d b:%d s:%s u:%s f:%d h1:2-%d:%d af%d",
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "PersistStore:  d:%d b:%d s:%s u:%s f:%d h1:2-%d:%d af:%d",
       weather_data->debug, weather_data->battery, weather_data->service, weather_data->scale, weather_data->feels_like,
          (int) weather_data->h1_offset, (int)weather_data->h2_offset,weather_data->auto_forecast);
 }

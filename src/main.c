@@ -118,7 +118,7 @@ static void handle_tick(struct tm *tick_time, TimeUnits units_changed)
 
   // Refresh the weather info every 15 mins, targeting 18 mins after the hour (Yahoo updates around then)
   if ((units_changed & MINUTE_UNIT) && 
-      (tick_time->tm_min % 20 == 0) &&
+      (tick_time->tm_min == 20 ) &&
       !initial_request) {
     request_weather(weather_data);
   }
@@ -183,16 +183,24 @@ static void deinit(void)
   APP_LOG(APP_LOG_LEVEL_DEBUG, "deinit started");
 
   tick_timer_service_unsubscribe();
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "timer unsub");
   accel_tap_service_unsubscribe();
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "tap unsub");
 
   window_destroy(window);
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "destroy main");
 
   time_layer_destroy();
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "destroy time");
   date_layer_destroy();
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "destroy date");
   weather_layer_destroy();
-
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "destroy weather");
+  
   debug_layer_destroy();
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "destroy debug");
   battery_layer_destroy();
+  APP_LOG(APP_LOG_LEVEL_DEBUG, "destroy battery");
 
   free(weather_data);
   close_network();

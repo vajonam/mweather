@@ -7,7 +7,7 @@ var HOURS_IN_A_DAY 		  = 23 ; // 24hr clock
 
 var Global = {
   externalDebug:     false, // POST logs to external server - dangerous! lat lon recorded
-  wuApiKey:          '', // register for a free api key!
+  wuApiKey:          '2b0d6572c90d3e4a', // register for a free api key!
   hourlyIndex1:      1, // 2 Hours from now 
   hourlyIndex2:      5, // 6 hours from now
   autoHourlyIndex1:      1, // 2 Hours from now 
@@ -75,7 +75,7 @@ Pebble.addEventListener("appmessage", function(data) {
       Global.config.weatherScale   = data.payload.scale   === 'C' ? 'C' : 'F';
       Global.hourlyIndex1          = data.payload.h1_offset;
       Global.hourlyIndex2          = data.payload.h2_offset;
-      Global.wuApiKey              = window.localStorage.getItem('wuApiKey');
+      Global.wuApiKey              = window.localStorage.getItem('wuApiKey') ;
       updateWeather();
     } catch (ex) {
       console.warn("Could not retrieve data sent from Pebble: "+ex.message);

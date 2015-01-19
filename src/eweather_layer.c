@@ -97,7 +97,7 @@ void eweather_layer_create(Layer *weather_layer) {
 			bitmap_layer_get_layer(ewd->temp_high_icon_layer));
 	bitmap_layer_set_bitmap(ewd->temp_high_icon_layer, ewd->temp_high_icon);
 
-	ewd->temp_high_layer = text_layer_create(GRect(98, 24,  144-98, 36));
+	ewd->temp_high_layer = text_layer_create(GRect(100, 24,  144-100, 36));
 	text_layer_set_background_color(ewd->temp_high_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->temp_high_layer, GTextAlignmentLeft);
 	text_layer_set_font(ewd->temp_high_layer, small_font);
@@ -110,7 +110,7 @@ void eweather_layer_create(Layer *weather_layer) {
 			bitmap_layer_get_layer(ewd->temp_low_icon_layer));
 	bitmap_layer_set_bitmap(ewd->temp_low_icon_layer, ewd->temp_low_icon);
 
-	ewd->temp_low_layer = text_layer_create(GRect(98, 46,  144-98, 36));
+	ewd->temp_low_layer = text_layer_create(GRect(100, 46,  144-100, 36));
 	text_layer_set_background_color(ewd->temp_low_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->temp_low_layer, GTextAlignmentLeft);
 	text_layer_set_font(ewd->temp_low_layer, small_font);
@@ -166,9 +166,6 @@ void eweather_layer_update(WeatherData *weather_data) {
 	snprintf(temp_low_text, sizeof(temp_low_text), "%i°",
 			weather_data->temp_low);
 	
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "LOW TEMP %s", temp_low_text );
-	
-	
 	text_layer_set_text(ewd->temp_low_layer, temp_low_text);
 
 	time_t pubdate_t = weather_data->pub_date - weather_data->tzoffset;
@@ -215,6 +212,5 @@ void eweather_layer_destroy() {
 	text_layer_destroy(ewd->locale_layer);
 
 	layer_destroy(eweather_layer);
-
 }
 

@@ -75,7 +75,7 @@ static void weather_layer_set_icon(WeatherIcon icon, WeatherDisplayArea area) {
 	WeatherLayerData *wld = layer_get_data(weather_layer);
 
 
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "Update called with icon: %d for: %d",icon, area);
+	// APP_LOG(APP_LOG_LEVEL_DEBUG, "Update called with icon: %d for: %d",icon, area);
 
 	static BitmapLayer *layer = NULL;
 	int percent = (int) wld->hourly_icon_size*100/wld->primary_icon_size;
