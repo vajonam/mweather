@@ -261,17 +261,19 @@
 	
         $("#b-cancel").click(function() {
             console.log("Cancel");
-            document.location = "pebblejs://close";
+            // document.location = "pebblejs://close";
+            var return_to = getQueryParam('return_to', 'pebblejs://close#');
+	    document.location = return_to + encodeURIComponent(JSON.stringify(some_settings));
         });
 
         $("#b-submit").click(function() {
             console.log("Submit");
 
-            var location = "pebblejs://close#" + (JSON.stringify(saveOptions()));
-            console.log("Warping to: " + location);
-            console.log(location);
-            document.location = location;
-        });
+            	var return_to = getQueryParam('return_to', 'pebblejs://close#');
+            	console.log("Warping to: " + location);
+            	console.log(location);
+ 		document.location = return_to + encodeURIComponent(JSON.stringify(some_settings));
+	});
 
         initialLoad = false;
     });
