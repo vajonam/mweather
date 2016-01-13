@@ -17,13 +17,13 @@ static int8_t dots = 4;
 
 void chagre_in_dots (uint8_t charge ) {
 
-	 if (charge >= 83) {
+	 if (charge >= 75) {
 	      dots = MAX_DOTS;
-	    } else if (charge >= 67 && charge <83) {
+	    } else if (charge >= 55 && charge <75) {
 	      dots = 4;
-	    } else if (charge >= 50 && charge < 67) {
+	    } else if (charge >= 35 && charge < 55) {
 	      dots = 3;
-	    } else if (charge >= 33 && charge < 50) {
+	    } else if (charge >= 10 && charge < 35) {
 	      dots = 2;
 	   } else {
 	      dots = 1;
@@ -52,7 +52,7 @@ static void handle_battery(BatteryChargeState charge_state)
     
 
     chagre_in_dots(charge);
-
+	layer_mark_dirty(battery_layer);
   }
 }
 

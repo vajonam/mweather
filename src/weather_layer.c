@@ -374,8 +374,8 @@ void weather_layer_update(WeatherData *weather_data) {
 
 		if (weather_data->hourly_updated != 0 && weather_data->hourly_enabled) {
 
-			time_t h1t = weather_data->h1_time - weather_data->tzoffset;
-			time_t h2t = weather_data->h2_time - weather_data->tzoffset;
+			time_t h1t = weather_data->h1_time ; // - weather_data->tzoffset;
+			time_t h2t = weather_data->h2_time ; // - weather_data->tzoffset;
 			strftime(time_h1, sizeof(time_h1), "%l%p", localtime(&h1t));
 			strftime(time_h2, sizeof(time_h2), "%l%p", localtime(&h2t));
 

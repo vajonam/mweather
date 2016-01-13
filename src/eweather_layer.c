@@ -170,7 +170,7 @@ void eweather_layer_update(WeatherData *weather_data) {
 
 	time_t pubdate_t = weather_data->pub_date - weather_data->tzoffset;
 
-	struct tm *pubdateTime = localtime(&pubdate_t);
+	struct tm *pubdateTime = gmtime(&pubdate_t);
 	char pubdate_str[] = "00:00XX";
 
 	strftime(pubdate_str, sizeof(pubdate_str),
