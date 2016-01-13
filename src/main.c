@@ -196,7 +196,6 @@ static void deinit(void)
   APP_LOG(APP_LOG_LEVEL_DEBUG, "destroy date");
   weather_layer_destroy();
   APP_LOG(APP_LOG_LEVEL_DEBUG, "destroy weather");
-  
   debug_layer_destroy();
   APP_LOG(APP_LOG_LEVEL_DEBUG, "destroy debug");
   battery_layer_destroy();

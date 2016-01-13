@@ -1,4 +1,5 @@
 #include <pebble.h>
+static bool is_animating = false;
 #include "battery_layer.h"
 #include "datetime_layer.h"
 
@@ -8,7 +9,6 @@ const uint8_t  MAX_DOTS = 5;
 static Layer *battery_layer;
 
 static AppTimer *battery_animation_timer;
-static bool is_animating = false;
 static bool is_enabled   = false;
 static int8_t dots = 4;
 

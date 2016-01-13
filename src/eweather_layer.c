@@ -7,7 +7,7 @@
 #define EWEATHER_FRAME   (GRect(144, 0, 288, 120))
 
 static Layer *eweather_layer;
-static GFont *small_font;
+static GFont small_font;
 
 static char *direction[] = { "N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
 		"S", "SSW", "SW", "WSW", "W", "WNW", "NW", "NNW" };
