@@ -41,7 +41,7 @@ void eweather_layer_create(Layer *weather_layer) {
 			bitmap_layer_get_layer(ewd->sunrise_icon_layer));
 	bitmap_layer_set_bitmap(ewd->sunrise_icon_layer, ewd->sunrise_icon);
 
-	ewd->sunrise_time_layer = text_layer_create(GRect(22, 3, 54, 36));
+	ewd->sunrise_time_layer = text_layer_create(GRect(22, 3, 59, 36));
 	text_layer_set_background_color(ewd->sunrise_time_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->sunrise_time_layer, GTextAlignmentLeft);
 	text_layer_set_font(ewd->sunrise_time_layer, small_font);
@@ -54,7 +54,7 @@ void eweather_layer_create(Layer *weather_layer) {
 			bitmap_layer_get_layer(ewd->sunset_icon_layer));
 	bitmap_layer_set_bitmap(ewd->sunset_icon_layer, ewd->sunset_icon);
 
-	ewd->sunset_time_layer = text_layer_create(GRect(22, 24, 54, 36));
+	ewd->sunset_time_layer = text_layer_create(GRect(22, 24, 59, 36));
 	text_layer_set_background_color(ewd->sunset_time_layer, GColorClear);
 	text_layer_set_text_alignment(ewd->sunset_time_layer, GTextAlignmentLeft);
 	text_layer_set_font(ewd->sunset_time_layer, small_font);
@@ -135,7 +135,7 @@ void eweather_layer_update(WeatherData *weather_data) {
 
 	EWeatherLayerData *ewd = layer_get_data(eweather_layer);
 
-	time_t sunrise_t = weather_data->sunrise - weather_data->tzoffset;
+	time_t sunrise_t = weather_data->sunrise ;// - weather_data->tzoffset;
 
 	struct tm *sunriseTime = localtime(&sunrise_t);
 
@@ -143,7 +143,7 @@ void eweather_layer_update(WeatherData *weather_data) {
 			clock_is_24h_style() ? "%R" : "%l:%M%p", sunriseTime);
 	text_layer_set_text(ewd->sunrise_time_layer, sunrise_text);
 
-	time_t sunset_t = weather_data->sunset - weather_data->tzoffset;
+	time_t sunset_t = weather_data->sunset ;//  weather_data->tzoffset;
 
 	struct tm *sunsetTime = localtime(&sunset_t);
 
