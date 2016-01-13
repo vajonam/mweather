@@ -243,18 +243,14 @@ static void appmsg_out_failed(DictionaryIterator *failed,
 }
 
 void init_network(WeatherData *weather_data) {
-	int max_in = app_message_inbox_size_maximum();
-	int max_out = app_message_outbox_size_maximum();
-
+	
 	app_message_register_inbox_received(appmsg_in_received);
 	app_message_register_inbox_dropped(appmsg_in_dropped);
 	app_message_register_outbox_sent(appmsg_out_sent);
 	app_message_register_outbox_failed(appmsg_out_failed);
 	app_message_set_context(weather_data);
-	app_message_open(max_in, max_out);
-
-	APP_LOG(APP_LOG_LEVEL_DEBUG, "AppMessage max_IN: %i, max_OUT: %i", max_in,
-			max_out);
+	app_message_open(APP_MESSAGE_INBOX_SIZE_MINIMUM, APP_MESSAGE_INBOX_SIZE_MINIMUM);
+	
 
 	weather_data->error = WEATHER_E_OK;
 	weather_data->updated = 0;
